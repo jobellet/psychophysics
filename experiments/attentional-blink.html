@@ -116,13 +116,13 @@
 <body>
   <div id="jspsych-target"></div>
 
-  <script src="https://unpkg.com/jspsych@7.3.3/dist/jspsych.js"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.2"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-html-button-response@1.1.2"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-survey-html-form@1.1.2"></script>
+  <script src="https://unpkg.com/jspsych@7.3.3/dist/index.browser.min.js"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.1.0/dist/index.browser.min.js"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-button-response@2.1.0/dist/index.browser.min.js"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-html-form@2.1.0/dist/index.browser.min.js"></script>
 
   <script>
-    const jsPsych = initJsPsych({
+    const jsPsych = jsPsychModule.initJsPsych({
       display_element: 'jspsych-target'
     });
 
