@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Attentional Blink Experiment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/jspsych@7.3.3/css/jspsych.css" />
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      --accent: #2563eb;
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top, #eff6ff 0%, #ffffff 70%, #e0f2fe 100%);
+      color: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(16px, 4vw, 48px);
+    }
+
+    #jspsych-target {
+      max-width: 720px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      border-radius: 28px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+      padding: clamp(24px, 5vw, 56px);
+    }
+
+    .jspsych-display-element {
+      font-size: clamp(18px, 3vw, 22px);
+      line-height: 1.7;
+    }
+
+    .jspsych-btn {
+      font-size: clamp(1rem, 2.6vw, 1.1rem);
+      padding: clamp(12px, 3vw, 16px) clamp(20px, 5vw, 32px);
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+      box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+      transition: transform 120ms ease, box-shadow 120ms ease;
+      touch-action: manipulation;
+    }
+
+    .jspsych-btn:active {
+      transform: translateY(2px);
+      box-shadow: inset 0 2px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    .rsvp-stimulus {
+      font-size: clamp(48px, 16vw, 96px);
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-align: center;
+    }
+
+    .response-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      margin-top: 16px;
+    }
+
+    .response-grid label {
+      display: flex;
+      flex-direction: column;
+      font-weight: 600;
+      gap: 8px;
+    }
+
+    .response-grid input {
+      font-size: 1.2rem;
+      padding: 12px;
+      border-radius: 14px;
+      border: 2px solid rgba(37, 99, 235, 0.35);
+      text-align: center;
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    .response-grid input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.22);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: radial-gradient(circle at top, #1e3a8a 0%, #0f172a 80%);
+        color: #e2e8f0;
+      }
+
+      #jspsych-target {
+        background: rgba(15, 23, 42, 0.8);
+        box-shadow: 0 18px 40px rgba(2, 6, 23, 0.6);
+      }
+
+      .response-grid input {
+        background: rgba(15, 23, 42, 0.9);
+        color: #f1f5f9;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="jspsych-target"></div>
+
+  <script src="https://unpkg.com/jspsych@7.3.3/dist/jspsych.js"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.2"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-button-response@1.1.2"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-html-form@1.1.2"></script>
+
+  <script>
+    const jsPsych = initJsPsych({
+      display_element: 'jspsych-target'
+    });
+
+    const timeline = [];
+
+    const introduction = {
+      type: jsPsychHtmlButtonResponse,
+      stimulus: `
+        <h1>Attentional Blink</h1>
+        <p>
+          In each trial you will watch a rapid stream of characters. Among the letters are two target digits.
+          After the stream ends, report both digits. Try to be as accurate as possible.
+        </p>
+        <p>
+          This experiment works on smartphones and desktops. Turn up your screen brightness and ensure distractions are minimised.
+        </p>
+      `,
+      choices: ['Begin']
+    };
+
+    timeline.push(introduction);
+
+    const fixation = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: '<div class="rsvp-stimulus">+</div>',
+      choices: 'NO_KEYS',
+      trial_duration: 700
+    };
+
+    const letters = ['A','B','C','D','E','F','G','H','J','K','L','M','N','P','Q','R','S','T','V','W','X','Y','Z'];
+    const digits = ['1','2','3','4','5','6','7','8','9'];
+
+    function makeTrialConfig() {
+      const totalItems = 15;
+      const lagOptions = [1, 2, 3, 7];
+      const t1Position = jsPsych.randomization.sampleWithoutReplacement([2,3,4,5,6,7,8,9], 1)[0];
+      const lag = jsPsych.randomization.sampleWithoutReplacement(
+        lagOptions.filter(l => t1Position + l < totalItems - 1),
+        1
+      )[0];
+      const t2Position = t1Position + lag;
+
+      const t1 = jsPsych.randomization.sampleWithoutReplacement(digits, 1)[0];
+      let t2 = jsPsych.randomization.sampleWithoutReplacement(digits, 1)[0];
+      while (t2 === t1) {
+        t2 = jsPsych.randomization.sampleWithoutReplacement(digits, 1)[0];
+      }
+
+      const sequence = [];
+      for (let i = 0; i < totalItems; i++) {
+        sequence.push(jsPsych.randomization.sampleWithoutReplacement(letters, 1)[0]);
+      }
+      sequence[t1Position] = t1;
+      sequence[t2Position] = t2;
+
+      return {
+        sequence,
+        t1,
+        t2,
+        t1Position,
+        t2Position,
+        lag
+      };
+    }
+
+    function makeRsvpTimeline(config, trialIndex) {
+      const rsvpTimeline = [];
+      config.sequence.forEach((item, index) => {
+        rsvpTimeline.push({
+          type: jsPsychHtmlKeyboardResponse,
+          stimulus: `<div class="rsvp-stimulus">${item}</div>`,
+          choices: 'NO_KEYS',
+          trial_duration: 100,
+          data: {
+            trial_index: trialIndex,
+            phase: 'stream',
+            stream_position: index,
+            item,
+            is_target: index === config.t1Position || index === config.t2Position,
+            target_role:
+              index === config.t1Position
+                ? 'T1'
+                : index === config.t2Position
+                ? 'T2'
+                : 'distractor',
+            lag: config.lag,
+            t1_identity: config.t1,
+            t2_identity: config.t2
+          }
+        });
+        rsvpTimeline.push({
+          type: jsPsychHtmlKeyboardResponse,
+          stimulus: '',
+          choices: 'NO_KEYS',
+          trial_duration: 50,
+          data: {
+            trial_index: trialIndex,
+            phase: 'isi',
+            stream_position: index,
+            is_target: false,
+            lag: config.lag,
+            t1_identity: config.t1,
+            t2_identity: config.t2
+          }
+        });
+      });
+      return rsvpTimeline;
+    }
+
+    const trialCount = 12;
+    for (let i = 0; i < trialCount; i++) {
+      const config = makeTrialConfig();
+
+      timeline.push(fixation);
+      timeline.push(...makeRsvpTimeline(config, i));
+
+      timeline.push({
+        type: jsPsychSurveyHtmlForm,
+        preamble: '<p>Enter the two digits you detected.</p>',
+        html: `
+          <div class="response-grid">
+            <label>
+              Target 1
+              <input type="text" name="t1" inputmode="numeric" maxlength="2" pattern="\\d{1,2}" required />
+            </label>
+            <label>
+              Target 2
+              <input type="text" name="t2" inputmode="numeric" maxlength="2" pattern="\\d{1,2}" required />
+            </label>
+          </div>
+        `,
+        button_label: 'Submit answers',
+        data: {
+          trial_index: i,
+          task: 'response',
+          t1: config.t1,
+          t2: config.t2,
+          t1_position: config.t1Position,
+          t2_position: config.t2Position,
+          lag: config.lag,
+          stream_sequence: config.sequence.join('')
+        },
+        on_finish: data => {
+          const responses = JSON.parse(data.responses);
+          data.response_t1 = responses.t1.trim();
+          data.response_t2 = responses.t2.trim();
+          data.correct_t1 = data.response_t1 === String(data.t1);
+          data.correct_t2 = data.response_t2 === String(data.t2);
+        }
+      });
+    }
+
+    const downloadScreen = {
+      type: jsPsychHtmlButtonResponse,
+      stimulus: `
+        <h2>All done!</h2>
+        <p>Thanks for completing the attentional blink experiment.</p>
+        <p>Press the button below to download your responses as a JSON file.</p>
+        <p style="margin-top:24px; font-size:0.95em;">
+          You can return to the <a href="../index.html">experiment hub</a> afterwards.
+        </p>
+      `,
+      choices: ['Download my data'],
+      on_finish: () => {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        jsPsych.data.get().localSave('json', `attentional-blink-${timestamp}.json`);
+      }
+    };
+
+    timeline.push(downloadScreen);
+
+    jsPsych.run(timeline);
+  </script>
+</body>
+</html>
