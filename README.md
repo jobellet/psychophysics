@@ -11,7 +11,7 @@ Explore a collection of browser-based cognitive psychology experiments designed 
 ## Getting started
 1. Clone the repository:
    ```bash
-   git clone https://github.com/psychophysics-lab/psychophysics.git
+   git clone https://github.com/jobellet/psychophysics.git
    cd psychophysics
    ```
 2. Serve the site locally (any static file server works). For example, using `npx`:
@@ -24,4 +24,4 @@ Explore a collection of browser-based cognitive psychology experiments designed 
 Contributions are welcome! Open an issue or submit a pull request to suggest new experiment paradigms, report bugs, or improve documentation.
 
 ## GitHub
-The project lives on GitHub at [psychophysics-lab/psychophysics](https://github.com/psychophysics-lab/psychophysics).
+The project lives on GitHub at [jobellet/psychophysics](https://github.com/jobellet/psychophysics) and is published via GitHub Pages at [jobellet.github.io/psychophysics/](https://jobellet.github.io/psychophysics/).
