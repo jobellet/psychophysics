@@ -140,7 +140,7 @@
 
     const TARGET_ACCURACY = 0.7;
     const GO_PROBABILITY = 1 / 3;
-    const TOTAL_TRIALS = 90;
+    const TOTAL_TRIALS = 100;
     const FIRST_STIM_DURATION = 33;
     const SECOND_STIM_DURATION = 33;
     const RESPONSE_WINDOW = 1400;
@@ -244,8 +244,16 @@
       return `<div class="stage">${content}</div>`;
     }
 
-    function dotHTML(x, y, diameter) {
-      return `<div class="dot" style="left:${x}px; top:${y}px; width:${diameter}px; height:${diameter}px;"></div>`;
+    function createDotColor() {
+      const hue = Math.floor(Math.random() * 360);
+      return {
+        fill: `hsl(${hue}, 85%, 70%)`,
+        glow: `hsla(${hue}, 85%, 70%, 0.65)`
+      };
+    }
+
+    function dotHTML(x, y, diameter, color = { fill: '#f8fafc', glow: 'rgba(248, 250, 252, 0.65)' }) {
+      return `<div class="dot" style="left:${x}px; top:${y}px; width:${diameter}px; height:${diameter}px; background:${color.fill}; box-shadow:0 0 20px ${color.glow};"></div>`;
     }
 
     let trialState = {};
@@ -255,16 +263,16 @@
       stimulus: `
         <h1 style="margin-top:0">Just Noticeable Difference (Go/No-Go)</h1>
         <p>
-          A white dot will flash twice. The first flash always marks the reference position and size.
-          After a brief random delay (50–1000 ms) the dot reappears.
+          A coloured dot will flash twice. The first (odd-index) flash always marks the reference position and size.
+          After a brief random delay (50–1000 ms) the dot reappears in the same hue for the even-index comparison dot.
         </p>
         <p>
           On most trials the dot is identical (<strong>no-go</strong>). About one third of the time the
           dot shifts slightly in angle, distance from the centre, or diameter (<strong>go</strong> trials).
         </p>
         <ul>
-          <li>Press the spacebar or tap anywhere inside the display <strong>if you notice a change</strong>.</li>
-          <li>If the dot looks identical, do nothing.</li>
+          <li>Press the spacebar or tap anywhere inside the display <strong>if the even-index (second) dot looks different</strong>.</li>
+          <li>If the comparison dot looks identical to the reference, do nothing.</li>
         </ul>
         <p>
           The stimulus differences adapt during the experiment to maintain roughly 70% accuracy on go trials using the jsQuestPlus staircase.
@@ -292,6 +300,9 @@
             deltaRadius: 0,
             deltaDiameter: 0
           };
+
+          const dotColor = createDotColor();
+          trialState.dotColor = dotColor;
 
           let baseTheta = Math.random() * Math.PI * 2;
           let baseRadius = randomBetween(minRadius, maxRadius);
@@ -377,7 +388,7 @@
 
       const firstStim = {
         type: jsPsychHtmlKeyboardResponse,
-        stimulus: () => stageHTML(dotHTML(trialState.firstX, trialState.firstY, trialState.baseDiameter)),
+        stimulus: () => stageHTML(dotHTML(trialState.firstX, trialState.firstY, trialState.baseDiameter, trialState.dotColor)),
         choices: 'NO_KEYS',
         trial_duration: FIRST_STIM_DURATION,
         data: { stage: 'stimulus_1', trial_index: index + 1 }
@@ -393,7 +404,7 @@
 
       const secondStim = {
         type: jsPsychHtmlKeyboardResponse,
-        stimulus: () => stageHTML(dotHTML(trialState.secondX, trialState.secondY, trialState.secondDiameter)),
+        stimulus: () => stageHTML(dotHTML(trialState.secondX, trialState.secondY, trialState.secondDiameter, trialState.dotColor)),
         choices: 'NO_KEYS',
         trial_duration: SECOND_STIM_DURATION,
         data: { stage: 'stimulus_2', trial_index: index + 1 }
@@ -467,6 +478,7 @@
           data.second_theta = trialState.secondTheta;
           data.second_radius = trialState.secondRadius;
           data.second_diameter = trialState.secondDiameter;
+          data.dot_color = trialState.dotColor?.fill ?? null;
           data.interstimulus = trialState.isi;
           data.trial_number = trialState.index;
           data.go_success = trialState.isGo ? responded : null;
