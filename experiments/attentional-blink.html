@@ -155,28 +155,35 @@
     const letters = ['A','B','C','D','E','F','G','H','J','K','L','M','N','P','Q','R','S','T','V','W','X','Y','Z'];
     const digits = ['1','2','3','4','5','6','7','8','9'];
 
-    function makeTrialConfig() {
+    function makeTrialConfig({ isCatch = false } = {}) {
       const totalItems = 15;
       const lagOptions = [1, 2, 3, 7];
       const t1Position = jsPsych.randomization.sampleWithoutReplacement([2,3,4,5,6,7,8,9], 1)[0];
-      const lag = jsPsych.randomization.sampleWithoutReplacement(
-        lagOptions.filter(l => t1Position + l < totalItems - 1),
-        1
-      )[0];
-      const t2Position = t1Position + lag;
 
       const t1 = jsPsych.randomization.sampleWithoutReplacement(digits, 1)[0];
-      let t2 = jsPsych.randomization.sampleWithoutReplacement(digits, 1)[0];
-      while (t2 === t1) {
-        t2 = jsPsych.randomization.sampleWithoutReplacement(digits, 1)[0];
-      }
 
       const sequence = [];
       for (let i = 0; i < totalItems; i++) {
         sequence.push(jsPsych.randomization.sampleWithoutReplacement(letters, 1)[0]);
       }
       sequence[t1Position] = t1;
-      sequence[t2Position] = t2;
+
+      let lag = null;
+      let t2 = null;
+      let t2Position = null;
+
+      if (!isCatch) {
+        const validLags = lagOptions.filter(l => t1Position + l < totalItems - 1);
+        lag = jsPsych.randomization.sampleWithoutReplacement(validLags, 1)[0];
+        t2Position = t1Position + lag;
+
+        t2 = jsPsych.randomization.sampleWithoutReplacement(digits, 1)[0];
+        while (t2 === t1) {
+          t2 = jsPsych.randomization.sampleWithoutReplacement(digits, 1)[0];
+        }
+
+        sequence[t2Position] = t2;
+      }
 
       return {
         sequence,
@@ -184,7 +191,8 @@
         t2,
         t1Position,
         t2Position,
-        lag
+        lag,
+        isCatch
       };
     }
 
@@ -201,11 +209,11 @@
             phase: 'stream',
             stream_position: index,
             item,
-            is_target: index === config.t1Position || index === config.t2Position,
+            is_target: index === config.t1Position || (!config.isCatch && index === config.t2Position),
             target_role:
               index === config.t1Position
                 ? 'T1'
-                : index === config.t2Position
+                : !config.isCatch && index === config.t2Position
                 ? 'T2'
                 : 'distractor',
             lag: config.lag,
@@ -233,15 +241,25 @@
     }
 
     const trialCount = 12;
+    const catchCount = Math.max(1, Math.round(trialCount * 0.1));
+    const catchIndices = new Set(
+      jsPsych.randomization.sampleWithoutReplacement(
+        Array.from({ length: trialCount }, (_, i) => i),
+        catchCount
+      )
+    );
+
     for (let i = 0; i < trialCount; i++) {
-      const config = makeTrialConfig();
+      const isCatchTrial = catchIndices.has(i);
+      const config = makeTrialConfig({ isCatch: isCatchTrial });
 
       timeline.push(fixation);
       timeline.push(...makeRsvpTimeline(config, i));
 
       timeline.push({
         type: jsPsychSurveyHtmlForm,
-        preamble: '<p>Enter the two digits you detected.</p>',
+        preamble:
+          '<p>Enter the targets you detected. Leave the second box empty if you did not see a second digit.</p>',
         html: `
           <div class="response-grid">
             <label>
@@ -250,7 +268,7 @@
             </label>
             <label>
               Target 2
-              <input type="text" name="t2" inputmode="numeric" maxlength="2" pattern="\\d{1,2}" required />
+              <input type="text" name="t2" inputmode="numeric" maxlength="2" pattern="\\d{0,2}" />
             </label>
           </div>
         `,
@@ -263,14 +281,22 @@
           t1_position: config.t1Position,
           t2_position: config.t2Position,
           lag: config.lag,
+          is_catch: config.isCatch,
           stream_sequence: config.sequence.join('')
         },
         on_finish: data => {
           const responses = JSON.parse(data.responses);
-          data.response_t1 = responses.t1.trim();
-          data.response_t2 = responses.t2.trim();
-          data.correct_t1 = data.response_t1 === String(data.t1);
-          data.correct_t2 = data.response_t2 === String(data.t2);
+          const responseT1 = responses.t1 ? responses.t1.trim() : '';
+          const responseT2 = responses.t2 ? responses.t2.trim() : '';
+
+          data.response_t1 = responseT1;
+          data.response_t2 = responseT2 === '' ? null : responseT2;
+          data.correct_t1 = responseT1 === String(data.t1);
+          if (data.is_catch) {
+            data.correct_t2 = data.response_t2 === null;
+          } else {
+            data.correct_t2 = data.response_t2 === String(data.t2);
+          }
         }
       });
     }
