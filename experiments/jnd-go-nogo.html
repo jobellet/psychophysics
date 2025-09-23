@@ -398,7 +398,7 @@
         type: jsPsychHtmlKeyboardResponse,
         stimulus: () => stageHTML(),
         choices: 'NO_KEYS',
-        trial_duration: trialState.isi,
+        trial_duration: () => trialState.isi,
         data: { stage: 'isi' }
       };
 
