@@ -241,6 +241,58 @@
       margin-bottom: 16px;
     }
 
+    .control-button {
+      position: fixed;
+      z-index: 30;
+      border: none;
+      font-family: inherit;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      border-radius: clamp(18px, 4vw, 26px);
+      box-shadow: 0 18px 40px rgba(2, 6, 23, 0.45);
+      cursor: pointer;
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      pointer-events: auto;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    .control-button:active {
+      transform: translateY(2px);
+      box-shadow: 0 8px 24px rgba(2, 6, 23, 0.35);
+    }
+
+    .control-button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: 0 8px 24px rgba(2, 6, 23, 0.25);
+    }
+
+    #hold-button {
+      bottom: clamp(24px, 5vw, 48px);
+      right: clamp(24px, 5vw, 48px);
+      padding: clamp(18px, 4.8vw, 24px) clamp(32px, 7vw, 48px);
+      font-size: clamp(1rem, 3vw, 1.3rem);
+      background: linear-gradient(135deg, #38bdf8, #2563eb);
+      color: #f8fafc;
+      min-width: clamp(200px, 40vw, 320px);
+      text-align: center;
+    }
+
+    #hold-button.holding {
+      background: linear-gradient(135deg, #f97316, #ef4444);
+    }
+
+    #stop-experiment {
+      top: clamp(24px, 5vw, 48px);
+      left: clamp(24px, 5vw, 48px);
+      padding: clamp(16px, 4vw, 20px) clamp(28px, 6vw, 42px);
+      font-size: clamp(0.95rem, 2.8vw, 1.2rem);
+      background: rgba(248, 250, 252, 0.9);
+      color: #0f172a;
+    }
+
     @media (max-width: 600px) {
       #pre-experiment {
         padding: 20px;
@@ -277,6 +329,8 @@
     </div>
   </div>
   <div id="jspsych-target"></div>
+  <button id="stop-experiment" class="control-button" hidden disabled>Stop &amp; Download</button>
+  <button id="hold-button" class="control-button" hidden>Hold to Run Trials</button>
 
   <script src="../jspsych/dist/jspsych.js"></script>
   <script src="../jspsych/plugins/html-button-response.js"></script>
@@ -298,10 +352,12 @@
     const fileInput = document.getElementById('session-file');
     const statusEl = document.getElementById('session-status');
     const psychOutput = document.getElementById('psychometrics-output');
+    const holdButton = document.getElementById('hold-button');
+    const stopExperimentButton = document.getElementById('stop-experiment');
 
     const TARGET_ACCURACY = 0.7;
     const GO_PROBABILITY = 1 / 3;
-    const TOTAL_TRIALS = 100;
+    const TOTAL_TRIALS = 1000;
     const FIRST_STIM_DURATION = 33;
     const SECOND_STIM_DURATION = 33;
     const RESPONSE_WINDOW = 1400;
@@ -311,6 +367,9 @@
     let progressBase = 0;
     let progressTotal = TOTAL_TRIALS;
     let psychCharts = [];
+    let sessionRunning = false;
+    let sessionFinalized = false;
+    let lastHoldStartTime = null;
 
     const stageSide = Math.min(window.innerWidth, window.innerHeight) * 0.7;
     document.documentElement.style.setProperty('--stage-size', `${Math.round(stageSide)}px`);
@@ -320,6 +379,140 @@
     const minRadius = Math.max(36, maxRadius * 0.28);
     const minDiameter = Math.max(18, stageSide * 0.08);
     const maxDiameter = Math.max(minDiameter + 16, stageSide * 0.32);
+
+    function updateHoldButton(isActive) {
+      if (!holdButton) return;
+      holdButton.classList.toggle('holding', Boolean(isActive));
+      holdButton.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      holdButton.textContent = isActive ? 'Release to Report Change' : 'Hold to Run Trials';
+    }
+
+    function updateStopButtonState() {
+      if (!stopExperimentButton) return;
+      if (!sessionRunning) {
+        stopExperimentButton.disabled = true;
+        return;
+      }
+      stopExperimentButton.disabled = holdState.isActive();
+    }
+
+    const holdState = {
+      sources: new Map(),
+      holdStart: null,
+      primarySource: 'none',
+      holdStartListeners: new Set(),
+      releaseListeners: new Set(),
+      lastReleaseInfo: null,
+      activate(key, source = 'pointer') {
+        if (this.sources.has(key)) return;
+        const now = performance.now();
+        this.sources.set(key, { source, startedAt: now });
+        if (this.sources.size === 1) {
+          this.holdStart = now;
+          this.primarySource = source;
+          this.lastReleaseInfo = null;
+          updateHoldButton(true);
+          updateStopButtonState();
+          Array.from(this.holdStartListeners).forEach(listener => {
+            try {
+              listener({ source, startedAt: now });
+            } catch (error) {
+              console.error(error);
+            }
+          });
+        }
+      },
+      release(key, source = 'pointer') {
+        if (!this.sources.has(key)) return;
+        this.sources.delete(key);
+        if (this.sources.size === 0) {
+          const now = performance.now();
+          const startedAt = this.holdStart;
+          const info = {
+            source: source || this.primarySource || 'none',
+            duration: typeof startedAt === 'number' ? now - startedAt : null,
+            startedAt: typeof startedAt === 'number' ? startedAt : null,
+            releasedAt: now
+          };
+          this.holdStart = null;
+          this.primarySource = 'none';
+          this.lastReleaseInfo = info;
+          updateHoldButton(false);
+          updateStopButtonState();
+          Array.from(this.releaseListeners).forEach(listener => {
+            try {
+              listener(info);
+            } catch (error) {
+              console.error(error);
+            }
+          });
+        }
+      },
+      isActive() {
+        return this.sources.size > 0;
+      },
+      reset() {
+        this.sources.clear();
+        this.holdStart = null;
+        this.primarySource = 'none';
+        this.holdStartListeners.clear();
+        this.releaseListeners.clear();
+        this.lastReleaseInfo = null;
+        updateHoldButton(false);
+        updateStopButtonState();
+      }
+    };
+
+    updateHoldButton(false);
+    updateStopButtonState();
+
+    const HOLD_KEY = 'keyboard-space';
+
+    if (holdButton) {
+      holdButton.addEventListener('pointerdown', event => {
+        if (!sessionRunning) return;
+        event.preventDefault();
+        if (typeof holdButton.setPointerCapture === 'function') {
+          try {
+            holdButton.setPointerCapture(event.pointerId);
+          } catch (error) {
+            console.warn('Pointer capture rejected', error);
+          }
+        }
+        holdState.activate(`pointer-${event.pointerId}`, 'pointer');
+      });
+
+      const releasePointer = event => {
+        if (typeof holdButton.releasePointerCapture === 'function') {
+          try {
+            holdButton.releasePointerCapture(event.pointerId);
+          } catch (error) {
+            // Ignored.
+          }
+        }
+        holdState.release(`pointer-${event.pointerId}`, 'pointer');
+      };
+
+      holdButton.addEventListener('pointerup', releasePointer);
+      holdButton.addEventListener('pointercancel', releasePointer);
+      holdButton.addEventListener('lostpointercapture', releasePointer);
+    }
+
+    document.addEventListener('keydown', event => {
+      if (!sessionRunning) return;
+      if (event.code === 'Space' || event.key === ' ') {
+        if (event.repeat) return;
+        event.preventDefault();
+        holdState.activate(HOLD_KEY, 'keyboard');
+      }
+    });
+
+    document.addEventListener('keyup', event => {
+      if (event.code === 'Space' || event.key === ' ') {
+        event.preventDefault();
+        holdState.release(HOLD_KEY, 'keyboard');
+      }
+    });
 
     function clamp(value, min, max) {
       return Math.min(max, Math.max(min, value));
@@ -646,6 +839,64 @@
       setTimeout(() => URL.revokeObjectURL(url), 0);
     }
 
+    function finalizeSession(reason = 'complete') {
+      if (sessionFinalized) {
+        return;
+      }
+      sessionFinalized = true;
+      sessionRunning = false;
+      lastHoldStartTime = null;
+      holdState.reset();
+      updateStopButtonState();
+
+      if (holdButton) {
+        holdButton.hidden = true;
+      }
+      if (stopExperimentButton) {
+        stopExperimentButton.hidden = true;
+        stopExperimentButton.disabled = true;
+      }
+
+      jsPsych.setProgressBar(1);
+
+      const newValues = jsPsych.data.get().values();
+      const combined = uploadedDataArray.length ? [...uploadedDataArray, ...newValues] : [...newValues];
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      if (newValues.length) {
+        downloadBlob(JSON.stringify(combined, null, 2), `jnd-go-nogo-${timestamp}.json`, 'application/json');
+        downloadBlob(jsPsych.data.get().csv(), `jnd-go-nogo-${timestamp}.csv`, 'text/csv');
+      }
+
+      uploadedDataArray = combined;
+      seedQuestsFromData(uploadedDataArray);
+      progressBase = previousTrialCount;
+      progressTotal = previousTrialCount + TOTAL_TRIALS;
+
+      if (viewButton) {
+        viewButton.disabled = uploadedDataArray.length === 0;
+      }
+
+      if (startButton) {
+        startButton.textContent = uploadedDataArray.length ? 'Run another block' : 'Start experiment';
+      }
+
+      setStatus(
+        newValues.length
+          ? `${reason === 'stopped' ? 'Session stopped early.' : 'Session complete.'} Downloaded ${newValues.length} new trials.`
+          : `${reason === 'stopped' ? 'Session stopped.' : 'Session ended.'} No new trials were recorded.`,
+        'info'
+      );
+
+      if (preExperimentOverlay) {
+        preExperimentOverlay.classList.remove('hidden');
+      }
+      if (psychOutput) {
+        psychOutput.hidden = true;
+      }
+      destroyPsychCharts();
+      jsPsych.getDisplayElement().innerHTML = '';
+    }
+
     function chooseStimulus(quest, samples) {
       let chosen = quest.getStimParams();
       try {
@@ -704,13 +955,17 @@
             dot shifts slightly in angle, distance from the centre, or diameter (<strong>go</strong> trials).
           </p>
           <ul>
-            <li>Press the spacebar or tap anywhere inside the display <strong>if the even-index (second) dot looks different</strong>.</li>
-            <li>If the comparison dot looks identical to the reference, do nothing.</li>
+            <li>Hold the glowing control button in the lower-right corner (or hold the spacebar) to initiate and continue trials.</li>
+            <li>Release the button or the spacebar as soon as you detect that the comparison dot differs from the reference.</li>
+            <li>If the dots look identical, keep holding the control so the next trial starts immediately.</li>
           </ul>
           <p>
             The stimulus differences adapt during the experiment to maintain roughly 70% accuracy on go trials using the jsQuestPlus staircase.
           </p>
-          <p>Find a comfortable viewing distance and keep your finger near the screen or the spacebar.</p>
+          <p>
+            Find a comfortable viewing distance and keep your finger near the screen or the spacebar.
+            When you release the control, you can use the large stop button in the upper-left corner to finish the session and download your data.
+          </p>
           ${continuation}
         `;
       },
@@ -718,11 +973,60 @@
     };
 
     function createTrial(index, offset = 0) {
+      let holdGateListener = null;
+      const waitForHold = {
+        type: jsPsychCallFunction,
+        async: true,
+        data: { stage: 'hold_gate', trial_index: offset + index + 1 },
+        func: callback => {
+          const resolve = startedAt => {
+            if (holdGateListener) {
+              holdState.holdStartListeners.delete(holdGateListener);
+              holdGateListener = null;
+            }
+            lastHoldStartTime = typeof startedAt === 'number' ? startedAt : performance.now();
+            callback({ startedAt: lastHoldStartTime });
+          };
+
+          if (holdState.isActive()) {
+            resolve(holdState.holdStart);
+            return;
+          }
+
+          const display = jsPsych.getDisplayElement();
+          if (display) {
+            display.innerHTML = stageHTML(
+              '<div class="response-text">Hold the control button or spacebar to begin the next trial.</div>'
+            );
+          }
+
+          holdGateListener = info => {
+            const startedAt = typeof info?.startedAt === 'number' ? info.startedAt : holdState.holdStart;
+            resolve(startedAt);
+          };
+          holdState.holdStartListeners.add(holdGateListener);
+        },
+        on_finish: data => {
+          if (holdGateListener) {
+            holdState.holdStartListeners.delete(holdGateListener);
+            holdGateListener = null;
+          }
+          const info = data.value || {};
+          if (typeof info.startedAt === 'number') {
+            lastHoldStartTime = info.startedAt;
+          } else if (typeof holdState.holdStart === 'number') {
+            lastHoldStartTime = holdState.holdStart;
+          } else {
+            lastHoldStartTime = performance.now();
+          }
+        }
+      };
       const setup = {
         type: jsPsychCallFunction,
         func: () => {
           const total = Math.max(progressTotal, 1);
           jsPsych.setProgressBar((progressBase + index) / total);
+          const holdStartedAt = typeof lastHoldStartTime === 'number' ? lastHoldStartTime : holdState.holdStart ?? null;
           trialState = {
             index: offset + index + 1,
             isGo: Math.random() < GO_PROBABILITY,
@@ -732,8 +1036,10 @@
             questRef: null,
             deltaTheta: 0,
             deltaRadius: 0,
-            deltaDiameter: 0
+            deltaDiameter: 0,
+            holdStartedAt
           };
+          lastHoldStartTime = holdStartedAt;
 
           const dotColor = createDotColor();
           trialState.dotColor = dotColor;
@@ -841,63 +1147,131 @@
         stimulus: () => stageHTML(dotHTML(trialState.secondX, trialState.secondY, trialState.secondDiameter, trialState.dotColor)),
         choices: 'NO_KEYS',
         trial_duration: SECOND_STIM_DURATION,
+        on_load: () => {
+          trialState.secondStimOnset = performance.now();
+        },
         data: { stage: 'stimulus_2', trial_index: trialState.index }
       };
 
       const response = {
-        type: jsPsychHtmlKeyboardResponse,
-        stimulus: () => stageHTML(`<div class="response-text">Tap anywhere or press SPACE if the second dot was different.</div>`),
-        choices: 'NO_KEYS',
-        trial_duration: RESPONSE_WINDOW,
+        type: jsPsychCallFunction,
+        async: true,
         data: { stage: 'response' },
-        on_load: () => {
+        func: callback => {
           const display = jsPsych.getDisplayElement();
-          const start = performance.now();
-          trialState.responseInfo = {
-            responded: false,
-            source: 'none',
-            rt: null
+          if (display) {
+            display.innerHTML = stageHTML();
+          }
+          const responseStart = performance.now();
+          let finished = false;
+          let timerId = null;
+
+          const finish = result => {
+            if (finished) return;
+            finished = true;
+            if (result) {
+              holdState.lastReleaseInfo = null;
+            }
+            if (timerId !== null) {
+              window.clearTimeout(timerId);
+              timerId = null;
+            }
+            if (trialState.releaseListener) {
+              holdState.releaseListeners.delete(trialState.releaseListener);
+              trialState.releaseListener = null;
+            }
+            callback(result);
           };
 
-          trialState.responseInfo.keyboardListener = jsPsych.pluginAPI.getKeyboardResponse({
-            callback_function: info => {
-              if (trialState.responseInfo.responded) return;
-              trialState.responseInfo.responded = true;
-              trialState.responseInfo.source = 'keyboard';
-              trialState.responseInfo.rt = info.rt;
-              display.removeEventListener('pointerdown', trialState.responseInfo.pointerHandler);
-              jsPsych.finishTrial({ rt: info.rt, response: 'keyboard' });
-            },
-            valid_responses: [' '],
-            rt_method: 'performance',
-            persist: false,
-            allow_held_key: false
-          });
-
-          trialState.responseInfo.pointerHandler = event => {
-            if (trialState.responseInfo.responded) return;
-            trialState.responseInfo.responded = true;
-            trialState.responseInfo.source = event.pointerType || 'pointer';
-            trialState.responseInfo.rt = performance.now() - start;
-            jsPsych.pluginAPI.cancelKeyboardResponse(trialState.responseInfo.keyboardListener);
-            display.removeEventListener('pointerdown', trialState.responseInfo.pointerHandler);
-            jsPsych.finishTrial({ rt: trialState.responseInfo.rt, response: 'pointer' });
+          const handleRelease = info => {
+            const holdStartedAt =
+              typeof info?.startedAt === 'number'
+                ? info.startedAt
+                : typeof trialState.holdStartedAt === 'number'
+                ? trialState.holdStartedAt
+                : typeof holdState.holdStart === 'number'
+                ? holdState.holdStart
+                : lastHoldStartTime;
+            const holdReleasedAt = typeof info?.releasedAt === 'number' ? info.releasedAt : performance.now();
+            const holdDuration =
+              typeof info?.duration === 'number'
+                ? info.duration
+                : holdStartedAt != null && holdReleasedAt != null
+                ? holdReleasedAt - holdStartedAt
+                : null;
+            finish({
+              responded: true,
+              response_source: info?.source || holdState.primarySource || 'none',
+              rt: performance.now() - responseStart,
+              hold_started_at: holdStartedAt ?? null,
+              hold_released_at: holdReleasedAt ?? null,
+              hold_duration: holdDuration ?? null
+            });
           };
 
-          display.addEventListener('pointerdown', trialState.responseInfo.pointerHandler);
+          trialState.releaseListener = handleRelease;
+          holdState.releaseListeners.add(handleRelease);
+
+          const cachedRelease = holdState.lastReleaseInfo;
+          if (
+            cachedRelease &&
+            typeof cachedRelease.releasedAt === 'number' &&
+            typeof trialState.secondStimOnset === 'number' &&
+            cachedRelease.releasedAt >= trialState.secondStimOnset
+          ) {
+            handleRelease(cachedRelease);
+          }
+
+          if (finished) {
+            return;
+          }
+
+          timerId = window.setTimeout(() => {
+            const holdStartedAt =
+              typeof trialState.holdStartedAt === 'number'
+                ? trialState.holdStartedAt
+                : typeof holdState.holdStart === 'number'
+                ? holdState.holdStart
+                : lastHoldStartTime;
+            const holdDuration =
+              holdStartedAt != null ? performance.now() - holdStartedAt : null;
+            finish({
+              responded: false,
+              response_source: 'none',
+              rt: null,
+              hold_started_at: holdStartedAt ?? null,
+              hold_released_at: null,
+              hold_duration: holdDuration
+            });
+          }, RESPONSE_WINDOW);
         },
         on_finish: data => {
-          const display = jsPsych.getDisplayElement();
-          if (trialState.responseInfo?.pointerHandler) {
-            display.removeEventListener('pointerdown', trialState.responseInfo.pointerHandler);
+          if (trialState.releaseListener) {
+            holdState.releaseListeners.delete(trialState.releaseListener);
+            trialState.releaseListener = null;
           }
-          if (trialState.responseInfo?.keyboardListener) {
-            jsPsych.pluginAPI.cancelKeyboardResponse(trialState.responseInfo.keyboardListener);
-          }
-
-          const responded = Boolean(trialState.responseInfo?.responded);
-          const rt = trialState.responseInfo?.rt ?? null;
-          const source = responded ? trialState.responseInfo?.source : 'none';
+          const result = data.value || {};
+          const responded = result.responded === true;
+          const rt = typeof result.rt === 'number' ? result.rt : null;
+          const holdStartedAt =
+            typeof result.hold_started_at === 'number'
+              ? result.hold_started_at
+              : typeof trialState.holdStartedAt === 'number'
+              ? trialState.holdStartedAt
+              : lastHoldStartTime;
+          const holdReleasedAt =
+            typeof result.hold_released_at === 'number'
+              ? result.hold_released_at
+              : responded && typeof holdStartedAt === 'number'
+              ? holdStartedAt + (typeof result.hold_duration === 'number' ? result.hold_duration : rt ?? 0)
+              : null;
+          const holdDuration =
+            typeof result.hold_duration === 'number'
+              ? result.hold_duration
+              : holdReleasedAt != null && holdStartedAt != null
+              ? holdReleasedAt - holdStartedAt
+              : null;
+          const source = responded ? result.response_source || holdState.primarySource || 'none' : 'none';
 
           data.rt = rt;
           data.response_source = source;
@@ -912,12 +1286,19 @@
           data.second_theta = trialState.secondTheta;
           data.second_radius = trialState.secondRadius;
           data.second_diameter = trialState.secondDiameter;
+          data.second_onset = typeof trialState.secondStimOnset === 'number' ? trialState.secondStimOnset : null;
           data.dot_color = trialState.dotColor?.fill ?? null;
           data.interstimulus = trialState.isi;
           data.trial_number = trialState.index;
           data.go_success = trialState.isGo ? responded : null;
           data.correct = trialState.isGo ? responded : !responded;
           data.quest_value = trialState.questStimValue;
+          data.hold_started_at = typeof holdStartedAt === 'number' ? holdStartedAt : null;
+          data.hold_released_at = typeof holdReleasedAt === 'number' ? holdReleasedAt : null;
+          data.hold_duration = typeof holdDuration === 'number' ? holdDuration : null;
+          data.responded = responded;
+
+          trialState.holdStartedAt = data.hold_started_at;
 
           if (trialState.isGo && trialState.questRef && typeof trialState.questStimValue === 'number') {
             const responseIndex = responded ? 1 : 0;
@@ -930,59 +1311,15 @@
         }
       };
 
-      return [setup, fixation, firstStim, isi, secondStim, response];
+      return [waitForHold, setup, fixation, firstStim, isi, secondStim, response];
     }
 
-    const debrief = {
-      type: jsPsychHtmlButtonResponse,
-      stimulus: () => {
-        jsPsych.setProgressBar(1);
-        const newValues = jsPsych.data.get().values();
-        const combined = uploadedDataArray.length ? [...uploadedDataArray, ...newValues] : [...newValues];
-        const responseTrials = combined.filter(trial => trial && trial.stage === 'response');
-        const goTrials = responseTrials.filter(trial => trial?.is_go === true);
-        const goHits = goTrials.filter(trial => trial?.go_success === true);
-        const noGoTrials = responseTrials.filter(trial => trial?.is_go === false);
-        const correctNoGo = noGoTrials.filter(trial => trial?.correct === true);
-        const goRate = goTrials.length ? Math.round((goHits.length / goTrials.length) * 100) : 0;
-        const noGoRate = noGoTrials.length ? Math.round((correctNoGo.length / noGoTrials.length) * 100) : 0;
-        const previousCount = uploadedDataArray.length;
-        const newCount = newValues.length;
-
-        return `
-          <h2 style="margin-top:0">All done!</h2>
-          <p>Your dataset now contains ${goHits.length} detections across ${goTrials.length} change trials (<strong>${goRate}%</strong> hit rate).</p>
-          <p>You withheld responses on ${correctNoGo.length} of ${noGoTrials.length} identical trials (<strong>${noGoRate}%</strong> correct rejections).</p>
-          <p>The combined JSON merges ${previousCount} previous records with ${newCount} new trials so you can keep building on the same staircases.</p>
-          <p>Click below to download the updated JSON along with a CSV of the newly collected block.</p>
-        `;
-      },
-      choices: ['Download results'],
-      on_finish: () => {
-        const newValues = jsPsych.data.get().values();
-        const combined = uploadedDataArray.length ? [...uploadedDataArray, ...newValues] : [...newValues];
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        downloadBlob(JSON.stringify(combined, null, 2), `jnd-go-nogo-${timestamp}.json`, 'application/json');
-        downloadBlob(jsPsych.data.get().csv(), `jnd-go-nogo-${timestamp}.csv`, 'text/csv');
-        uploadedDataArray = combined;
-        seedQuestsFromData(uploadedDataArray);
-        progressBase = previousTrialCount;
-        progressTotal = previousTrialCount + TOTAL_TRIALS;
-        if (viewButton) {
-          viewButton.disabled = uploadedDataArray.length === 0;
-        }
-        if (startButton) {
-          startButton.textContent = 'Run another block';
-        }
-        setStatus('Your combined dataset is ready. You can inspect the psychometrics or continue collecting data.', 'info');
-        if (preExperimentOverlay) {
-          preExperimentOverlay.classList.remove('hidden');
-        }
-        if (psychOutput) {
-          psychOutput.hidden = true;
-        }
-        destroyPsychCharts();
-        jsPsych.getDisplayElement().innerHTML = '';
+    const sessionComplete = {
+      type: jsPsychCallFunction,
+      data: { stage: 'session_complete' },
+      func: () => {
+        finalizeSession('complete');
+        return { stage: 'session_complete' };
       }
     };
 
@@ -991,7 +1328,7 @@
       for (let i = 0; i < TOTAL_TRIALS; i++) {
         timeline.push(...createTrial(i, offset));
       }
-      timeline.push(debrief);
+      timeline.push(sessionComplete);
       return timeline;
     }
 
@@ -999,6 +1336,17 @@
       progressBase = previousTrialCount;
       progressTotal = previousTrialCount + TOTAL_TRIALS;
       const timeline = buildTimeline(previousTrialCount);
+      sessionRunning = true;
+      sessionFinalized = false;
+      lastHoldStartTime = null;
+      holdState.reset();
+      if (holdButton) {
+        holdButton.hidden = false;
+      }
+      if (stopExperimentButton) {
+        stopExperimentButton.hidden = false;
+      }
+      updateStopButtonState();
       if (preExperimentOverlay) {
         preExperimentOverlay.classList.add('hidden');
       }
@@ -1019,6 +1367,14 @@
       viewButton.addEventListener('click', () => {
         if (viewButton.disabled) return;
         renderPsychometricsFromData(uploadedDataArray);
+      });
+    }
+
+    if (stopExperimentButton) {
+      stopExperimentButton.addEventListener('click', () => {
+        if (stopExperimentButton.disabled) return;
+        finalizeSession('stopped');
+        jsPsych.endExperiment('');
       });
     }
 
