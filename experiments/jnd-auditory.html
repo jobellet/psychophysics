@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Auditory Just Noticeable Difference</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../jspsych/css/jspsych.css" />
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      --bg: radial-gradient(circle at top, #0f172a 0%, #111827 60%, #020617 100%);
+      --card-bg: rgba(15, 23, 42, 0.9);
+      --accent: #38bdf8;
+      --stage-size: min(68vw, 68vh);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      color: #e2e8f0;
+      padding: clamp(16px, 4vw, 48px);
+    }
+
+    #pre-experiment {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.96) 0%, rgba(2, 6, 23, 0.94) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(24px, 6vw, 72px);
+      z-index: 10;
+      transition: opacity 220ms ease;
+    }
+
+    #pre-experiment.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .session-card {
+      width: min(92vw, 720px);
+      background: rgba(15, 23, 42, 0.85);
+      border-radius: clamp(24px, 4vw, 36px);
+      box-shadow: 0 30px 70px rgba(2, 6, 23, 0.6);
+      padding: clamp(28px, 6vw, 56px);
+      display: flex;
+      flex-direction: column;
+      gap: clamp(16px, 4vw, 28px);
+    }
+
+    .session-card h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 4vw, 2.15rem);
+    }
+
+    .session-card p {
+      margin: 0;
+      color: rgba(203, 213, 225, 0.92);
+    }
+
+    .file-picker {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 0;
+      overflow: hidden;
+      width: fit-content;
+      background: rgba(148, 163, 184, 0.12);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      cursor: pointer;
+    }
+
+    .file-picker input[type='file'] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .file-picker span {
+      padding: 12px 24px;
+      font-weight: 600;
+      color: #e2e8f0;
+      font-size: clamp(0.95rem, 2.4vw, 1.05rem);
+    }
+
+    .session-status {
+      margin: 0;
+      font-size: clamp(0.95rem, 2.6vw, 1.05rem);
+      color: rgba(148, 163, 184, 0.88);
+    }
+
+    .session-status[data-state='error'] {
+      color: #fca5a5;
+    }
+
+    .session-status[data-state='warning'] {
+      color: #facc15;
+    }
+
+    .session-status strong {
+      color: #f8fafc;
+    }
+
+    .session-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .session-actions .jspsych-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .psychometrics-output {
+      border-top: 1px solid rgba(148, 163, 184, 0.18);
+      padding-top: clamp(16px, 4vw, 28px);
+      display: flex;
+      flex-direction: column;
+      gap: clamp(16px, 4vw, 24px);
+    }
+
+    .psychometrics-output[hidden] {
+      display: none;
+    }
+
+    .psych-section {
+      background: rgba(15, 23, 42, 0.65);
+      border-radius: clamp(16px, 4vw, 24px);
+      padding: clamp(16px, 4vw, 24px);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .psych-section h3 {
+      margin: 0;
+      font-size: clamp(1.1rem, 3vw, 1.35rem);
+    }
+
+    .psych-section p {
+      margin: 0;
+      color: rgba(226, 232, 240, 0.82);
+    }
+
+    .psych-section canvas {
+      width: 100%;
+      min-height: 220px;
+    }
+
+    #jspsych-target {
+      width: min(96vw, 860px);
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(18px);
+      border-radius: 32px;
+      box-shadow: 0 24px 60px rgba(2, 6, 23, 0.55);
+      padding: clamp(24px, 5vw, 56px);
+    }
+
+    .jspsych-display-element {
+      font-size: clamp(18px, 3vw, 22px);
+      line-height: 1.7;
+    }
+
+    .jspsych-btn {
+      font-size: clamp(1rem, 2.6vw, 1.15rem);
+      padding: clamp(12px, 3vw, 16px) clamp(24px, 5vw, 36px);
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), #2563eb);
+      color: white;
+      font-weight: 600;
+      box-shadow: inset 0 -2px 0 rgba(15, 23, 42, 0.25);
+      transition: transform 160ms ease, box-shadow 160ms ease;
+      touch-action: manipulation;
+    }
+
+    .jspsych-btn:active {
+      transform: translateY(2px);
+      box-shadow: inset 0 2px 0 rgba(15, 23, 42, 0.35);
+    }
+
+    .stage {
+      position: relative;
+      width: var(--stage-size);
+      height: var(--stage-size);
+      margin: 0 auto;
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.95) 0%, rgba(2, 6, 23, 0.88) 80%);
+      border-radius: clamp(24px, 6vw, 36px);
+      box-shadow: inset 0 0 0 2px rgba(148, 163, 184, 0.08), 0 24px 60px rgba(2, 6, 23, 0.6);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      text-align: center;
+    }
+
+    .fixation {
+      position: absolute;
+      left: 50%;
+      top: clamp(24px, 8vh, 72px);
+      transform: translateX(-50%);
+      font-size: clamp(36px, 7vw, 64px);
+      font-weight: 600;
+      color: rgba(241, 245, 249, 0.85);
+      text-shadow: 0 8px 30px rgba(15, 23, 42, 0.7);
+      pointer-events: none;
+    }
+
+    .speaker-icon {
+      font-size: clamp(64px, 12vw, 120px);
+    }
+
+    .response-text {
+      font-size: clamp(18px, 3.2vw, 24px);
+      color: rgba(226, 232, 240, 0.94);
+      text-align: center;
+      padding: 24px;
+    }
+
+    .trial-progress {
+      font-size: clamp(14px, 2.5vw, 16px);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, 0.8);
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .control-button {
+      position: fixed;
+      z-index: 30;
+      border: none;
+      font-family: inherit;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      border-radius: clamp(18px, 4vw, 26px);
+      box-shadow: 0 18px 40px rgba(2, 6, 23, 0.45);
+      cursor: pointer;
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      pointer-events: auto;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    .control-button:active {
+      transform: translateY(2px);
+      box-shadow: 0 8px 24px rgba(2, 6, 23, 0.35);
+    }
+
+    .control-button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: 0 8px 24px rgba(2, 6, 23, 0.25);
+    }
+
+    #hold-button {
+      bottom: clamp(24px, 5vw, 48px);
+      right: clamp(24px, 5vw, 48px);
+      padding: clamp(18px, 4.8vw, 24px) clamp(32px, 7vw, 48px);
+      font-size: clamp(1rem, 3vw, 1.3rem);
+      background: linear-gradient(135deg, #38bdf8, #2563eb);
+      color: #f8fafc;
+      min-width: clamp(200px, 40vw, 320px);
+      text-align: center;
+    }
+
+    #hold-button.holding {
+      background: linear-gradient(135deg, #f97316, #ef4444);
+    }
+
+    #stop-experiment {
+      top: clamp(24px, 5vw, 48px);
+      left: clamp(24px, 5vw, 48px);
+      padding: clamp(16px, 4vw, 20px) clamp(28px, 6vw, 42px);
+      font-size: clamp(0.95rem, 2.8vw, 1.2rem);
+      background: rgba(248, 250, 252, 0.9);
+      color: #0f172a;
+    }
+
+    @media (max-width: 600px) {
+      #pre-experiment {
+        padding: 20px;
+      }
+
+      #jspsych-target {
+        padding: clamp(20px, 6vw, 40px);
+      }
+
+      .stage {
+        border-radius: clamp(20px, 8vw, 32px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="pre-experiment">
+    <div class="session-card">
+      <h1>Resume or explore your auditory JND session</h1>
+      <p>
+        Upload the JSON file from a previous run to pick up the adaptive staircases where you left off or to explore the
+        psychometric functions without starting a new block.
+      </p>
+      <label class="file-picker">
+        <input type="file" id="session-file" accept="application/json" />
+        <span>Select JSON file</span>
+      </label>
+      <p id="session-status" class="session-status" data-state="info">No previous session loaded.</p>
+      <div class="session-actions">
+        <button id="start-experiment" class="jspsych-btn">Start experiment</button>
+        <button id="view-psychometrics" class="jspsych-btn" disabled>View my psychometrics</button>
+      </div>
+      <div id="psychometrics-output" class="psychometrics-output" hidden></div>
+    </div>
+  </div>
+  <div id="jspsych-target"></div>
+  <button id="stop-experiment" class="control-button" hidden disabled>Stop &amp; Download</button>
+  <button id="hold-button" class="control-button" hidden>Hold to Run Trials</button>
+
+  <script src="../jspsych/dist/jspsych.js"></script>
+  <script src="../jspsych/plugins/html-button-response.js"></script>
+  <script src="../jspsych/plugins/html-keyboard-response.js"></script>
+  <script src="../jspsych/plugins/call-function.js"></script>
+  <script src="https://unpkg.com/jsquest-plus@2.1.0/dist/jsQuestPlus.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <script>
+    const jsPsych = initJsPsych({
+      display_element: 'jspsych-target',
+      show_progress_bar: true,
+      auto_update_progress_bar: false
+    });
+
+    const preExperimentOverlay = document.getElementById('pre-experiment');
+    const startButton = document.getElementById('start-experiment');
+    const viewButton = document.getElementById('view-psychometrics');
+    const fileInput = document.getElementById('session-file');
+    const statusEl = document.getElementById('session-status');
+    const psychOutput = document.getElementById('psychometrics-output');
+    const holdButton = document.getElementById('hold-button');
+    const stopExperimentButton = document.getElementById('stop-experiment');
+
+    const TARGET_ACCURACY = 0.7;
+    const GO_PROBABILITY = 1 / 3;
+    const TOTAL_TRIALS = 600;
+    const RESPONSE_WINDOW = 1600;
+
+    const MIN_BASE_DURATION = 50;
+    const MAX_BASE_DURATION = 100;
+    const MIN_ISI = 150;
+    const MAX_ISI = 1000;
+    const MIN_AMPLITUDE = 0.5;
+    const MAX_AMPLITUDE = 1;
+    const MIN_DURATION_ALLOWED = 30;
+    const MAX_DURATION_ALLOWED = 200;
+    const MIN_AMPLITUDE_ALLOWED = 0.1;
+
+    const HOLD_KEY = ' ';
+
+    let uploadedDataArray = [];
+    let previousTrialCount = 0;
+    let progressBase = 0;
+    let progressTotal = TOTAL_TRIALS;
+    let psychCharts = [];
+    let sessionRunning = false;
+    let sessionFinalized = false;
+    let lastHoldStartTime = null;
+
+    const stageSide = Math.min(window.innerWidth, window.innerHeight) * 0.7;
+    document.documentElement.style.setProperty('--stage-size', `${Math.round(stageSide)}px`);
+
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    function setStatus(message, state = 'info') {
+      if (!statusEl) return;
+      statusEl.textContent = message;
+      statusEl.dataset.state = state;
+    }
+
+    function updateHoldButton(isActive) {
+      if (!holdButton) return;
+      holdButton.classList.toggle('holding', Boolean(isActive));
+      holdButton.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      holdButton.textContent = isActive ? 'Release to Report Change' : 'Hold to Run Trials';
+    }
+
+    const holdState = {
+      activeSources: new Map(),
+      holdStartListeners: new Set(),
+      releaseListeners: new Set(),
+      holdStart: null,
+      primarySource: null,
+      lastReleaseInfo: null,
+      isActive() {
+        return this.activeSources.size > 0;
+      },
+      activate(source, type, startedAt = performance.now()) {
+        const existing = this.activeSources.get(source);
+        if (existing) {
+          existing.count += 1;
+          return existing.startedAt;
+        }
+        this.activeSources.set(source, { type, count: 1, startedAt });
+        if (!this.holdStart || startedAt < this.holdStart) {
+          this.holdStart = startedAt;
+        }
+        this.primarySource = type;
+        updateHoldButton(true);
+        updateStopButtonState();
+        const info = { source: type, startedAt };
+        this.holdStartListeners.forEach(listener => {
+          try {
+            listener(info);
+          } catch (error) {
+            console.error(error);
+          }
+        });
+        return startedAt;
+      },
+      release(source, type, releasedAt = performance.now()) {
+        const existing = this.activeSources.get(source);
+        if (!existing) {
+          return;
+        }
+        existing.count -= 1;
+        if (existing.count <= 0) {
+          this.activeSources.delete(source);
+        }
+        if (this.activeSources.size === 0) {
+          const startedAt = this.holdStart;
+          const duration = startedAt != null ? releasedAt - startedAt : null;
+          this.holdStart = null;
+          this.primarySource = null;
+          updateHoldButton(false);
+          updateStopButtonState();
+          const info = { source: type, releasedAt, startedAt, duration };
+          this.lastReleaseInfo = info;
+          this.releaseListeners.forEach(listener => {
+            try {
+              listener(info);
+            } catch (error) {
+              console.error(error);
+            }
+          });
+        }
+      },
+      reset() {
+        this.activeSources.clear();
+        this.holdStart = null;
+        this.primarySource = null;
+        this.lastReleaseInfo = null;
+        updateHoldButton(false);
+        updateStopButtonState();
+      }
+    };
+
+    function stageHTML(content = '', { showFixation = false, progress = '' } = {}) {
+      const fixation = showFixation ? '<div class="fixation">+</div>' : '';
+      const progressText = progress ? `<div class="trial-progress">${progress}</div>` : '';
+      return `<div class="stage">${fixation}${progressText}${content}</div>`;
+    }
+
+    function destroyPsychCharts() {
+      psychCharts.forEach(chart => {
+        try {
+          chart.destroy();
+        } catch (error) {
+          console.error(error);
+        }
+      });
+      psychCharts = [];
+    }
+
+    function createRange(start, end, step) {
+      const output = [];
+      if (end < start) {
+        output.push(parseFloat(start.toFixed(3)));
+        return output;
+      }
+      for (let value = start; value <= end + 1e-6; value += step) {
+        output.push(parseFloat(value.toFixed(3)));
+      }
+      return output;
+    }
+
+    const amplitudeSamples = createRange(0.02, 0.5, 0.02);
+    const durationSamples = createRange(5, 80, 5);
+    const slopeSamples = createRange(2, 5, 0.5);
+    const guessRate = [0.01];
+    const lapseRate = [0.05];
+
+    function buildQuest(stimSamples) {
+      return new jsQuestPlus({
+        psych_func: [
+          (stim, threshold, slope, guess, lapse) => jsQuestPlus.weibull(stim, threshold, slope, guess, lapse),
+          (stim, threshold, slope, guess, lapse) => 1 - jsQuestPlus.weibull(stim, threshold, slope, guess, lapse)
+        ],
+        stim_samples: [stimSamples],
+        psych_samples: [stimSamples, slopeSamples, guessRate, lapseRate]
+      });
+    }
+
+    let amplitudeQuest = buildQuest(amplitudeSamples);
+    let durationQuest = buildQuest(durationSamples);
+
+    function resetQuests() {
+      amplitudeQuest = buildQuest(amplitudeSamples);
+      durationQuest = buildQuest(durationSamples);
+    }
+
+    function randomBetween(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    function chooseStimulus(quest, samples) {
+      let chosen = quest.getStimParams();
+      try {
+        const estimates = quest.getEstimates('mode');
+        if (Array.isArray(estimates) && estimates.length >= 4) {
+          let best = chosen;
+          let bestDiff = Infinity;
+          for (const value of samples) {
+            const prob = jsQuestPlus.weibull(value, estimates[0], estimates[1], estimates[2], estimates[3]);
+            const diff = Math.abs(prob - TARGET_ACCURACY);
+            if (diff < bestDiff) {
+              bestDiff = diff;
+              best = value;
+            }
+          }
+          chosen = best;
+        }
+      } catch (error) {
+        console.warn('Quest estimate unavailable', error);
+      }
+      return chosen;
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+
+    async function ensureAudioContext() {
+      if (audioContext.state === 'suspended') {
+        try {
+          await audioContext.resume();
+        } catch (error) {
+          console.error('Unable to resume audio context', error);
+        }
+      }
+    }
+
+    function applyGainEnvelope(gainNode, startTime, duration, peakValue) {
+      const fade = Math.min(0.01, duration / 4);
+      const endTime = startTime + duration;
+      gainNode.gain.setValueAtTime(0, startTime);
+      gainNode.gain.linearRampToValueAtTime(peakValue, startTime + fade);
+      gainNode.gain.setValueAtTime(peakValue, endTime - fade);
+      gainNode.gain.linearRampToValueAtTime(0, endTime);
+    }
+
+    async function renderTonePair(params) {
+      const {
+        frequency,
+        firstDuration,
+        secondDuration,
+        isi,
+        firstAmplitude,
+        secondAmplitude
+      } = params;
+      const firstSeconds = firstDuration / 1000;
+      const secondSeconds = secondDuration / 1000;
+      const isiSeconds = isi / 1000;
+      const totalSeconds = firstSeconds + isiSeconds + secondSeconds;
+      const sampleRate = audioContext.sampleRate || 44100;
+      const frameCount = Math.ceil(totalSeconds * sampleRate) + 1;
+      const offline = new OfflineAudioContext(1, frameCount, sampleRate);
+
+      const osc1 = offline.createOscillator();
+      osc1.type = 'sine';
+      osc1.frequency.value = frequency;
+      const gain1 = offline.createGain();
+      osc1.connect(gain1);
+      gain1.connect(offline.destination);
+      const start1 = 0;
+      applyGainEnvelope(gain1, start1, firstSeconds, firstAmplitude);
+      osc1.start(start1);
+      osc1.stop(start1 + firstSeconds + 0.02);
+
+      const osc2 = offline.createOscillator();
+      osc2.type = 'sine';
+      osc2.frequency.value = frequency;
+      const gain2 = offline.createGain();
+      osc2.connect(gain2);
+      gain2.connect(offline.destination);
+      const start2 = firstSeconds + isiSeconds;
+      applyGainEnvelope(gain2, start2, secondSeconds, secondAmplitude);
+      osc2.start(start2);
+      osc2.stop(start2 + secondSeconds + 0.02);
+
+      const buffer = await offline.startRendering();
+      return buffer;
+    }
+
+    function computeEmpiricalPoints(trials, key) {
+      const goTrials = trials.filter(
+        trial => trial && trial.stage === 'response' && trial.is_go === true && typeof trial.go_success === 'boolean'
+      );
+      const grouped = new Map();
+      const selector = key === 'amplitude' ? 'amplitude_diff' : 'duration_diff';
+      goTrials.forEach(trial => {
+        const diff = Number(trial[selector]);
+        if (!Number.isFinite(diff) || diff <= 0) {
+          return;
+        }
+        const questKey = diff.toFixed(3);
+        if (!grouped.has(questKey)) {
+          grouped.set(questKey, { x: diff, hits: 0, total: 0 });
+        }
+        const bucket = grouped.get(questKey);
+        if (trial.go_success === true) {
+          bucket.hits += 1;
+        }
+        bucket.total += 1;
+      });
+      return Array.from(grouped.values())
+        .sort((a, b) => a.x - b.x)
+        .map(bucket => ({
+          x: bucket.x,
+          y: bucket.total ? bucket.hits / bucket.total : 0,
+          hits: bucket.hits,
+          total: bucket.total
+        }));
+    }
+
+    function seedQuestsFromData(dataArray) {
+      resetQuests();
+      previousTrialCount = 0;
+      if (!Array.isArray(dataArray)) {
+        return;
+      }
+      dataArray.forEach(trial => {
+        if (!trial || trial.stage !== 'response') {
+          return;
+        }
+        const trialNumber = Number(trial.trial_number ?? trial.trialIndex ?? trial.trial_index);
+        if (Number.isFinite(trialNumber)) {
+          previousTrialCount = Math.max(previousTrialCount, trialNumber);
+        }
+        const goSuccess = trial.go_success === true ? 1 : trial.go_success === false ? 0 : null;
+        if (goSuccess === null) {
+          return;
+        }
+        if (typeof trial.amplitude_diff === 'number' && trial.amplitude_diff > 0) {
+          try {
+            amplitudeQuest.update(trial.amplitude_diff, goSuccess);
+          } catch (error) {
+            console.warn('Failed to seed amplitude quest', error);
+          }
+        }
+        if (typeof trial.duration_diff === 'number' && trial.duration_diff > 0) {
+          try {
+            durationQuest.update(trial.duration_diff, goSuccess);
+          } catch (error) {
+            console.warn('Failed to seed duration quest', error);
+          }
+        }
+      });
+    }
+
+    function renderPsychometricsFromData(dataArray) {
+      destroyPsychCharts();
+      if (!psychOutput) return;
+      psychOutput.innerHTML = '';
+      if (!Array.isArray(dataArray) || dataArray.length === 0) {
+        psychOutput.innerHTML =
+          '<p class="session-status" data-state="warning">The uploaded file does not contain any trials yet.</p>';
+        psychOutput.hidden = false;
+        return;
+      }
+      if (typeof Chart === 'undefined') {
+        psychOutput.innerHTML =
+          '<p class="session-status" data-state="error">Chart.js failed to load, so the psychometric plots are unavailable.</p>';
+        psychOutput.hidden = false;
+        return;
+      }
+      const responseTrials = dataArray.filter(trial => trial && trial.stage === 'response');
+      if (!responseTrials.length) {
+        psychOutput.innerHTML =
+          '<p class="session-status" data-state="warning">The uploaded file does not contain any response-stage trials yet.</p>';
+        psychOutput.hidden = false;
+        return;
+      }
+
+      psychOutput.hidden = false;
+
+      const dimensions = [
+        {
+          key: 'amplitude',
+          label: 'Amplitude difference',
+          unit: '',
+          color: '#38bdf8',
+          quest: () => amplitudeQuest,
+          samples: amplitudeSamples
+        },
+        {
+          key: 'duration',
+          label: 'Duration difference',
+          unit: 'ms',
+          color: '#f97316',
+          quest: () => durationQuest,
+          samples: durationSamples
+        }
+      ];
+
+      dimensions.forEach(info => {
+        const section = document.createElement('section');
+        section.className = 'psych-section';
+
+        const heading = document.createElement('h3');
+        heading.textContent = info.unit ? `${info.label} (${info.unit})` : info.label;
+        section.appendChild(heading);
+
+        const quest = info.quest();
+        let estimates = null;
+        try {
+          const questEstimates = quest.getEstimates('mode');
+          if (Array.isArray(questEstimates) && questEstimates.length >= 4) {
+            estimates = questEstimates;
+          }
+        } catch (error) {
+          console.warn('Quest estimates unavailable', error);
+        }
+
+        const summary = document.createElement('p');
+        if (estimates) {
+          summary.innerHTML = `<strong>Estimated threshold:</strong> ${estimates[0].toFixed(2)} ${info.unit}`;
+        } else {
+          summary.textContent = 'Not enough data to estimate a psychometric function yet.';
+        }
+        section.appendChild(summary);
+
+        const canvas = document.createElement('canvas');
+        section.appendChild(canvas);
+        psychOutput.appendChild(section);
+
+        const empirical = computeEmpiricalPoints(responseTrials, info.key);
+        const datasets = [];
+
+        if (estimates) {
+          const predicted = info.samples.map(value => ({
+            x: value,
+            y: jsQuestPlus.weibull(value, estimates[0], estimates[1], estimates[2], estimates[3])
+          }));
+          datasets.push({
+            label: `${info.label} fit`,
+            data: predicted,
+            fill: false,
+            borderColor: info.color,
+            backgroundColor: info.color,
+            tension: 0.25,
+            parsing: false
+          });
+        }
+
+        if (empirical.length) {
+          datasets.push({
+            label: `${info.label} empirical`,
+            data: empirical.map(point => ({ x: point.x, y: point.y })),
+            parsing: false,
+            showLine: false,
+            backgroundColor: 'rgba(248, 250, 252, 0.85)',
+            borderColor: '#f8fafc',
+            pointRadius: 4,
+            pointHoverRadius: 6
+          });
+        }
+
+        const chart = new Chart(canvas.getContext('2d'), {
+          type: 'line',
+          data: { datasets },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                title: { display: true, text: info.unit ? `${info.label} (${info.unit})` : info.label, color: '#cbd5f5' },
+                grid: { color: 'rgba(148, 163, 184, 0.2)' },
+                ticks: { color: '#e2e8f0' }
+              },
+              y: {
+                min: 0,
+                max: 1,
+                title: { display: true, text: 'Detection probability', color: '#cbd5f5' },
+                grid: { color: 'rgba(148, 163, 184, 0.2)' },
+                ticks: {
+                  color: '#e2e8f0',
+                  callback: value => `${Math.round(value * 100)}%`
+                }
+              }
+            },
+            plugins: {
+              legend: { labels: { color: '#e2e8f0' } },
+              tooltip: {
+                callbacks: {
+                  label(context) {
+                    const datasetLabel = context.dataset.label || '';
+                    const yValue = context.parsed.y;
+                    let base = `${datasetLabel}: ${Math.round(yValue * 100)}% at ${context.parsed.x.toFixed(2)} ${info.unit}`;
+                    if (
+                      context.dataset.label &&
+                      context.dataset.label.includes('empirical') &&
+                      typeof context.dataIndex === 'number' &&
+                      empirical[context.dataIndex]
+                    ) {
+                      const point = empirical[context.dataIndex];
+                      base += ` (${point.hits}/${point.total} detections)`;
+                    }
+                    return base;
+                  }
+                }
+              }
+            }
+          }
+        });
+
+        psychCharts.push(chart);
+      });
+
+      psychOutput.hidden = false;
+    }
+
+    function downloadBlob(content, filename, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = filename;
+      anchor.rel = 'noopener';
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    }
+
+    function finalizeSession(reason = 'complete') {
+      if (sessionFinalized) {
+        return;
+      }
+      sessionFinalized = true;
+      sessionRunning = false;
+      lastHoldStartTime = null;
+      holdState.reset();
+      updateStopButtonState();
+
+      if (holdButton) {
+        holdButton.hidden = true;
+      }
+      if (stopExperimentButton) {
+        stopExperimentButton.hidden = true;
+        stopExperimentButton.disabled = true;
+      }
+
+      jsPsych.setProgressBar(1);
+
+      const newValues = jsPsych.data.get().values();
+      const combined = uploadedDataArray.length ? [...uploadedDataArray, ...newValues] : [...newValues];
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      if (newValues.length) {
+        downloadBlob(JSON.stringify(combined, null, 2), `jnd-auditory-${timestamp}.json`, 'application/json');
+        downloadBlob(jsPsych.data.get().csv(), `jnd-auditory-${timestamp}.csv`, 'text/csv');
+      }
+
+      uploadedDataArray = combined;
+      seedQuestsFromData(uploadedDataArray);
+      progressBase = previousTrialCount;
+      progressTotal = previousTrialCount + TOTAL_TRIALS;
+
+      if (viewButton) {
+        viewButton.disabled = uploadedDataArray.length === 0;
+      }
+
+      if (startButton) {
+        startButton.textContent = uploadedDataArray.length ? 'Run another block' : 'Start experiment';
+      }
+
+      setStatus(
+        newValues.length
+          ? `${reason === 'stopped' ? 'Session stopped early.' : 'Session complete.'} Downloaded ${newValues.length} new trials.`
+          : `${reason === 'stopped' ? 'Session stopped.' : 'Session ended.'} No new trials were recorded.`,
+        'info'
+      );
+
+      if (preExperimentOverlay) {
+        preExperimentOverlay.classList.remove('hidden');
+      }
+      if (psychOutput) {
+        psychOutput.hidden = true;
+      }
+      destroyPsychCharts();
+      jsPsych.getDisplayElement().innerHTML = '';
+    }
+
+    function updateStopButtonState() {
+      if (!stopExperimentButton) return;
+      if (!sessionRunning) {
+        stopExperimentButton.disabled = true;
+        return;
+      }
+      const disabled = !holdState.isActive();
+      stopExperimentButton.disabled = disabled;
+    }
+
+    function handleStopClick() {
+      finalizeSession('stopped');
+    }
+
+    function registerControlEvents() {
+      if (!holdButton) return;
+
+      holdButton.addEventListener('pointerdown', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        holdState.activate(`pointer-${event.pointerId}`, 'pointer');
+      });
+
+      holdButton.addEventListener('pointerup', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        holdState.release(`pointer-${event.pointerId}`, 'pointer');
+      });
+
+      holdButton.addEventListener('pointercancel', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        holdState.release(`pointer-${event.pointerId}`, 'pointer');
+      });
+
+      holdButton.addEventListener('pointerleave', event => {
+        if (!event.pressure) {
+          holdState.release(`pointer-${event.pointerId}`, 'pointer');
+        }
+      });
+
+      window.addEventListener('keydown', event => {
+        if (event.key === HOLD_KEY) {
+          event.preventDefault();
+          if (!holdState.isActive()) {
+            holdState.activate(HOLD_KEY, 'keyboard');
+          }
+        }
+      });
+
+      window.addEventListener('keyup', event => {
+        if (event.key === HOLD_KEY) {
+          event.preventDefault();
+          holdState.release(HOLD_KEY, 'keyboard');
+        }
+      });
+    }
+
+    let trialState = {};
+
+    const instructions = {
+      type: jsPsychHtmlButtonResponse,
+      stimulus: () => {
+        const continuation = previousTrialCount
+          ? `<p style="color: rgba(148, 163, 184, 0.88);">Continuing from trial ${previousTrialCount + 1} with your uploaded staircases.</p>`
+          : '';
+        return `
+          <h1 style=\"margin-top:0\">Auditory Just Noticeable Difference</h1>
+          <p>
+            You will hear two brief sinewave tones of the same pitch separated by a short silent gap. The pitch of each
+            pair is random between 400 and 800 Hz, as are the base durations (50–100 ms) and amplitudes (0.5–1.0).
+          </p>
+          <p>
+            On most trials the two sounds are identical (<strong>no-go</strong>). About one third of the time the second
+            sound differs slightly in amplitude, duration, or both (<strong>go</strong> trials). Release your hold as soon as you detect a difference.
+          </p>
+          <ul>
+            <li>Hold the glowing control button in the lower-right corner (or hold the spacebar) to initiate and continue trials.</li>
+            <li>The tones play automatically while you hold the control. Release as soon as you notice a change; otherwise keep holding to roll into the next trial.</li>
+            <li>The adaptive QUEST+ staircases target about 70% detection accuracy by adjusting amplitude and duration differences.</li>
+          </ul>
+          <p>
+            Find a comfortable listening level before you begin. When you release the control you can stop the block using the large button in the upper-left corner to download your data.
+          </p>
+          ${continuation}
+        `;
+      },
+      choices: ['Begin']
+    };
+
+    function buildStimulusSummary(trialNumber) {
+      return `Trial ${trialNumber}`;
+    }
+
+    function createTrial(index, offset = 0) {
+      let holdGateListener = null;
+      const waitForHold = {
+        type: jsPsychCallFunction,
+        async: true,
+        data: { stage: 'hold_gate', trial_index: offset + index + 1 },
+        func: callback => {
+          const resolve = startedAt => {
+            if (holdGateListener) {
+              holdState.holdStartListeners.delete(holdGateListener);
+              holdGateListener = null;
+            }
+            lastHoldStartTime = typeof startedAt === 'number' ? startedAt : performance.now();
+            callback({ startedAt: lastHoldStartTime });
+          };
+
+          if (holdState.isActive()) {
+            resolve(holdState.holdStart);
+            return;
+          }
+
+          const display = jsPsych.getDisplayElement();
+          if (display) {
+            display.innerHTML = stageHTML(
+              '<div class="response-text">Hold the control button or spacebar to begin the next trial.</div>'
+            );
+          }
+
+          holdGateListener = info => {
+            const startedAt = typeof info?.startedAt === 'number' ? info.startedAt : holdState.holdStart;
+            resolve(startedAt);
+          };
+          holdState.holdStartListeners.add(holdGateListener);
+        },
+        on_finish: data => {
+          if (holdGateListener) {
+            holdState.holdStartListeners.delete(holdGateListener);
+            holdGateListener = null;
+          }
+          const info = data.value || {};
+          if (typeof info.startedAt === 'number') {
+            lastHoldStartTime = info.startedAt;
+          } else if (typeof holdState.holdStart === 'number') {
+            lastHoldStartTime = holdState.holdStart;
+          } else {
+            lastHoldStartTime = performance.now();
+          }
+        }
+      };
+
+      const setup = {
+        type: jsPsychCallFunction,
+        func: () => {
+          const total = Math.max(progressTotal, 1);
+          jsPsych.setProgressBar((progressBase + index) / total);
+          const holdStartedAt = typeof lastHoldStartTime === 'number' ? lastHoldStartTime : holdState.holdStart ?? null;
+          trialState = {
+            index: offset + index + 1,
+            isGo: Math.random() < GO_PROBABILITY,
+            holdStartedAt,
+            questUpdates: [],
+            changeType: 'none'
+          };
+
+          trialState.baseFrequency = randomBetween(400, 800);
+          trialState.firstDuration = jsPsych.randomization.randomInt(MIN_BASE_DURATION, MAX_BASE_DURATION);
+          trialState.secondDuration = trialState.firstDuration;
+          trialState.firstAmplitude = randomBetween(MIN_AMPLITUDE, MAX_AMPLITUDE);
+          trialState.secondAmplitude = trialState.firstAmplitude;
+          trialState.isi = jsPsych.randomization.randomInt(MIN_ISI, MAX_ISI);
+          trialState.amplitudeDiff = 0;
+          trialState.durationDiff = 0;
+
+          if (trialState.isGo) {
+            const changeOptions = ['amplitude', 'duration', 'both'];
+            const selected = jsPsych.randomization.sampleWithoutReplacement(changeOptions, 1)[0];
+            trialState.changeType = selected;
+
+            if (selected === 'amplitude' || selected === 'both') {
+              const stim = chooseStimulus(amplitudeQuest, amplitudeSamples);
+              let directions = [];
+              if (trialState.firstAmplitude + stim <= MAX_AMPLITUDE) directions.push(1);
+              if (trialState.firstAmplitude - stim >= MIN_AMPLITUDE_ALLOWED) directions.push(-1);
+              if (!directions.length) {
+                const mid = clamp(trialState.firstAmplitude, MIN_AMPLITUDE_ALLOWED + stim, MAX_AMPLITUDE - stim);
+                trialState.firstAmplitude = mid;
+                directions = [1, -1];
+              }
+              const direction = jsPsych.randomization.sampleWithoutReplacement(directions, 1)[0];
+              trialState.secondAmplitude = clamp(
+                trialState.firstAmplitude + direction * stim,
+                MIN_AMPLITUDE_ALLOWED,
+                MAX_AMPLITUDE
+              );
+              trialState.amplitudeDiff = Math.abs(trialState.secondAmplitude - trialState.firstAmplitude);
+              trialState.questUpdates.push({ quest: amplitudeQuest, value: trialState.amplitudeDiff, key: 'amplitude' });
+            }
+
+            if (selected === 'duration' || selected === 'both') {
+              const stim = chooseStimulus(durationQuest, durationSamples);
+              let directions = [];
+              if (trialState.firstDuration + stim <= MAX_DURATION_ALLOWED) directions.push(1);
+              if (trialState.firstDuration - stim >= MIN_DURATION_ALLOWED) directions.push(-1);
+              if (!directions.length) {
+                const mid = clamp(trialState.firstDuration, MIN_DURATION_ALLOWED + stim, MAX_DURATION_ALLOWED - stim);
+                trialState.firstDuration = mid;
+                directions = [1, -1];
+              }
+              const direction = jsPsych.randomization.sampleWithoutReplacement(directions, 1)[0];
+              trialState.secondDuration = clamp(
+                trialState.firstDuration + direction * stim,
+                MIN_DURATION_ALLOWED,
+                MAX_DURATION_ALLOWED
+              );
+              trialState.durationDiff = Math.abs(trialState.secondDuration - trialState.firstDuration);
+              trialState.questUpdates.push({ quest: durationQuest, value: trialState.durationDiff, key: 'duration' });
+            }
+          }
+        }
+      };
+
+      const playStimuli = {
+        type: jsPsychCallFunction,
+        async: true,
+        data: () => ({
+          stage: 'stimulus',
+          trial_index: trialState.index,
+          is_go: trialState.isGo,
+          change_type: trialState.changeType
+        }),
+        func: async callback => {
+          const display = jsPsych.getDisplayElement();
+          if (display) {
+            display.innerHTML = stageHTML(
+              '<div class="speaker-icon" role="img" aria-label="speaker">🔊</div><p>Listening...</p>',
+              { showFixation: true, progress: buildStimulusSummary(trialState.index) }
+            );
+          }
+          await ensureAudioContext();
+          let buffer = null;
+          try {
+            buffer = await renderTonePair({
+              frequency: trialState.baseFrequency,
+              firstDuration: trialState.firstDuration,
+              secondDuration: trialState.secondDuration,
+              isi: trialState.isi,
+              firstAmplitude: trialState.firstAmplitude,
+              secondAmplitude: trialState.secondAmplitude
+            });
+          } catch (error) {
+            console.error('Failed to render audio', error);
+          }
+
+          const expectedStart = performance.now() + 20;
+          trialState.secondStimOnset = expectedStart + trialState.firstDuration + trialState.isi;
+
+          if (!buffer) {
+            window.setTimeout(() => callback(), trialState.firstDuration + trialState.isi + trialState.secondDuration);
+            return;
+          }
+
+          const source = audioContext.createBufferSource();
+          source.buffer = buffer;
+          source.connect(audioContext.destination);
+          const startAt = audioContext.currentTime + 0.02;
+          source.start(startAt);
+          trialState.audioSource = source;
+          source.addEventListener('ended', () => {
+            trialState.audioSource = null;
+            callback();
+          });
+        },
+        on_finish: () => {
+          if (trialState.audioSource) {
+            try {
+              trialState.audioSource.stop();
+            } catch (error) {
+              console.error(error);
+            }
+            trialState.audioSource = null;
+          }
+        }
+      };
+
+      const responseStage = {
+        type: jsPsychCallFunction,
+        async: true,
+        data: () => ({ stage: 'response', trial_index: trialState.index }),
+        func: callback => {
+          const display = jsPsych.getDisplayElement();
+          if (display) {
+            display.innerHTML = stageHTML(
+              '<div class="speaker-icon" role="img" aria-label="speaker">🔊</div><p>Release if the sounds differed.</p>',
+              { showFixation: true, progress: buildStimulusSummary(trialState.index) }
+            );
+          }
+
+          let finished = false;
+          let timerId = null;
+          const responseStart = performance.now();
+
+          const finish = result => {
+            if (finished) return;
+            finished = true;
+            window.clearTimeout(timerId);
+            callback(result);
+          };
+
+          const handleRelease = info => {
+            const holdStartedAt =
+              typeof info?.startedAt === 'number'
+                ? info.startedAt
+                : typeof trialState.holdStartedAt === 'number'
+                ? trialState.holdStartedAt
+                : typeof holdState.holdStart === 'number'
+                ? holdState.holdStart
+                : lastHoldStartTime;
+            const holdReleasedAt = typeof info?.releasedAt === 'number' ? info.releasedAt : performance.now();
+            const holdDuration =
+              typeof info?.duration === 'number'
+                ? info.duration
+                : holdStartedAt != null && holdReleasedAt != null
+                ? holdReleasedAt - holdStartedAt
+                : null;
+            finish({
+              responded: true,
+              response_source: info?.source || holdState.primarySource || 'none',
+              rt: performance.now() - responseStart,
+              hold_started_at: holdStartedAt ?? null,
+              hold_released_at: holdReleasedAt ?? null,
+              hold_duration: holdDuration ?? null
+            });
+          };
+
+          trialState.releaseListener = handleRelease;
+          holdState.releaseListeners.add(handleRelease);
+
+          const cachedRelease = holdState.lastReleaseInfo;
+          if (
+            cachedRelease &&
+            typeof cachedRelease.releasedAt === 'number' &&
+            typeof trialState.secondStimOnset === 'number' &&
+            cachedRelease.releasedAt >= trialState.secondStimOnset
+          ) {
+            handleRelease(cachedRelease);
+          }
+
+          if (finished) {
+            return;
+          }
+
+          timerId = window.setTimeout(() => {
+            const holdStartedAt =
+              typeof trialState.holdStartedAt === 'number'
+                ? trialState.holdStartedAt
+                : typeof holdState.holdStart === 'number'
+                ? holdState.holdStart
+                : lastHoldStartTime;
+            const holdDuration = holdStartedAt != null ? performance.now() - holdStartedAt : null;
+            finish({
+              responded: false,
+              response_source: 'none',
+              rt: null,
+              hold_started_at: holdStartedAt ?? null,
+              hold_released_at: null,
+              hold_duration: holdDuration
+            });
+          }, RESPONSE_WINDOW);
+        },
+        on_finish: data => {
+          if (trialState.releaseListener) {
+            holdState.releaseListeners.delete(trialState.releaseListener);
+            trialState.releaseListener = null;
+          }
+          const result = data.value || {};
+          const responded = result.responded === true;
+          const rt = typeof result.rt === 'number' ? result.rt : null;
+          const holdStartedAt =
+            typeof result.hold_started_at === 'number'
+              ? result.hold_started_at
+              : typeof trialState.holdStartedAt === 'number'
+              ? trialState.holdStartedAt
+              : lastHoldStartTime;
+          const holdReleasedAt =
+            typeof result.hold_released_at === 'number'
+              ? result.hold_released_at
+              : responded && typeof holdStartedAt === 'number'
+              ? holdStartedAt + (typeof result.hold_duration === 'number' ? result.hold_duration : rt ?? 0)
+              : null;
+          const holdDuration =
+            typeof result.hold_duration === 'number'
+              ? result.hold_duration
+              : holdReleasedAt != null && holdStartedAt != null
+              ? holdReleasedAt - holdStartedAt
+              : null;
+          const source = responded ? result.response_source || holdState.primarySource || 'none' : 'none';
+
+          data.rt = rt;
+          data.response_source = source;
+          data.is_go = trialState.isGo;
+          data.change_type = trialState.changeType;
+          data.first_frequency = trialState.baseFrequency;
+          data.second_frequency = trialState.baseFrequency;
+          data.first_duration = trialState.firstDuration;
+          data.second_duration = trialState.secondDuration;
+          data.first_amplitude = trialState.firstAmplitude;
+          data.second_amplitude = trialState.secondAmplitude;
+          data.interstimulus = trialState.isi;
+          data.trial_number = trialState.index;
+          data.go_success = trialState.isGo ? responded : null;
+          data.correct = trialState.isGo ? responded : !responded;
+          data.amplitude_diff = trialState.amplitudeDiff;
+          data.duration_diff = trialState.durationDiff;
+          data.quest_values = trialState.questUpdates.map(update => ({
+            key: update.key,
+            value: update.value
+          }));
+          data.hold_started_at = typeof holdStartedAt === 'number' ? holdStartedAt : null;
+          data.hold_released_at = typeof holdReleasedAt === 'number' ? holdReleasedAt : null;
+          data.hold_duration = typeof holdDuration === 'number' ? holdDuration : null;
+          data.responded = responded;
+
+          trialState.holdStartedAt = data.hold_started_at;
+
+          if (trialState.isGo) {
+            const responseIndex = responded ? 1 : 0;
+            trialState.questUpdates.forEach(update => {
+              if (!update || typeof update.value !== 'number' || !update.quest) return;
+              try {
+                update.quest.update(update.value, responseIndex);
+              } catch (error) {
+                console.warn('Quest update skipped', error);
+              }
+            });
+          }
+        }
+      };
+
+      const iti = {
+        type: jsPsychCallFunction,
+        data: () => ({ stage: 'iti', trial_index: trialState.index }),
+        func: () => {
+          const total = Math.max(progressTotal, 1);
+          jsPsych.setProgressBar((progressBase + index + 1) / total);
+          const display = jsPsych.getDisplayElement();
+          if (display) {
+            display.innerHTML = stageHTML('<div class="response-text">Prepare for the next trial…</div>', {
+              showFixation: true,
+              progress: buildStimulusSummary(trialState.index)
+            });
+          }
+        }
+      };
+
+      return [waitForHold, setup, playStimuli, responseStage, iti];
+    }
+
+    function buildTimeline() {
+      const timeline = [instructions];
+      const trials = [];
+      for (let i = 0; i < TOTAL_TRIALS; i += 1) {
+        trials.push(...createTrial(i));
+      }
+      timeline.push(...trials);
+      return timeline;
+    }
+
+    function startExperiment() {
+      if (sessionRunning) {
+        return;
+      }
+      sessionRunning = true;
+      sessionFinalized = false;
+      lastHoldStartTime = null;
+      holdState.reset();
+
+      if (preExperimentOverlay) {
+        preExperimentOverlay.classList.add('hidden');
+      }
+      if (psychOutput) {
+        psychOutput.hidden = true;
+      }
+
+      if (holdButton) {
+        holdButton.hidden = false;
+      }
+      if (stopExperimentButton) {
+        stopExperimentButton.hidden = false;
+        stopExperimentButton.disabled = true;
+      }
+
+      updateStopButtonState();
+
+      jsPsych.data.reset(true);
+      jsPsych.data.addProperties({ session_started_at: Date.now() });
+
+      const timeline = buildTimeline();
+      jsPsych.run(timeline);
+    }
+
+    function stopSessionEarly() {
+      if (!sessionRunning) {
+        return;
+      }
+      finalizeSession('stopped');
+    }
+
+    function handleStartClick() {
+      sessionFinalized = false;
+      progressBase = previousTrialCount;
+      progressTotal = previousTrialCount + TOTAL_TRIALS;
+      startExperiment();
+    }
+
+    function handleFileLoad(event) {
+      const file = event.target.files?.[0];
+      if (!file) {
+        setStatus('No file selected.', 'warning');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = loadEvent => {
+        try {
+          const parsed = JSON.parse(loadEvent.target?.result);
+          if (!Array.isArray(parsed)) {
+            setStatus('The selected file does not contain a valid data array.', 'error');
+            return;
+          }
+          uploadedDataArray = parsed;
+          seedQuestsFromData(uploadedDataArray);
+          setStatus(`Loaded ${uploadedDataArray.length} trials from file.`, 'info');
+          previousTrialCount = uploadedDataArray.reduce((max, trial) => {
+            const num = Number(trial?.trial_number ?? trial?.trialIndex ?? trial?.trial_index);
+            return Number.isFinite(num) ? Math.max(max, num) : max;
+          }, 0);
+          progressBase = previousTrialCount;
+          progressTotal = previousTrialCount + TOTAL_TRIALS;
+          if (viewButton) {
+            viewButton.disabled = uploadedDataArray.length === 0;
+          }
+        } catch (error) {
+          console.error(error);
+          setStatus('Failed to parse the selected JSON file.', 'error');
+        }
+      };
+      reader.onerror = () => {
+        setStatus('Unable to read the selected file.', 'error');
+      };
+      reader.readAsText(file);
+    }
+
+    function viewPsychometricsOnly() {
+      if (!uploadedDataArray.length) {
+        setStatus('Upload a JSON session file to view psychometrics.', 'warning');
+        return;
+      }
+      renderPsychometricsFromData(uploadedDataArray);
+    }
+
+    function initialiseUI() {
+      if (startButton) {
+        startButton.addEventListener('click', handleStartClick);
+      }
+      if (viewButton) {
+        viewButton.addEventListener('click', viewPsychometricsOnly);
+      }
+      if (fileInput) {
+        fileInput.addEventListener('change', handleFileLoad);
+      }
+      if (holdButton) {
+        holdButton.hidden = true;
+      }
+      if (stopExperimentButton) {
+        stopExperimentButton.hidden = true;
+        stopExperimentButton.disabled = true;
+        stopExperimentButton.addEventListener('click', handleStopClick);
+      }
+
+      registerControlEvents();
+      updateHoldButton(false);
+      updateStopButtonState();
+    }
+
+    initialiseUI();
+
+    jsPsych.onFinish(() => {
+      if (!sessionFinalized) {
+        finalizeSession('complete');
+      }
+    });
+
+    window.addEventListener('beforeunload', event => {
+      if (!sessionFinalized && sessionRunning) {
+        event.preventDefault();
+        event.returnValue = '';
+      }
+    });
+  </script>
+</body>
+</html>
