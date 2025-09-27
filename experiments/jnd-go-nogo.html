@@ -132,35 +132,6 @@
       gap: clamp(16px, 4vw, 24px);
     }
 
-    .psychometrics-output[hidden] {
-      display: none;
-    }
-
-    .psych-section {
-      background: rgba(15, 23, 42, 0.65);
-      border-radius: clamp(16px, 4vw, 24px);
-      padding: clamp(16px, 4vw, 24px);
-      border: 1px solid rgba(148, 163, 184, 0.18);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .psych-section h3 {
-      margin: 0;
-      font-size: clamp(1.1rem, 3vw, 1.35rem);
-    }
-
-    .psych-section p {
-      margin: 0;
-      color: rgba(226, 232, 240, 0.82);
-    }
-
-    .psych-section canvas {
-      width: 100%;
-      min-height: 220px;
-    }
-
     #jspsych-target {
       width: min(96vw, 860px);
       background: rgba(15, 23, 42, 0.82);
@@ -328,9 +299,27 @@
       <p id="session-status" class="session-status" data-state="info">No previous session loaded.</p>
       <div class="session-actions">
         <button id="start-experiment" class="jspsych-btn">Start experiment</button>
-        <button id="view-psychometrics" class="jspsych-btn" disabled>View my psychometrics</button>
       </div>
-      <div id="psychometrics-output" class="psychometrics-output" hidden></div>
+      <div id="psychometrics-output" class="psychometrics-output">
+        <div style="display:flex; gap:.5rem; align-items:center; margin:.5rem 0; flex-wrap:wrap;">
+          <label for="pm-dim">Dimension:</label>
+          <select id="pm-dim">
+            <option value="theta">θ (angle)</option>
+            <option value="radius">radius</option>
+            <option value="diameter">diameter</option>
+          </select>
+
+          <button id="view-psychometrics" class="jspsych-btn" disabled>View my psychometrics</button>
+          <span id="pm-status" style="font-size:.9rem;color:#666;"></span>
+        </div>
+
+        <canvas
+          id="pm-canvas"
+          width="800"
+          height="420"
+          style="max-width:100%;border:1px solid #eee"
+        ></canvas>
+      </div>
     </div>
   </div>
   <div id="jspsych-target"></div>
@@ -342,7 +331,6 @@
   <script src="../jspsych/plugins/html-keyboard-response.js"></script>
   <script src="../jspsych/plugins/call-function.js"></script>
   <script src="https://unpkg.com/jsquest-plus@2.1.0/dist/jsQuestPlus.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
   <script>
     const jsPsych = initJsPsych({
@@ -353,10 +341,8 @@
 
     const preExperimentOverlay = document.getElementById('pre-experiment');
     const startButton = document.getElementById('start-experiment');
-    const viewButton = document.getElementById('view-psychometrics');
     const fileInput = document.getElementById('session-file');
     const statusEl = document.getElementById('session-status');
-    const psychOutput = document.getElementById('psychometrics-output');
     const holdButton = document.getElementById('hold-button');
     const stopExperimentButton = document.getElementById('stop-experiment');
 
@@ -371,10 +357,17 @@
     let previousTrialCount = 0;
     let progressBase = 0;
     let progressTotal = TOTAL_TRIALS;
-    let psychCharts = [];
     let sessionRunning = false;
     let sessionFinalized = false;
     let lastHoldStartTime = null;
+
+    window.JND_SESSION = { trials: [] };
+
+    function broadcastSessionUpdate() {
+      const trials = Array.isArray(uploadedDataArray) ? [...uploadedDataArray] : [];
+      window.JND_SESSION = { trials };
+      window.dispatchEvent(new Event('jnd-session-loaded'));
+    }
 
     const stageSide = Math.min(window.innerWidth, window.innerHeight) * 0.7;
     document.documentElement.style.setProperty('--stage-size', `${Math.round(stageSide)}px`);
@@ -529,15 +522,6 @@
       statusEl.dataset.state = state;
     }
 
-    function destroyPsychCharts() {
-      psychCharts.forEach(chart => {
-        if (chart && typeof chart.destroy === 'function') {
-          chart.destroy();
-        }
-      });
-      psychCharts = [];
-    }
-
     function randomBetween(min, max) {
       if (max <= min) {
         return min;
@@ -603,41 +587,6 @@
       diameterQuest = buildQuest(diameterSamples);
     }
 
-    function computeEmpiricalPoints(trials, changeType) {
-      const goTrials = trials.filter(
-        trial =>
-          trial &&
-          trial.stage === 'response' &&
-          trial.is_go === true &&
-          trial.change_type === changeType &&
-          typeof trial.quest_value === 'number'
-      );
-      const grouped = new Map();
-      goTrials.forEach(trial => {
-        const intensity = Number(trial.quest_value);
-        if (!Number.isFinite(intensity)) {
-          return;
-        }
-        const key = intensity.toFixed(3);
-        if (!grouped.has(key)) {
-          grouped.set(key, { x: intensity, hits: 0, total: 0 });
-        }
-        const bucket = grouped.get(key);
-        if (trial.go_success === true) {
-          bucket.hits += 1;
-        }
-        bucket.total += 1;
-      });
-      return Array.from(grouped.values())
-        .sort((a, b) => a.x - b.x)
-        .map(bucket => ({
-          x: bucket.x,
-          y: bucket.total ? bucket.hits / bucket.total : 0,
-          hits: bucket.hits,
-          total: bucket.total
-        }));
-    }
-
     function seedQuestsFromData(dataArray) {
       resetQuests();
       previousTrialCount = 0;
@@ -682,155 +631,6 @@
           console.warn('Quest update skipped while seeding from previous data', error);
         }
       });
-    }
-
-    function renderPsychometricsFromData(dataArray) {
-      destroyPsychCharts();
-      if (!psychOutput) return;
-      psychOutput.innerHTML = '';
-      if (!Array.isArray(dataArray) || dataArray.length === 0) {
-        psychOutput.innerHTML =
-          '<p class="session-status" data-state="warning">The uploaded file does not contain any trials yet.</p>';
-        psychOutput.hidden = false;
-        return;
-      }
-      if (typeof Chart === 'undefined') {
-        psychOutput.innerHTML =
-          '<p class="session-status" data-state="error">Chart.js failed to load, so the psychometric plots are unavailable.</p>';
-        psychOutput.hidden = false;
-        return;
-      }
-      const responseTrials = dataArray.filter(trial => trial && trial.stage === 'response');
-      if (!responseTrials.length) {
-        psychOutput.innerHTML =
-          '<p class="session-status" data-state="warning">The uploaded file does not contain any response-stage trials yet.</p>';
-        psychOutput.hidden = false;
-        return;
-      }
-
-      psychOutput.hidden = false;
-
-      const changeTypes = [
-        { key: 'theta', label: 'Angular shift', unit: '°', color: '#38bdf8', quest: () => thetaQuest, samples: thetaSamples },
-        { key: 'radius', label: 'Radial displacement', unit: 'px', color: '#22c55e', quest: () => radiusQuest, samples: radiusSamples },
-        { key: 'diameter', label: 'Diameter change', unit: 'px', color: '#f97316', quest: () => diameterQuest, samples: diameterSamples }
-      ];
-
-      changeTypes.forEach(info => {
-        const section = document.createElement('section');
-        section.className = 'psych-section';
-
-        const heading = document.createElement('h3');
-        heading.textContent = `${info.label} (${info.unit})`;
-        section.appendChild(heading);
-
-        const quest = info.quest();
-        let estimates = null;
-        try {
-          const questEstimates = quest.getEstimates('mode');
-          if (Array.isArray(questEstimates) && questEstimates.length >= 4) {
-            estimates = questEstimates;
-          }
-        } catch (error) {
-          console.warn('Quest estimates unavailable', error);
-        }
-
-        const summary = document.createElement('p');
-        if (estimates) {
-          summary.innerHTML = `<strong>Estimated threshold:</strong> ${estimates[0].toFixed(2)} ${info.unit} · <strong>Slope:</strong> ${estimates[1].toFixed(2)}`;
-        } else {
-          summary.textContent = 'Not enough data to estimate a psychometric function yet.';
-        }
-        section.appendChild(summary);
-
-        const canvas = document.createElement('canvas');
-        section.appendChild(canvas);
-        psychOutput.appendChild(section);
-
-        const empirical = computeEmpiricalPoints(responseTrials, info.key);
-        const datasets = [];
-
-        if (estimates) {
-          const predicted = info.samples.map(value => ({
-            x: value,
-            y: jsQuestPlus.weibull(value, estimates[0], estimates[1], estimates[2], estimates[3])
-          }));
-          datasets.push({
-            label: `${info.label} fit`,
-            data: predicted,
-            fill: false,
-            borderColor: info.color,
-            backgroundColor: info.color,
-            tension: 0.25,
-            parsing: false
-          });
-        }
-
-        if (empirical.length) {
-          datasets.push({
-            label: `${info.label} empirical`,
-            data: empirical.map(point => ({ x: point.x, y: point.y })),
-            parsing: false,
-            showLine: false,
-            backgroundColor: 'rgba(248, 250, 252, 0.85)',
-            borderColor: '#f8fafc',
-            pointRadius: 4,
-            pointHoverRadius: 6
-          });
-        }
-
-        const chart = new Chart(canvas.getContext('2d'), {
-          type: 'line',
-          data: { datasets },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              x: {
-                title: { display: true, text: `${info.label} (${info.unit})`, color: '#cbd5f5' },
-                grid: { color: 'rgba(148, 163, 184, 0.2)' },
-                ticks: { color: '#e2e8f0' }
-              },
-              y: {
-                min: 0,
-                max: 1,
-                title: { display: true, text: 'Detection probability', color: '#cbd5f5' },
-                grid: { color: 'rgba(148, 163, 184, 0.2)' },
-                ticks: {
-                  color: '#e2e8f0',
-                  callback: value => `${Math.round(value * 100)}%`
-                }
-              }
-            },
-            plugins: {
-              legend: { labels: { color: '#e2e8f0' } },
-              tooltip: {
-                callbacks: {
-                  label(context) {
-                    const datasetLabel = context.dataset.label || '';
-                    const yValue = context.parsed.y;
-                    let base = `${datasetLabel}: ${Math.round(yValue * 100)}% at ${context.parsed.x.toFixed(2)} ${info.unit}`;
-                    if (
-                      context.dataset.label &&
-                      context.dataset.label.includes('empirical') &&
-                      typeof context.dataIndex === 'number' &&
-                      empirical[context.dataIndex]
-                    ) {
-                      const point = empirical[context.dataIndex];
-                      base += ` (${point.hits}/${point.total} detections)`;
-                    }
-                    return base;
-                  }
-                }
-              }
-            }
-          }
-        });
-
-        psychCharts.push(chart);
-      });
-
-      psychOutput.hidden = false;
     }
 
     function downloadBlob(content, filename, type) {
@@ -878,10 +678,7 @@
       seedQuestsFromData(uploadedDataArray);
       progressBase = previousTrialCount;
       progressTotal = previousTrialCount + TOTAL_TRIALS;
-
-      if (viewButton) {
-        viewButton.disabled = uploadedDataArray.length === 0;
-      }
+      broadcastSessionUpdate();
 
       if (startButton) {
         startButton.textContent = uploadedDataArray.length ? 'Run another block' : 'Start experiment';
@@ -897,10 +694,6 @@
       if (preExperimentOverlay) {
         preExperimentOverlay.classList.remove('hidden');
       }
-      if (psychOutput) {
-        psychOutput.hidden = true;
-      }
-      destroyPsychCharts();
       jsPsych.getDisplayElement().innerHTML = '';
     }
 
@@ -1364,23 +1157,12 @@
       if (preExperimentOverlay) {
         preExperimentOverlay.classList.add('hidden');
       }
-      destroyPsychCharts();
-      if (psychOutput) {
-        psychOutput.hidden = true;
-      }
       jsPsych.run(timeline);
     }
 
     if (startButton) {
       startButton.addEventListener('click', () => {
         startExperiment();
-      });
-    }
-
-    if (viewButton) {
-      viewButton.addEventListener('click', () => {
-        if (viewButton.disabled) return;
-        renderPsychometricsFromData(uploadedDataArray);
       });
     }
 
@@ -1394,11 +1176,6 @@
 
     if (fileInput) {
       fileInput.addEventListener('change', event => {
-        destroyPsychCharts();
-        if (psychOutput) {
-          psychOutput.hidden = true;
-        }
-
         const files = event.target.files || [];
         const file = files[0];
         if (!file) {
@@ -1407,8 +1184,8 @@
           resetQuests();
           progressBase = 0;
           progressTotal = TOTAL_TRIALS;
+          broadcastSessionUpdate();
           if (startButton) startButton.textContent = 'Start experiment';
-          if (viewButton) viewButton.disabled = true;
           setStatus('No previous session loaded.', 'info');
           return;
         }
@@ -1431,6 +1208,7 @@
             seedQuestsFromData(uploadedDataArray);
             progressBase = previousTrialCount;
             progressTotal = previousTrialCount + TOTAL_TRIALS;
+            broadcastSessionUpdate();
             const responseCount = uploadedDataArray.filter(trial => trial && trial.stage === 'response').length;
             let message = `Loaded ${uploadedDataArray.length} trials from ${file.name}.`;
             if (previousTrialCount) {
@@ -1443,9 +1221,6 @@
             if (startButton) {
               startButton.textContent = uploadedDataArray.length ? 'Continue experiment' : 'Start experiment';
             }
-            if (viewButton) {
-              viewButton.disabled = uploadedDataArray.length === 0;
-            }
           } catch (error) {
             console.error(error);
             uploadedDataArray = [];
@@ -1453,8 +1228,8 @@
             resetQuests();
             progressBase = 0;
             progressTotal = TOTAL_TRIALS;
+            broadcastSessionUpdate();
             if (startButton) startButton.textContent = 'Start experiment';
-            if (viewButton) viewButton.disabled = true;
             setStatus('Could not parse that JSON file. Please ensure it was exported from this experiment.', 'error');
           } finally {
             fileInput.value = '';
@@ -1466,8 +1241,8 @@
           resetQuests();
           progressBase = 0;
           progressTotal = TOTAL_TRIALS;
+          broadcastSessionUpdate();
           if (startButton) startButton.textContent = 'Start experiment';
-          if (viewButton) viewButton.disabled = true;
           setStatus('Unable to read the selected file.', 'error');
           fileInput.value = '';
         };
@@ -1476,6 +1251,256 @@
     }
 
     setStatus('No previous session loaded.', 'info');
+  </script>
+
+  <script>
+    (() => {
+      function getResponses() {
+        const sess = window.JND_SESSION || window.SESSION || window.sessionData || {};
+        const trials = Array.isArray(sess) ? sess : sess.trials || sess.data || [];
+        const rows = [];
+        for (const t of trials || []) {
+          if (t && t.stage === 'response') {
+            rows.push(t);
+          } else if (t && Array.isArray(t.events)) {
+            const r = t.events.find(e => e && e.stage === 'response');
+            if (r) rows.push(r);
+          }
+        }
+        return rows;
+      }
+
+      function questValueFor(response, dim) {
+        if (!response) return null;
+        const direct = response.quest_value;
+        if (direct !== null && direct !== undefined) {
+          const numeric = Number(direct);
+          if (Number.isFinite(numeric)) {
+            return numeric;
+          }
+        }
+        const entries = Array.isArray(response.quest_values) ? response.quest_values : null;
+        if (entries) {
+          const match = entries.find(entry => entry && entry.key === dim);
+          if (match && match.value !== null && match.value !== undefined) {
+            const numeric = Number(match.value);
+            if (Number.isFinite(numeric)) {
+              return numeric;
+            }
+          }
+        }
+        return null;
+      }
+
+      function psychometricData(responses, dim) {
+        const go = responses.filter(r => r && r.is_go === true && r.change_type === dim);
+        const byDelta = new Map();
+        for (const r of go) {
+          const d = questValueFor(r, dim);
+          if (!Number.isFinite(d)) continue;
+          const cur = byDelta.get(d) || { n: 0, k: 0 };
+          cur.n += 1;
+          cur.k += r.responded ? 1 : 0;
+          byDelta.set(d, cur);
+        }
+        return [...byDelta.entries()]
+          .sort((a, b) => a[0] - b[0])
+          .map(([delta, { n, k }]) => ({ delta, p: n ? k / n : 0, n }));
+      }
+
+      function falseAlarmRate(responses) {
+        const nogo = responses.filter(r => r && r.is_go === false);
+        if (!nogo.length) return 0;
+        const fa = nogo.filter(r => r.responded).length;
+        return fa / nogo.length;
+      }
+
+      function drawPsychometric(canvas, series, fa) {
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width;
+        const H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        if (!series || series.length === 0) {
+          ctx.fillStyle = '#444';
+          ctx.font = '16px system-ui, sans-serif';
+          ctx.fillText('No data to plot for this dimension.', 16, 32);
+          return;
+        }
+
+        const pad = { l: 60, r: 20, t: 24, b: 40 };
+        const xs = series.map(s => s.delta);
+        const ys = series.map(s => s.p);
+        const xMin = Math.min(...xs);
+        const xMax = Math.max(...xs);
+        const yMin = 0;
+        const yMax = 1;
+
+        const span = Math.max(1e-9, xMax - xMin || 1);
+        const X = x => pad.l + ((W - pad.l - pad.r) * (x - xMin)) / span;
+        const Y = y => H - pad.b - ((H - pad.t - pad.b) * (y - yMin)) / (yMax - yMin || 1);
+
+        ctx.strokeStyle = '#bbb';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pad.l, Y(0));
+        ctx.lineTo(W - pad.r, Y(0));
+        ctx.moveTo(pad.l, pad.t);
+        ctx.lineTo(pad.l, H - pad.b);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#eee';
+        for (let g = 0; g <= 10; g++) {
+          const gy = g / 10;
+          ctx.beginPath();
+          ctx.moveTo(pad.l, Y(gy));
+          ctx.lineTo(W - pad.r, Y(gy));
+          ctx.stroke();
+        }
+
+        if (fa && fa > 0) {
+          ctx.strokeStyle = '#f0a';
+          ctx.setLineDash([5, 4]);
+          ctx.beginPath();
+          ctx.moveTo(pad.l, Y(fa));
+          ctx.lineTo(W - pad.r, Y(fa));
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#a06';
+          ctx.font = '12px system-ui, sans-serif';
+          ctx.fillText(`FA ≈ ${fa.toFixed(2)}`, W - pad.r - 80, Y(fa) - 6);
+        }
+
+        ctx.strokeStyle = '#08c';
+        ctx.fillStyle = '#08c';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        series.forEach((point, index) => {
+          const x = X(point.delta);
+          const y = Y(point.p);
+          if (index === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        });
+        ctx.stroke();
+
+        ctx.font = '12px system-ui, sans-serif';
+        for (const s of series) {
+          const x = X(s.delta);
+          const y = Y(s.p);
+          ctx.beginPath();
+          ctx.arc(x, y, 3, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillText(String(s.n), x + 5, y - 6);
+        }
+
+        ctx.fillStyle = '#222';
+        ctx.font = '14px system-ui, sans-serif';
+        ctx.fillText('Δ (QUEST)', pad.l, H - 12);
+        ctx.save();
+        ctx.translate(16, H / 2 + 20);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('P(respond GO)', 0, 0);
+        ctx.restore();
+
+        const tickCount = Math.min(8, series.length);
+        const xticks = tickCount
+          ? series.map(s => s.delta).filter((_, i) => i % Math.ceil(series.length / tickCount || 1) === 0)
+          : [];
+        ctx.fillStyle = '#555';
+        ctx.font = '12px system-ui, sans-serif';
+        xticks.forEach(v => {
+          const x = X(v);
+          ctx.beginPath();
+          ctx.moveTo(x, H - pad.b);
+          ctx.lineTo(x, H - pad.b + 4);
+          ctx.strokeStyle = '#bbb';
+          ctx.stroke();
+          ctx.fillText(String(v), x - 8, H - pad.b + 16);
+        });
+
+        for (let g = 0; g <= 10; g += 2) {
+          const gy = g / 10;
+          const y = Y(gy);
+          ctx.beginPath();
+          ctx.moveTo(pad.l - 4, y);
+          ctx.lineTo(pad.l, y);
+          ctx.strokeStyle = '#bbb';
+          ctx.stroke();
+          ctx.fillText(gy.toFixed(1), pad.l - 36, y + 4);
+        }
+
+        ctx.font = '16px system-ui, sans-serif';
+        ctx.fillText('Psychometric (dimension-filtered)', pad.l, pad.t - 6);
+      }
+
+      const btn = document.getElementById('view-psychometrics');
+      const sel = document.getElementById('pm-dim');
+      const status = document.getElementById('pm-status');
+      const canvas = document.getElementById('pm-canvas');
+
+      const optionEntries = sel
+        ? Array.from(sel.options).map(opt => [opt.value, opt.textContent.trim()])
+        : [
+            ['theta', 'θ (angle)'],
+            ['radius', 'radius'],
+            ['diameter', 'diameter']
+          ];
+      const dims = optionEntries.map(([value]) => value);
+      const labels = Object.fromEntries(optionEntries);
+
+      const formatCounts = counts =>
+        optionEntries
+          .map(([value, label]) => `${label} ${counts[value] ?? 0}`)
+          .join(', ');
+
+      const labelFor = dim => labels[dim] || dim;
+
+      function refreshStatus() {
+        const r = getResponses();
+        const n = r.length;
+        const counts = Object.fromEntries(dims.map(value => [value, 0]));
+        for (const t of r) {
+          if (t && t.is_go && Object.prototype.hasOwnProperty.call(counts, t.change_type)) {
+            counts[t.change_type] += 1;
+          }
+        }
+        if (status) {
+          status.textContent = n
+            ? `Loaded ${n} response rows — go-trials by dim: ${formatCounts(counts)}`
+            : 'No previous session loaded — run the task or load a JSON.';
+        }
+        if (btn) {
+          btn.disabled = n === 0;
+        }
+      }
+
+      if (btn) {
+        btn.addEventListener('click', () => {
+          const r = getResponses();
+          if (!r.length) {
+            drawPsychometric(canvas, [], 0);
+            return;
+          }
+          const dim = sel && sel.value ? sel.value : dims[0];
+          const series = psychometricData(r, dim);
+          const fa = falseAlarmRate(r);
+          const label = labelFor(dim);
+          if (status) {
+            status.textContent = series.length
+              ? `Plotted ${series.length} Δ-bins for "${label}" (FA≈${fa.toFixed(2)}).`
+              : `No data for "${label}". Try another dimension or run more GO trials.`;
+          }
+          drawPsychometric(canvas, series, fa);
+        });
+      }
+
+      refreshStatus();
+      window.addEventListener('jnd-session-loaded', refreshStatus);
+    })();
   </script>
 </body>
 </html>
