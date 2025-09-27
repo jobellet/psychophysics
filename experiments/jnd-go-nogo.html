@@ -306,7 +306,6 @@
           <select id="pm-dim">
             <option value="theta">θ (angle)</option>
             <option value="radius">radius</option>
-            <option value="diameter">diameter</option>
           </select>
 
           <button id="view-psychometrics" class="jspsych-btn" disabled>View my psychometrics</button>
@@ -352,6 +351,7 @@
     const FIRST_STIM_DURATION = 33;
     const SECOND_STIM_DURATION = 33;
     const RESPONSE_WINDOW = 1400;
+    const DOT_DIAMETER = 30;
 
     let uploadedDataArray = [];
     let previousTrialCount = 0;
@@ -375,8 +375,6 @@
     const stagePadding = Math.max(28, stageSide * 0.06);
     const maxRadius = Math.max(90, stageCenter - stagePadding);
     const minRadius = Math.max(36, maxRadius * 0.28);
-    const minDiameter = Math.max(18, stageSide * 0.08);
-    const maxDiameter = Math.max(minDiameter + 16, stageSide * 0.32);
 
     function updateHoldButton(isActive) {
       if (!holdButton) return;
@@ -560,8 +558,6 @@
     const thetaSamples = createRange(4, 72, 2);
     const radiusMaxShift = Math.max(6, Math.min(90, Math.floor(maxRadius - minRadius - 6)));
     const radiusSamples = createRange(6, radiusMaxShift, 2);
-    const diameterMaxShift = Math.max(4, Math.min(60, Math.floor(maxDiameter - minDiameter - 4)));
-    const diameterSamples = createRange(4, diameterMaxShift, 2);
     const slopeSamples = createRange(2, 5, 0.5);
     const guessRate = [0.01];
     const lapseRate = [0.05];
@@ -579,12 +575,10 @@
 
     let thetaQuest = buildQuest(thetaSamples);
     let radiusQuest = buildQuest(radiusSamples);
-    let diameterQuest = buildQuest(diameterSamples);
 
     function resetQuests() {
       thetaQuest = buildQuest(thetaSamples);
       radiusQuest = buildQuest(radiusSamples);
-      diameterQuest = buildQuest(diameterSamples);
     }
 
     function seedQuestsFromData(dataArray) {
@@ -618,8 +612,6 @@
             ? thetaQuest
             : trial.change_type === 'radius'
             ? radiusQuest
-            : trial.change_type === 'diameter'
-            ? diameterQuest
             : null;
         if (!quest) {
           return;
@@ -753,7 +745,8 @@
           </p>
           <p>
             On most trials the dot is identical (<strong>no-go</strong>). About one third of the time the
-            dot shifts slightly in angle, distance from the centre, or diameter (<strong>go</strong> trials).
+            dot shifts slightly in angle or distance from the centre (<strong>go</strong> trials). Both flashes
+            always keep the same 30&nbsp;px diameter.
           </p>
           <ul>
             <li>Hold the glowing control button in the lower-right corner (or hold the spacebar) to initiate and continue trials.</li>
@@ -847,13 +840,13 @@
 
           let baseTheta = Math.random() * Math.PI * 2;
           let baseRadius = randomBetween(minRadius, maxRadius);
-          let baseDiameter = randomBetween(minDiameter, maxDiameter);
+          const baseDiameter = DOT_DIAMETER;
           let secondTheta = baseTheta;
           let secondRadius = baseRadius;
-          let secondDiameter = baseDiameter;
+          let secondDiameter = DOT_DIAMETER;
 
           if (trialState.isGo) {
-            const changeOptions = ['theta', 'radius', 'diameter'];
+            const changeOptions = ['theta', 'radius'];
             const selected = jsPsych.randomization.sampleWithoutReplacement(changeOptions, 1)[0];
             trialState.changeType = selected;
 
@@ -881,24 +874,6 @@
                 trialState.deltaRadius = stim;
                 trialState.questStimValue = stim;
                 trialState.questRef = radiusQuest;
-              }
-            } else if (selected === 'diameter') {
-              const stim = chooseStimulus(diameterQuest, diameterSamples);
-              const directions = [];
-              if (maxDiameter - stim >= minDiameter) directions.push(1);
-              if (minDiameter + stim <= maxDiameter) directions.push(-1);
-              if (directions.length > 0) {
-                const direction = jsPsych.randomization.sampleWithoutReplacement(directions, 1)[0];
-                if (direction === 1) {
-                  baseDiameter = randomBetween(minDiameter, maxDiameter - stim);
-                  secondDiameter = baseDiameter + stim;
-                } else {
-                  baseDiameter = randomBetween(minDiameter + stim, maxDiameter);
-                  secondDiameter = baseDiameter - stim;
-                }
-                trialState.deltaDiameter = stim;
-                trialState.questStimValue = stim;
-                trialState.questRef = diameterQuest;
               }
             }
           }
@@ -1446,8 +1421,7 @@
         ? Array.from(sel.options).map(opt => [opt.value, opt.textContent.trim()])
         : [
             ['theta', 'θ (angle)'],
-            ['radius', 'radius'],
-            ['diameter', 'diameter']
+            ['radius', 'radius']
           ];
       const dims = optionEntries.map(([value]) => value);
       const labels = Object.fromEntries(optionEntries);
