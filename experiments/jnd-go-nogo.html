@@ -330,6 +330,9 @@
   <script src="../jspsych/plugins/html-keyboard-response.js"></script>
   <script src="../jspsych/plugins/call-function.js"></script>
   <script src="https://unpkg.com/jsquest-plus@2.1.0/dist/jsQuestPlus.js"></script>
+  <!-- Context-aware QUEST+ -->
+  <script src="adaptiveQuest.js"></script>
+  <script> initAdaptiveQuest(); </script>
 
   <script>
     const jsPsych = initJsPsych({
@@ -345,7 +348,6 @@
     const holdButton = document.getElementById('hold-button');
     const stopExperimentButton = document.getElementById('stop-experiment');
 
-    const TARGET_ACCURACY = 0.7;
     const GO_PROBABILITY = 1 / 3;
     const TOTAL_TRIALS = 1000;
     const FIRST_STIM_DURATION = 33;
@@ -555,34 +557,8 @@
       return output;
     }
 
-    const thetaSamples = createRange(4, 72, 2);
-    const radiusMaxShift = Math.max(6, Math.min(90, Math.floor(maxRadius - minRadius - 6)));
-    const radiusSamples = createRange(6, radiusMaxShift, 2);
-    const slopeSamples = createRange(2, 5, 0.5);
-    const guessRate = [0.01];
-    const lapseRate = [0.05];
-
-    function buildQuest(stimSamples) {
-      return new jsQuestPlus({
-        psych_func: [
-          (stim, threshold, slope, guess, lapse) => jsQuestPlus.weibull(stim, threshold, slope, guess, lapse),
-          (stim, threshold, slope, guess, lapse) => 1 - jsQuestPlus.weibull(stim, threshold, slope, guess, lapse)
-        ],
-        stim_samples: [stimSamples],
-        psych_samples: [stimSamples, slopeSamples, guessRate, lapseRate]
-      });
-    }
-
-    let thetaQuest = buildQuest(thetaSamples);
-    let radiusQuest = buildQuest(radiusSamples);
-
-    function resetQuests() {
-      thetaQuest = buildQuest(thetaSamples);
-      radiusQuest = buildQuest(radiusSamples);
-    }
-
     function seedQuestsFromData(dataArray) {
-      resetQuests();
+      initAdaptiveQuest();
       previousTrialCount = 0;
       if (!Array.isArray(dataArray)) {
         return;
@@ -594,33 +570,6 @@
         const trialNumber = Number(trial.trial_number ?? trial.trialIndex ?? trial.trial_index);
         if (Number.isFinite(trialNumber)) {
           previousTrialCount = Math.max(previousTrialCount, trialNumber);
-        }
-        if (
-          trial.is_go !== true ||
-          typeof trial.quest_value !== 'number' ||
-          !trial.change_type ||
-          trial.change_type === 'none'
-        ) {
-          return;
-        }
-        const intensity = Number(trial.quest_value);
-        if (!Number.isFinite(intensity)) {
-          return;
-        }
-        const quest =
-          trial.change_type === 'theta'
-            ? thetaQuest
-            : trial.change_type === 'radius'
-            ? radiusQuest
-            : null;
-        if (!quest) {
-          return;
-        }
-        const responseIndex = trial.go_success === true ? 1 : 0;
-        try {
-          quest.update(intensity, responseIndex);
-        } catch (error) {
-          console.warn('Quest update skipped while seeding from previous data', error);
         }
       });
     }
@@ -687,29 +636,6 @@
         preExperimentOverlay.classList.remove('hidden');
       }
       jsPsych.getDisplayElement().innerHTML = '';
-    }
-
-    function chooseStimulus(quest, samples) {
-      let chosen = quest.getStimParams();
-      try {
-        const estimates = quest.getEstimates('mode');
-        if (Array.isArray(estimates) && estimates.length >= 4) {
-          let best = chosen;
-          let bestDiff = Infinity;
-          for (const value of samples) {
-            const prob = jsQuestPlus.weibull(value, estimates[0], estimates[1], estimates[2], estimates[3]);
-            const diff = Math.abs(prob - TARGET_ACCURACY);
-            if (diff < bestDiff) {
-              bestDiff = diff;
-              best = value;
-            }
-          }
-          chosen = best;
-        }
-      } catch (error) {
-        console.warn('Quest estimate unavailable', error);
-      }
-      return chosen;
     }
 
     function stageHTML(content = '', { showFixation = false } = {}) {
@@ -827,7 +753,7 @@
             isi: jsPsych.randomization.randomInt(50, 1000),
             changeType: 'none',
             questStimValue: null,
-            questRef: null,
+            questContext: null,
             deltaTheta: 0,
             deltaRadius: 0,
             deltaDiameter: 0,
@@ -850,31 +776,26 @@
             const selected = jsPsych.randomization.sampleWithoutReplacement(changeOptions, 1)[0];
             trialState.changeType = selected;
 
+            const ctx = {
+              changeType: selected,
+              soaMs: trialState.isi,
+              eccPx: baseRadius,
+              thetaRad: baseTheta
+            };
+            const stim = suggestDeltaForContext(ctx);
+            trialState.questStimValue = stim;
+            trialState.questContext = ctx;
+
             if (selected === 'theta') {
-              const stim = chooseStimulus(thetaQuest, thetaSamples);
-              trialState.questStimValue = stim;
-              trialState.questRef = thetaQuest;
               trialState.deltaTheta = stim;
               const direction = jsPsych.randomization.sampleWithoutReplacement([-1, 1], 1)[0];
               secondTheta = wrapAngle(baseTheta + direction * degToRad(stim));
-            } else if (selected === 'radius') {
-              const stim = chooseStimulus(radiusQuest, radiusSamples);
-              const directions = [];
-              if (maxRadius - stim >= minRadius) directions.push(1);
-              if (minRadius + stim <= maxRadius) directions.push(-1);
-              if (directions.length > 0) {
-                const direction = jsPsych.randomization.sampleWithoutReplacement(directions, 1)[0];
-                if (direction === 1) {
-                  baseRadius = randomBetween(minRadius, maxRadius - stim);
-                  secondRadius = baseRadius + stim;
-                } else {
-                  baseRadius = randomBetween(minRadius + stim, maxRadius);
-                  secondRadius = baseRadius - stim;
-                }
-                trialState.deltaRadius = stim;
-                trialState.questStimValue = stim;
-                trialState.questRef = radiusQuest;
-              }
+            } else {
+              trialState.deltaRadius = stim;
+              const direction = jsPsych.randomization.sampleWithoutReplacement([-1, 1], 1)[0];
+              secondRadius = baseRadius + direction * stim;
+              if (secondRadius < minRadius) secondRadius = minRadius;
+              if (secondRadius > maxRadius) secondRadius = maxRadius;
             }
           }
 
@@ -1082,12 +1003,12 @@
 
           trialState.holdStartedAt = data.hold_started_at;
 
-          if (trialState.isGo && trialState.questRef && typeof trialState.questStimValue === 'number') {
+          if (trialState.isGo && typeof trialState.questStimValue === 'number' && trialState.questContext) {
             const responseIndex = responded ? 1 : 0;
             try {
-              trialState.questRef.update(trialState.questStimValue, responseIndex);
+              updateQuestWithOutcome(trialState.questContext, trialState.questStimValue, responseIndex);
             } catch (error) {
-              console.warn('Quest update skipped', error);
+              console.warn('AdaptiveQuest update skipped', error);
             }
           }
         }
@@ -1156,7 +1077,7 @@
         if (!file) {
           uploadedDataArray = [];
           previousTrialCount = 0;
-          resetQuests();
+          initAdaptiveQuest();
           progressBase = 0;
           progressTotal = TOTAL_TRIALS;
           broadcastSessionUpdate();
@@ -1200,7 +1121,7 @@
             console.error(error);
             uploadedDataArray = [];
             previousTrialCount = 0;
-            resetQuests();
+            initAdaptiveQuest();
             progressBase = 0;
             progressTotal = TOTAL_TRIALS;
             broadcastSessionUpdate();
@@ -1213,7 +1134,7 @@
         reader.onerror = () => {
           uploadedDataArray = [];
           previousTrialCount = 0;
-          resetQuests();
+          initAdaptiveQuest();
           progressBase = 0;
           progressTotal = TOTAL_TRIALS;
           broadcastSessionUpdate();
