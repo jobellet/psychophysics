@@ -67,6 +67,141 @@
       color: rgba(203, 213, 225, 0.92);
     }
 
+    .calibration-section {
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: clamp(18px, 3.5vw, 28px);
+      padding: clamp(16px, 4vw, 28px);
+      background: rgba(15, 23, 42, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: clamp(12px, 3vw, 20px);
+    }
+
+    .calibration-section h2 {
+      margin: 0;
+      font-size: clamp(1.15rem, 3vw, 1.35rem);
+      color: #f8fafc;
+    }
+
+    .calibration-section p.small-print {
+      font-size: clamp(0.85rem, 2.4vw, 0.95rem);
+      color: rgba(148, 163, 184, 0.92);
+    }
+
+    .calibration-display {
+      position: relative;
+      width: 100%;
+      min-height: clamp(160px, 45vw, 260px);
+      border-radius: clamp(16px, 4vw, 24px);
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px dashed rgba(148, 163, 184, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    .calibration-instruction {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: clamp(0.75rem, 2.4vw, 0.9rem);
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, 0.88);
+      pointer-events: none;
+    }
+
+    .calibration-shape {
+      position: relative;
+      border: 2px solid rgba(56, 189, 248, 0.85);
+      background: rgba(56, 189, 248, 0.12);
+      box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.35);
+      border-radius: clamp(8px, 2vw, 12px);
+      transition: width 0.12s ease, height 0.12s ease, border-radius 0.12s ease;
+    }
+
+    .calibration-shape.circle {
+      border-radius: 9999px;
+    }
+
+    .calibration-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: clamp(8px, 2vw, 16px);
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .calibration-controls label {
+      font-size: clamp(0.95rem, 2.6vw, 1rem);
+      color: rgba(226, 232, 240, 0.92);
+    }
+
+    .calibration-controls input[type='number'] {
+      width: clamp(90px, 24vw, 120px);
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.75);
+      color: #f8fafc;
+      font-size: clamp(0.95rem, 2.6vw, 1rem);
+      -moz-appearance: textfield;
+    }
+
+    .calibration-controls input[type='number']::-webkit-outer-spin-button,
+    .calibration-controls input[type='number']::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .calibration-slider {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .calibration-slider input[type='range'] {
+      width: 100%;
+    }
+
+    .calibration-slider span {
+      font-size: clamp(0.8rem, 2.3vw, 0.95rem);
+      color: rgba(148, 163, 184, 0.9);
+      align-self: flex-end;
+    }
+
+    .calibration-status {
+      margin: 0;
+      font-size: clamp(0.85rem, 2.3vw, 0.95rem);
+      color: rgba(148, 163, 184, 0.88);
+    }
+
+    .calibration-status[data-state='error'] {
+      color: #fca5a5;
+    }
+
+    .calibration-status[data-state='success'] {
+      color: #a7f3d0;
+    }
+
+    .calibration-target {
+      font-size: clamp(0.85rem, 2.3vw, 0.95rem);
+      color: rgba(148, 163, 184, 0.9);
+    }
+
+    .jspsych-btn.secondary {
+      background: rgba(56, 189, 248, 0.18);
+      color: #38bdf8;
+      box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.45);
+    }
+
+    .jspsych-btn.secondary:hover {
+      background: rgba(56, 189, 248, 0.28);
+    }
+
     .file-picker {
       position: relative;
       display: inline-flex;
@@ -297,8 +432,69 @@
         <span>Select JSON file</span>
       </label>
       <p id="session-status" class="session-status" data-state="info">No previous session loaded.</p>
+      <div id="calibration-section" class="calibration-section">
+        <h2>Calibrate your viewing geometry</h2>
+        <p>
+          Pick a familiar object, hold it gently against the screen, and resize the on-screen shape so it matches.
+          This lets us convert every pixel on your display into degrees of visual angle.
+        </p>
+        <p class="small-print">
+          Keep the screen at the same distance from your eyes throughout the experiment. If you move, stop and recalibrate before continuing.
+        </p>
+        <div class="calibration-controls">
+          <label for="calibration-object">Reference object</label>
+          <select id="calibration-object">
+            <option
+              value="ID-1"
+              data-shape="rect"
+              data-length-mm="85.6"
+              data-width-mm="53.98"
+              data-radius-mm=""
+            >
+              Credit / ID Card (ID-1)
+            </option>
+            <option
+              value="EUR-1"
+              data-shape="circle"
+              data-length-mm="23.25"
+              data-width-mm="23.25"
+              data-radius-mm="11.625"
+            >
+              €1 Coin
+            </option>
+          </select>
+          <div class="calibration-target" id="calibration-target-info"></div>
+        </div>
+        <div class="calibration-display" id="calibration-display">
+          <div class="calibration-instruction">Pinch to zoom or use the slider</div>
+          <div class="calibration-shape" id="calibration-shape"></div>
+        </div>
+        <div class="calibration-slider">
+          <input type="range" id="calibration-slider" min="40" max="400" value="200" />
+          <span id="calibration-size-readout"></span>
+        </div>
+        <div class="calibration-controls">
+          <label for="viewing-distance">Viewing distance</label>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <input
+              type="number"
+              id="viewing-distance"
+              inputmode="decimal"
+              min="10"
+              max="200"
+              step="0.5"
+              placeholder="40"
+            />
+            <span style="color:rgba(148,163,184,0.9); font-size:0.95em;">cm</span>
+          </div>
+        </div>
+        <button id="calibration-confirm" class="jspsych-btn secondary" type="button">Save calibration</button>
+        <p id="calibration-status" class="calibration-status" data-state="info">
+          Calibration required before the experiment can begin.
+        </p>
+      </div>
       <div class="session-actions">
-        <button id="start-experiment" class="jspsych-btn">Start experiment</button>
+        <button id="start-experiment" class="jspsych-btn" disabled>Calibrate to start</button>
       </div>
       <div id="psychometrics-output" class="psychometrics-output">
         <div style="display:flex; gap:.5rem; align-items:center; margin:.5rem 0; flex-wrap:wrap;">
@@ -329,6 +525,7 @@
   <script src="../jspsych/plugins/html-button-response.js"></script>
   <script src="../jspsych/plugins/html-keyboard-response.js"></script>
   <script src="../jspsych/plugins/call-function.js"></script>
+  <script src="../shared-resources/visual-angle.js"></script>
   <script src="https://unpkg.com/jsquest-plus@2.1.0/dist/jsQuestPlus.js"></script>
   <!-- Context-aware QUEST+ -->
   <script src="adaptiveQuest.js"></script>
@@ -348,6 +545,472 @@
     const statusEl = document.getElementById('session-status');
     const holdButton = document.getElementById('hold-button');
     const stopExperimentButton = document.getElementById('stop-experiment');
+
+    const calibrationElements = {
+      section: document.getElementById('calibration-section'),
+      objectSelect: document.getElementById('calibration-object'),
+      display: document.getElementById('calibration-display'),
+      shape: document.getElementById('calibration-shape'),
+      slider: document.getElementById('calibration-slider'),
+      readout: document.getElementById('calibration-size-readout'),
+      status: document.getElementById('calibration-status'),
+      confirm: document.getElementById('calibration-confirm'),
+      viewingDistance: document.getElementById('viewing-distance'),
+      target: document.getElementById('calibration-target-info')
+    };
+
+    const CALIBRATION_STORAGE_KEY = 'visual-jnd-calibration';
+    const calibrationState = {
+      ready: false,
+      mmPerPixel: null,
+      viewingDistanceMm: null,
+      reference: null,
+      objectId: null,
+      pixelSize: null,
+      timestamp: null,
+      dvaPerPixel: null
+    };
+    let calibrationDirty = true;
+    let suppressCalibrationUpdates = false;
+
+    function parseCalibrationObjects(selectEl) {
+      if (!selectEl) return [];
+      return Array.from(selectEl.options || [])
+        .map(option => {
+          const shape = (option.dataset.shape || 'rect').toLowerCase();
+          const lengthMm = parseFloat(option.dataset.lengthMm);
+          const widthMm = parseFloat(option.dataset.widthMm);
+          const radiusMm = parseFloat(option.dataset.radiusMm);
+          const hasLength = Number.isFinite(lengthMm) && lengthMm > 0;
+          const hasWidth = Number.isFinite(widthMm) && widthMm > 0;
+          const hasRadius = Number.isFinite(radiusMm) && radiusMm > 0;
+          let widthReferenceMm = null;
+          let heightReferenceMm = null;
+          let diameterMm = null;
+
+          if (shape === 'circle') {
+            if (hasRadius) {
+              diameterMm = radiusMm * 2;
+            } else if (hasLength) {
+              diameterMm = lengthMm;
+            } else if (hasWidth) {
+              diameterMm = widthMm;
+            }
+            widthReferenceMm = diameterMm;
+            heightReferenceMm = diameterMm;
+          } else {
+            widthReferenceMm = hasLength ? lengthMm : hasWidth ? widthMm : null;
+            heightReferenceMm = hasWidth ? widthMm : hasLength ? lengthMm : null;
+          }
+
+          if (!widthReferenceMm || widthReferenceMm <= 0) {
+            return null;
+          }
+
+          return {
+            id: option.value,
+            name: option.textContent.trim(),
+            shape,
+            lengthMm: hasLength ? lengthMm : null,
+            widthMm: hasWidth ? widthMm : null,
+            radiusMm: hasRadius ? radiusMm : null,
+            diameterMm: diameterMm || (hasRadius ? radiusMm * 2 : null),
+            widthReferenceMm,
+            heightReferenceMm: heightReferenceMm && heightReferenceMm > 0 ? heightReferenceMm : widthReferenceMm,
+            aspectRatio:
+              widthReferenceMm && heightReferenceMm && heightReferenceMm > 0
+                ? heightReferenceMm / widthReferenceMm
+                : 1
+          };
+        })
+        .filter(Boolean);
+    }
+
+    const calibrationObjects = parseCalibrationObjects(calibrationElements.objectSelect);
+
+    function getCalibrationObjectById(id) {
+      return calibrationObjects.find(obj => obj.id === id) || calibrationObjects[0] || null;
+    }
+
+    function getSelectedCalibrationObject() {
+      const select = calibrationElements.objectSelect;
+      if (!select) return null;
+      return getCalibrationObjectById(select.value);
+    }
+
+    function showCalibrationStatus(message, state = 'info') {
+      if (!calibrationElements.status) return;
+      calibrationElements.status.textContent = message;
+      calibrationElements.status.dataset.state = state;
+    }
+
+    function updateCalibrationTargetInfo() {
+      if (!calibrationElements.target) return;
+      const obj = getSelectedCalibrationObject();
+      if (!obj) {
+        calibrationElements.target.textContent = '';
+        return;
+      }
+      if (obj.shape === 'circle' && Number.isFinite(obj.diameterMm)) {
+        calibrationElements.target.textContent = `Match a circle of ${obj.diameterMm.toFixed(2)} mm diameter.`;
+      } else if (Number.isFinite(obj.widthReferenceMm) && Number.isFinite(obj.heightReferenceMm)) {
+        calibrationElements.target.textContent = `Match a rectangle ${obj.widthReferenceMm.toFixed(2)} × ${obj.heightReferenceMm.toFixed(2)} mm.`;
+      } else {
+        calibrationElements.target.textContent = '';
+      }
+    }
+
+    function updateCalibrationShapeFromSlider() {
+      const slider = calibrationElements.slider;
+      const shape = calibrationElements.shape;
+      const obj = getSelectedCalibrationObject();
+      if (!slider || !shape || !obj) return;
+      const min = Number(slider.min) || 40;
+      const max = Number(slider.max) || 600;
+      let value = Number(slider.value);
+      if (!Number.isFinite(value)) value = min;
+      value = clamp(value, min, max);
+      if (slider.value !== String(value)) {
+        slider.value = value;
+      }
+
+      if (obj.shape === 'circle') {
+        shape.classList.add('circle');
+        shape.style.height = `${value}px`;
+      } else {
+        shape.classList.remove('circle');
+        const aspect = Number.isFinite(obj.aspectRatio) && obj.aspectRatio > 0 ? obj.aspectRatio : 1;
+        shape.style.height = `${Math.max(4, value * aspect)}px`;
+      }
+      shape.style.width = `${value}px`;
+
+      if (calibrationElements.readout) {
+        let text = `Width: ${Math.round(value)} px`;
+        if (calibrationState.ready && calibrationState.reference && typeof VisualAngle !== 'undefined') {
+          try {
+            const mm = VisualAngle.pixelsToMillimeters(value, calibrationState.reference);
+            const dva = VisualAngle.pixelsToDVA(value, calibrationState.reference);
+            text += ` · ${mm.toFixed(1)} mm · ${dva.toFixed(2)}°`;
+          } catch (error) {
+            console.warn('Calibration readout conversion failed', error);
+          }
+        }
+        calibrationElements.readout.textContent = text;
+      }
+    }
+
+    function updateStartButtonAvailability() {
+      if (!startButton) return;
+      startButton.disabled = !calibrationState.ready;
+      startButton.textContent = calibrationState.ready ? 'Start experiment' : 'Calibrate to start';
+    }
+
+    function getVisualReference() {
+      return calibrationState.ready && calibrationState.reference ? calibrationState.reference : null;
+    }
+
+    function describeCalibrationMessage(reference, { silent = false } = {}) {
+      if (!reference) return '';
+      const distanceCm = reference.viewingDistanceMm / 10;
+      let message = `${silent ? 'Loaded' : 'Saved'} calibration: viewing distance ${distanceCm.toFixed(1)} cm, 1 px ≈ ${reference.mmPerPixel.toFixed(3)} mm`;
+      if (typeof VisualAngle !== 'undefined') {
+        try {
+          const pxPerDeg = VisualAngle.dvaToPixels(1, reference);
+          if (Number.isFinite(pxPerDeg)) {
+            message += `, 1° ≈ ${pxPerDeg.toFixed(1)} px`;
+          }
+        } catch (error) {
+          console.warn('Could not compute pixels per degree', error);
+        }
+      }
+      message += '.';
+      return message;
+    }
+
+    function setCalibrationState(data, { persist = true, silent = false } = {}) {
+      if (!data) return null;
+      try {
+        if (typeof VisualAngle === 'undefined') {
+          throw new Error('VisualAngle helpers are not available.');
+        }
+        const reference = VisualAngle.createReference({
+          mmPerPixel: data.mmPerPixel,
+          viewingDistanceMm: data.viewingDistanceMm
+        });
+        calibrationState.mmPerPixel = reference.mmPerPixel;
+        calibrationState.viewingDistanceMm = reference.viewingDistanceMm;
+        calibrationState.reference = reference;
+        calibrationState.objectId = data.objectId || null;
+        calibrationState.pixelSize = Number.isFinite(data.pixelSize) ? data.pixelSize : null;
+        calibrationState.timestamp = data.timestamp || Date.now();
+        calibrationState.ready = true;
+        calibrationState.dvaPerPixel = VisualAngle.pixelsToDVA(1, reference);
+        calibrationDirty = false;
+
+        if (persist && typeof localStorage !== 'undefined') {
+          const payload = {
+            mmPerPixel: calibrationState.mmPerPixel,
+            viewingDistanceMm: calibrationState.viewingDistanceMm,
+            objectId: calibrationState.objectId,
+            pixelSize: calibrationState.pixelSize,
+            timestamp: calibrationState.timestamp
+          };
+          try {
+            localStorage.setItem(CALIBRATION_STORAGE_KEY, JSON.stringify(payload));
+          } catch (storageError) {
+            console.warn('Unable to persist calibration', storageError);
+          }
+        }
+
+        updateStartButtonAvailability();
+        updateCalibrationShapeFromSlider();
+        const message = describeCalibrationMessage(reference, { silent });
+        showCalibrationStatus(message, 'success');
+
+        const detail = {
+          mmPerPixel: calibrationState.mmPerPixel,
+          viewingDistanceMm: calibrationState.viewingDistanceMm,
+          dvaPerPixel: calibrationState.dvaPerPixel,
+          objectId: calibrationState.objectId,
+          pixelSize: calibrationState.pixelSize,
+          timestamp: calibrationState.timestamp
+        };
+        window.visualCalibration = detail;
+        window.dispatchEvent(new CustomEvent('visual-calibration-ready', { detail }));
+        updateDerivedDvaMetrics();
+        return reference;
+      } catch (error) {
+        console.error('Calibration validation failed', error);
+        calibrationState.ready = false;
+        calibrationState.reference = null;
+        calibrationState.dvaPerPixel = null;
+        if (!silent) {
+          showCalibrationStatus('Calibration could not be saved. Please review the inputs.', 'error');
+        }
+        updateStartButtonAvailability();
+        return null;
+      }
+    }
+
+    function applyCalibrationToUI(data) {
+      const obj = data?.objectId ? getCalibrationObjectById(data.objectId) : getSelectedCalibrationObject();
+      suppressCalibrationUpdates = true;
+      try {
+        if (obj && calibrationElements.objectSelect) {
+          calibrationElements.objectSelect.value = obj.id;
+        }
+        updateCalibrationTargetInfo();
+
+        if (calibrationElements.slider && Number.isFinite(data?.pixelSize)) {
+          const slider = calibrationElements.slider;
+          const min = Number(slider.min) || 40;
+          const max = Number(slider.max) || 800;
+          slider.value = clamp(data.pixelSize, min, max);
+        }
+        if (calibrationElements.viewingDistance && Number.isFinite(data?.viewingDistanceMm)) {
+          const cm = data.viewingDistanceMm / 10;
+          calibrationElements.viewingDistance.value = cm % 1 === 0 ? String(cm.toFixed(0)) : String(cm.toFixed(1));
+        }
+        updateCalibrationShapeFromSlider();
+      } finally {
+        suppressCalibrationUpdates = false;
+      }
+    }
+
+    function updateCalibrationSliderRange() {
+      const slider = calibrationElements.slider;
+      if (!slider) return;
+      const max = Math.max(160, Math.round(Math.min(window.innerWidth, window.innerHeight) * 0.9));
+      const min = Math.min(Math.max(40, Math.round(max * 0.18)), max - 20);
+      const current = Number(slider.value);
+      slider.min = String(min);
+      slider.max = String(max);
+      if (!Number.isFinite(current) || current < min || current > max) {
+        slider.value = String(clamp(current || (min + (max - min) / 2), min, max));
+      }
+    }
+
+    function loadStoredCalibration() {
+      if (typeof localStorage === 'undefined') return;
+      try {
+        const raw = localStorage.getItem(CALIBRATION_STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!parsed) return;
+        applyCalibrationToUI(parsed);
+        setCalibrationState(parsed, { persist: false, silent: true });
+      } catch (error) {
+        console.warn('Failed to restore calibration', error);
+      }
+    }
+
+    function handleCalibrationAdjustment(message) {
+      if (suppressCalibrationUpdates) return;
+      if (calibrationState.ready) {
+        calibrationState.ready = false;
+        calibrationState.reference = null;
+        calibrationState.mmPerPixel = null;
+        calibrationState.viewingDistanceMm = null;
+        calibrationState.dvaPerPixel = null;
+        calibrationDirty = true;
+        updateStartButtonAvailability();
+        updateDerivedDvaMetrics();
+        window.visualCalibration = null;
+        try {
+          window.dispatchEvent(new CustomEvent('visual-calibration-cleared'));
+        } catch (error) {
+          console.warn('Unable to dispatch calibration cleared event', error);
+        }
+        if (message) {
+          showCalibrationStatus(message, 'warning');
+        }
+      }
+    }
+
+    function initializeCalibration() {
+      updateCalibrationSliderRange();
+      updateCalibrationTargetInfo();
+      updateCalibrationShapeFromSlider();
+      updateStartButtonAvailability();
+      loadStoredCalibration();
+    }
+
+    let pinchState = null;
+
+    function pinchDistance(touchA, touchB) {
+      const dx = touchA.clientX - touchB.clientX;
+      const dy = touchA.clientY - touchB.clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function onCalibrationTouchStart(event) {
+      if (event.touches.length < 2) return;
+      const distance = pinchDistance(event.touches[0], event.touches[1]);
+      if (!Number.isFinite(distance)) return;
+      const slider = calibrationElements.slider;
+      if (!slider) return;
+      pinchState = {
+        startDistance: distance,
+        startValue: Number(slider.value) || Number(slider.min) || 40
+      };
+    }
+
+    function onCalibrationTouchMove(event) {
+      if (!pinchState || event.touches.length < 2) return;
+      const slider = calibrationElements.slider;
+      if (!slider) return;
+      event.preventDefault();
+      const distance = pinchDistance(event.touches[0], event.touches[1]);
+      if (!Number.isFinite(distance) || !Number.isFinite(pinchState.startDistance)) return;
+      const delta = distance - pinchState.startDistance;
+      const min = Number(slider.min) || 40;
+      const max = Number(slider.max) || 800;
+      const nextValue = clamp(pinchState.startValue + delta * 0.6, min, max);
+      suppressCalibrationUpdates = true;
+      try {
+        slider.value = String(nextValue);
+        updateCalibrationShapeFromSlider();
+      } finally {
+        suppressCalibrationUpdates = false;
+      }
+      handleCalibrationAdjustment('Calibration changed. Save again to update the conversion.');
+    }
+
+    function onCalibrationTouchEnd(event) {
+      if (!event.touches || event.touches.length < 2) {
+        pinchState = null;
+      }
+    }
+
+    if (calibrationElements.objectSelect) {
+      calibrationElements.objectSelect.addEventListener('change', () => {
+        updateCalibrationTargetInfo();
+        updateCalibrationShapeFromSlider();
+        if (!suppressCalibrationUpdates) {
+          handleCalibrationAdjustment('Reference object changed. Save the calibration again.');
+        }
+      });
+    }
+
+    if (calibrationElements.slider) {
+      calibrationElements.slider.addEventListener('input', () => {
+        updateCalibrationShapeFromSlider();
+        if (!suppressCalibrationUpdates) {
+          handleCalibrationAdjustment('Calibration changed. Save again to update the conversion.');
+        }
+      });
+    }
+
+    if (calibrationElements.viewingDistance) {
+      calibrationElements.viewingDistance.addEventListener('input', () => {
+        if (!suppressCalibrationUpdates) {
+          handleCalibrationAdjustment('Viewing distance changed. Save the calibration to continue.');
+        }
+      });
+    }
+
+    if (calibrationElements.display) {
+      calibrationElements.display.addEventListener('touchstart', onCalibrationTouchStart, { passive: false });
+      calibrationElements.display.addEventListener('touchmove', onCalibrationTouchMove, { passive: false });
+      calibrationElements.display.addEventListener('touchend', onCalibrationTouchEnd);
+      calibrationElements.display.addEventListener('touchcancel', onCalibrationTouchEnd);
+    }
+
+    if (calibrationElements.confirm) {
+      calibrationElements.confirm.addEventListener('click', () => {
+        const obj = getSelectedCalibrationObject();
+        if (!obj) {
+          showCalibrationStatus('Select a reference object to calibrate.', 'error');
+          return;
+        }
+        const shape = calibrationElements.shape;
+        const slider = calibrationElements.slider;
+        const rect = shape ? shape.getBoundingClientRect() : null;
+        const widthPx = rect && rect.width ? rect.width : Number(slider?.value);
+        if (!Number.isFinite(widthPx) || widthPx <= 0) {
+          showCalibrationStatus('Resize the on-screen shape to match your object before saving.', 'error');
+          return;
+        }
+        const referenceDimensionMm = obj.shape === 'circle' ? obj.diameterMm : obj.widthReferenceMm;
+        if (!Number.isFinite(referenceDimensionMm) || referenceDimensionMm <= 0) {
+          showCalibrationStatus('The selected reference object is missing dimension information.', 'error');
+          return;
+        }
+        const distanceInput = calibrationElements.viewingDistance;
+        const rawDistance = distanceInput?.value?.trim() || '';
+        const distanceCm = parseFloat(rawDistance);
+        if (!rawDistance || !Number.isFinite(distanceCm) || distanceCm <= 0) {
+          showCalibrationStatus('Enter your viewing distance in centimetres before saving.', 'error');
+          if (distanceInput) distanceInput.focus();
+          return;
+        }
+
+        const mmPerPixel = referenceDimensionMm / widthPx;
+        const viewingDistanceMm = distanceCm * 10;
+        const result = setCalibrationState(
+          {
+            mmPerPixel,
+            viewingDistanceMm,
+            objectId: obj.id,
+            pixelSize: widthPx,
+            timestamp: Date.now()
+          },
+          { persist: true, silent: false }
+        );
+
+        if (result) {
+          calibrationDirty = false;
+          updateCalibrationShapeFromSlider();
+        }
+      });
+    }
+
+    window.addEventListener('resize', () => {
+      updateCalibrationSliderRange();
+      updateCalibrationShapeFromSlider();
+    });
+
+    initializeCalibration();
 
     const TOTAL_TRIALS = 1000;
     const FIRST_STIM_DURATION = 33;
@@ -377,6 +1040,32 @@
     const stagePadding = Math.max(28, stageSide * 0.06);
     const maxRadius = Math.max(90, stageCenter - stagePadding);
     const minRadius = Math.max(36, maxRadius * 0.28);
+
+    let minRadiusDva = null;
+    let maxRadiusDva = null;
+    let dotDiameterDva = null;
+
+    function updateDerivedDvaMetrics() {
+      const reference = getVisualReference();
+      if (!reference || typeof VisualAngle === 'undefined') {
+        minRadiusDva = null;
+        maxRadiusDva = null;
+        dotDiameterDva = null;
+        return;
+      }
+      try {
+        minRadiusDva = VisualAngle.pixelsToDVA(minRadius, reference);
+        maxRadiusDva = VisualAngle.pixelsToDVA(maxRadius, reference);
+        dotDiameterDva = VisualAngle.pixelsToDVA(DOT_DIAMETER, reference);
+      } catch (error) {
+        console.warn('Failed to derive DVA metrics', error);
+        minRadiusDva = null;
+        maxRadiusDva = null;
+        dotDiameterDva = null;
+      }
+    }
+
+    updateDerivedDvaMetrics();
 
     function updateHoldButton(isActive) {
       if (!holdButton) return;
@@ -663,6 +1352,15 @@
         const continuation = previousTrialCount
           ? `<p style="color: rgba(148, 163, 184, 0.88);">Continuing from trial ${previousTrialCount + 1} with your uploaded staircases.</p>`
           : '';
+        let dotInfo = '';
+        let eccInfo = '';
+        if (Number.isFinite(dotDiameterDva)) {
+          dotInfo = ` (~${dotDiameterDva.toFixed(2)}° visual angle)`;
+        }
+        if (Number.isFinite(minRadiusDva) && Number.isFinite(maxRadiusDva)) {
+          eccInfo = `Your calibrated eccentricities span roughly ${minRadiusDva.toFixed(2)}°–${maxRadiusDva.toFixed(2)}° from fixation.`;
+        }
+        const eccInfoText = eccInfo ? `${eccInfo} ` : '';
         return `
           <h1 style="margin-top:0">Just Noticeable Difference (Go/No-Go)</h1>
           <p>
@@ -672,7 +1370,7 @@
           <p>
             On most trials the dot is identical (<strong>no-go</strong>). About one third of the time the
             dot shifts slightly in angle or distance from the centre (<strong>go</strong> trials). Both flashes
-            always keep the same 30&nbsp;px diameter.
+            always keep the same ${DOT_DIAMETER}&nbsp;px diameter${dotInfo}.
           </p>
           <ul>
             <li>Hold the glowing control button in the lower-right corner (or hold the spacebar) to initiate and continue trials.</li>
@@ -683,7 +1381,8 @@
             The stimulus differences adapt during the experiment to maintain roughly 70% accuracy on go trials using the jsQuestPlus staircase.
           </p>
           <p>
-            Find a comfortable viewing distance and keep your finger near the screen or the spacebar.
+            ${eccInfoText}Keep the screen at the calibrated distance from your eyes for the full session—if your posture changes, pause and recalibrate before resuming.
+            Keep your finger near the screen or the spacebar.
             When you release the control, you can use the large stop button in the upper-left corner to finish the session and download your data.
           </p>
           ${continuation}
@@ -746,6 +1445,7 @@
         func: () => {
           const total = Math.max(progressTotal, 1);
           jsPsych.setProgressBar((progressBase + index) / total);
+          const reference = getVisualReference();
           const holdStartedAt = typeof lastHoldStartTime === 'number' ? lastHoldStartTime : holdState.holdStart ?? null;
           const ctrl = typeof NoGoCtrl !== 'undefined' ? NoGoCtrl : null;
           const isNoGo = ctrl && typeof ctrl.decideNoGo === 'function' ? ctrl.decideNoGo() : false;
@@ -761,7 +1461,16 @@
             deltaTheta: 0,
             deltaRadius: 0,
             deltaDiameter: 0,
-            holdStartedAt
+            holdStartedAt,
+            visualReference: reference || null,
+            mmPerPixel: reference?.mmPerPixel ?? null,
+            viewingDistanceMm: reference?.viewingDistanceMm ?? null,
+            baseRadiusDva: null,
+            secondRadiusDva: null,
+            baseDiameterDva: null,
+            secondDiameterDva: null,
+            deltaRadiusDva: null,
+            deltaDiameterDva: null
           };
           lastHoldStartTime = holdStartedAt;
 
@@ -780,10 +1489,15 @@
             const selected = jsPsych.randomization.sampleWithoutReplacement(changeOptions, 1)[0];
             trialState.changeType = selected;
 
+            const eccDva =
+              reference && typeof VisualAngle !== 'undefined'
+                ? VisualAngle.pixelsToDVA(baseRadius, reference)
+                : null;
             const ctx = {
               changeType: selected,
               soaMs: trialState.isi,
               eccPx: baseRadius,
+              eccDva,
               thetaRad: baseTheta
             };
             const stim = suggestDeltaForContext(ctx);
@@ -816,6 +1530,37 @@
           trialState.firstY = firstCoords.y;
           trialState.secondX = secondCoords.x;
           trialState.secondY = secondCoords.y;
+
+          if (reference && typeof VisualAngle !== 'undefined') {
+            try {
+              trialState.baseRadiusDva = VisualAngle.pixelsToDVA(baseRadius, reference);
+              trialState.secondRadiusDva = VisualAngle.pixelsToDVA(secondRadius, reference);
+              trialState.baseDiameterDva = VisualAngle.pixelsToDVA(baseDiameter, reference);
+              trialState.secondDiameterDva = VisualAngle.pixelsToDVA(secondDiameter, reference);
+              trialState.deltaRadiusDva = VisualAngle.pixelsToDVA(Math.abs(trialState.deltaRadius), reference);
+              trialState.deltaDiameterDva = VisualAngle.pixelsToDVA(Math.abs(trialState.deltaDiameter), reference);
+            } catch (error) {
+              console.warn('Could not derive DVA for trial', error);
+              trialState.baseRadiusDva = null;
+              trialState.secondRadiusDva = null;
+              trialState.baseDiameterDva = null;
+              trialState.secondDiameterDva = null;
+              trialState.deltaRadiusDva = null;
+              trialState.deltaDiameterDva = null;
+            }
+          } else {
+            trialState.baseRadiusDva = null;
+            trialState.secondRadiusDva = null;
+            trialState.baseDiameterDva = null;
+            trialState.secondDiameterDva = null;
+            trialState.deltaRadiusDva = null;
+            trialState.deltaDiameterDva = null;
+          }
+
+          if (trialState.questContext) {
+            trialState.questContext.eccDva = trialState.baseRadiusDva;
+            trialState.questContext.mmPerPixel = calibrationState.ready ? calibrationState.mmPerPixel : null;
+          }
         }
       };
 
@@ -993,12 +1738,18 @@
           data.delta_theta = trialState.deltaTheta;
           data.delta_radius = trialState.deltaRadius;
           data.delta_diameter = trialState.deltaDiameter;
+          data.delta_radius_dva = trialState.deltaRadiusDva;
+          data.delta_diameter_dva = trialState.deltaDiameterDva;
           data.first_theta = trialState.baseTheta;
           data.first_radius = trialState.baseRadius;
           data.first_diameter = trialState.baseDiameter;
+          data.first_radius_dva = trialState.baseRadiusDva;
+          data.first_diameter_dva = trialState.baseDiameterDva;
           data.second_theta = trialState.secondTheta;
           data.second_radius = trialState.secondRadius;
           data.second_diameter = trialState.secondDiameter;
+          data.second_radius_dva = trialState.secondRadiusDva;
+          data.second_diameter_dva = trialState.secondDiameterDva;
           data.second_onset = typeof trialState.secondStimOnset === 'number' ? trialState.secondStimOnset : null;
           data.dot_color = trialState.dotColor?.fill ?? null;
           data.interstimulus = trialState.isi;
@@ -1006,6 +1757,11 @@
           data.go_success = trialState.isGo ? responded : null;
           data.correct = trialState.isGo ? responded : !responded;
           data.quest_value = trialState.questStimValue;
+          data.calibration_mm_per_pixel = trialState.mmPerPixel ?? (calibrationState.ready ? calibrationState.mmPerPixel : null);
+          data.calibration_viewing_distance_mm =
+            trialState.viewingDistanceMm ?? (calibrationState.ready ? calibrationState.viewingDistanceMm : null);
+          data.calibration_dva_per_pixel = calibrationState.ready ? calibrationState.dvaPerPixel : null;
+          data.calibration_object_id = calibrationState.ready ? calibrationState.objectId : null;
           data.hold_started_at = typeof holdStartedAt === 'number' ? holdStartedAt : null;
           data.hold_released_at = typeof holdReleasedAt === 'number' ? holdReleasedAt : null;
           data.hold_duration = typeof holdDuration === 'number' ? holdDuration : null;
@@ -1068,6 +1824,11 @@
 
     if (startButton) {
       startButton.addEventListener('click', () => {
+        if (!calibrationState.ready) {
+          showCalibrationStatus('Please complete and save the calibration before starting.', 'error');
+          setStatus('Calibration required before starting the experiment.', 'warning');
+          return;
+        }
         startExperiment();
       });
     }
