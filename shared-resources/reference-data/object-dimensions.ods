@@ -15,16 +15,64 @@
           <table:table-cell office:value-type="string"><text:p>Radius (mm)</text:p></table:table-cell>
         </table:table-row>
         <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>Cards & Electronics</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>N/A</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>N/A</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>N/A</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
           <table:table-cell office:value-type="string"><text:p>Credit / ID Card (ID-1)</text:p></table:table-cell>
           <table:table-cell office:value-type="float" office:value="85.6"><text:p>85.6</text:p></table:table-cell>
           <table:table-cell office:value-type="float" office:value="53.98"><text:p>53.98</text:p></table:table-cell>
           <table:table-cell office:value-type="string"><text:p>N/A</text:p></table:table-cell>
         </table:table-row>
         <table:table-row>
-          <table:table-cell office:value-type="string"><text:p>€1 Coin</text:p></table:table-cell>
-          <table:table-cell office:value-type="float" office:value="23.25"><text:p>23.25</text:p></table:table-cell>
-          <table:table-cell office:value-type="float" office:value="23.25"><text:p>23.25</text:p></table:table-cell>
-          <table:table-cell office:value-type="float" office:value="11.625"><text:p>11.625</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>SD Card</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="32.0"><text:p>32.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="24.0"><text:p>24.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>N/A</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>Mini-SIM (2FF)</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="25.0"><text:p>25.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="15.0"><text:p>15.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>N/A</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>MicroSD Card</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="15.0"><text:p>15.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="11.0"><text:p>11.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>N/A</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>Nano-SIM (4FF)</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="12.3"><text:p>12.3</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="8.8"><text:p>8.8</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>N/A</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>iPhone 13</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="146.7"><text:p>146.7</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="71.5"><text:p>71.5</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>N/A</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>Post-it Note (3x3")</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="76.0"><text:p>76.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="76.0"><text:p>76.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>N/A</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>Tennis Ball</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="67.0"><text:p>67.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="67.0"><text:p>67.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="33.5"><text:p>33.5</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>AA Battery</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="50.5"><text:p>50.5</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="14.5"><text:p>14.5</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="7.25"><text:p>7.25</text:p></table:table-cell>
         </table:table-row>
       </table:table>
     </office:spreadsheet>
