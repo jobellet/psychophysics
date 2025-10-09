@@ -18,15 +18,24 @@
       --stage-size: min(68vw, 68vh);
     }
 
+    html,
+    body {
+      height: 100%;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       background: var(--bg);
       color: #e2e8f0;
       padding: clamp(16px, 4vw, 48px);
+      box-sizing: border-box;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
 
     #pre-experiment {
@@ -37,6 +46,7 @@
       align-items: center;
       justify-content: center;
       padding: clamp(24px, 6vw, 72px);
+      overflow-y: auto;
       z-index: 10;
       transition: opacity 220ms ease;
     }
@@ -47,7 +57,10 @@
     }
 
     .session-card {
+      margin: auto;
       width: min(92vw, 720px);
+      max-width: min(92vw, 720px);
+      max-height: calc(100vh - clamp(48px, 12vw, 96px));
       background: rgba(15, 23, 42, 0.85);
       border-radius: clamp(24px, 4vw, 36px);
       box-shadow: 0 30px 70px rgba(2, 6, 23, 0.6);
@@ -55,6 +68,8 @@
       display: flex;
       flex-direction: column;
       gap: clamp(16px, 4vw, 28px);
+      overflow-y: auto;
+      box-sizing: border-box;
     }
 
     .session-card h1 {
@@ -269,16 +284,21 @@
 
     #jspsych-target {
       width: min(96vw, 860px);
+      max-height: calc(100vh - clamp(48px, 10vw, 120px));
       background: rgba(15, 23, 42, 0.82);
       backdrop-filter: blur(18px);
       border-radius: 32px;
       box-shadow: 0 24px 60px rgba(2, 6, 23, 0.55);
       padding: clamp(24px, 5vw, 56px);
+      margin: clamp(24px, 5vw, 56px) auto;
+      overflow-y: auto;
+      box-sizing: border-box;
     }
 
     .jspsych-display-element {
       font-size: clamp(18px, 3vw, 22px);
       line-height: 1.7;
+      min-height: 100%;
     }
 
     .jspsych-btn {
@@ -443,25 +463,8 @@
         </p>
         <div class="calibration-controls">
           <label for="calibration-object">Reference object</label>
-          <select id="calibration-object">
-            <option
-              value="ID-1"
-              data-shape="rect"
-              data-length-mm="85.6"
-              data-width-mm="53.98"
-              data-radius-mm=""
-            >
-              Credit / ID Card (ID-1)
-            </option>
-            <option
-              value="EUR-1"
-              data-shape="circle"
-              data-length-mm="23.25"
-              data-width-mm="23.25"
-              data-radius-mm="11.625"
-            >
-              €1 Coin
-            </option>
+          <select id="calibration-object" disabled>
+            <option value="">Loading reference objects…</option>
           </select>
           <div class="calibration-target" id="calibration-target-info"></div>
         </div>
@@ -560,6 +563,35 @@
     };
 
     const CALIBRATION_STORAGE_KEY = 'visual-jnd-calibration';
+    const LEGACY_NAME_MAP = new Map([
+      ['Credit / ID Card (ID-1)', ['ID-1']],
+      ['€1 Coin', ['EUR-1']]
+    ]);
+
+    const FALLBACK_CALIBRATION_ENTRIES = [
+      {
+        type: 'object',
+        name: 'Credit / ID Card (ID-1)',
+        shape: 'rect',
+        lengthMm: 85.6,
+        widthMm: 53.98,
+        radiusMm: null,
+        legacyIds: ['ID-1']
+      },
+      {
+        type: 'object',
+        name: '€1 Coin',
+        shape: 'circle',
+        lengthMm: 23.25,
+        widthMm: 23.25,
+        radiusMm: 11.625,
+        legacyIds: ['EUR-1']
+      }
+    ];
+
+    const slugRegistry = new Set();
+    const TABLE_NS = 'urn:oasis:names:tc:opendocument:xmlns:table:1.0';
+
     const calibrationState = {
       ready: false,
       mmPerPixel: null,
@@ -577,6 +609,10 @@
       if (!selectEl) return [];
       return Array.from(selectEl.options || [])
         .map(option => {
+          const id = option.value;
+          if (!id) {
+            return null;
+          }
           const shape = (option.dataset.shape || 'rect').toLowerCase();
           const lengthMm = parseFloat(option.dataset.lengthMm);
           const widthMm = parseFloat(option.dataset.widthMm);
@@ -584,6 +620,10 @@
           const hasLength = Number.isFinite(lengthMm) && lengthMm > 0;
           const hasWidth = Number.isFinite(widthMm) && widthMm > 0;
           const hasRadius = Number.isFinite(radiusMm) && radiusMm > 0;
+          const legacyIds = (option.dataset.legacyIds || '')
+            .split(',')
+            .map(value => value.trim())
+            .filter(Boolean);
           let widthReferenceMm = null;
           let heightReferenceMm = null;
           let diameterMm = null;
@@ -608,7 +648,7 @@
           }
 
           return {
-            id: option.value,
+            id,
             name: option.textContent.trim(),
             shape,
             lengthMm: hasLength ? lengthMm : null,
@@ -620,16 +660,216 @@
             aspectRatio:
               widthReferenceMm && heightReferenceMm && heightReferenceMm > 0
                 ? heightReferenceMm / widthReferenceMm
-                : 1
+                : 1,
+            legacyIds
           };
         })
         .filter(Boolean);
     }
 
-    const calibrationObjects = parseCalibrationObjects(calibrationElements.objectSelect);
+    function slugify(text, fallback = 'object') {
+      if (!text) {
+        return fallback;
+      }
+      let normalized = text;
+      if (typeof normalized.normalize === 'function') {
+        normalized = normalized.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      }
+      normalized = normalized.replace(/€/g, 'eur').replace(/£/g, 'gbp').replace(/\$/g, 'usd');
+      const base = normalized.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      const slug = base || fallback;
+      let candidate = slug;
+      let counter = 2;
+      while (slugRegistry.has(candidate)) {
+        candidate = `${slug}-${counter++}`;
+      }
+      slugRegistry.add(candidate);
+      return candidate;
+    }
+
+    function extractEntriesFromSheet(xmlText) {
+      if (!xmlText) return [];
+      const parser = new DOMParser();
+      const sanitizedText = xmlText.replace(/&(?![a-zA-Z]+;|#[0-9]+;|#x[0-9a-fA-F]+;)/g, '&amp;');
+      const doc = parser.parseFromString(sanitizedText, 'application/xml');
+      if (!doc || doc.documentElement.nodeName.toLowerCase() === 'parsererror') {
+        throw new Error('Unable to parse object dimensions document.');
+      }
+      const tables = doc.getElementsByTagNameNS(TABLE_NS, 'table');
+      const table = tables && tables.length ? tables[0] : null;
+      if (!table) {
+        throw new Error('The object dimensions sheet is missing a table.');
+      }
+      const rows = Array.from(table.getElementsByTagNameNS(TABLE_NS, 'table-row'));
+      const entries = [];
+      rows.forEach((row, index) => {
+        if (index === 0) {
+          return;
+        }
+        const cells = Array.from(row.getElementsByTagNameNS(TABLE_NS, 'table-cell'));
+        if (!cells.length) {
+          return;
+        }
+        const objectName = cells[0]?.textContent?.trim();
+        if (!objectName) {
+          return;
+        }
+        const lengthValue = parseFloat(cells[1]?.getAttribute('office:value'));
+        const widthValue = parseFloat(cells[2]?.getAttribute('office:value'));
+        const radiusValue = parseFloat(cells[3]?.getAttribute('office:value'));
+        const hasLength = Number.isFinite(lengthValue);
+        const hasWidth = Number.isFinite(widthValue);
+        const hasRadius = Number.isFinite(radiusValue);
+        const lengthText = cells[1]?.textContent?.trim().toLowerCase() || '';
+        const widthText = cells[2]?.textContent?.trim().toLowerCase() || '';
+        const radiusText = cells[3]?.textContent?.trim().toLowerCase() || '';
+        const looksLikeCategory =
+          !hasLength &&
+          !hasWidth &&
+          !hasRadius &&
+          ['n/a', ''].includes(lengthText) &&
+          ['n/a', ''].includes(widthText) &&
+          ['n/a', ''].includes(radiusText);
+
+        if (looksLikeCategory) {
+          entries.push({ type: 'category', label: objectName });
+          return;
+        }
+
+        if (!hasLength && !hasWidth && !hasRadius) {
+          return;
+        }
+
+        entries.push({
+          type: 'object',
+          name: objectName,
+          lengthMm: hasLength ? lengthValue : null,
+          widthMm: hasWidth ? widthValue : null,
+          radiusMm: hasRadius ? radiusValue : null
+        });
+      });
+      return entries;
+    }
+
+    function applyCalibrationEntries(entries) {
+      const select = calibrationElements.objectSelect;
+      if (!select) return [];
+      select.innerHTML = '';
+      slugRegistry.clear();
+
+      let currentGroup = null;
+      (Array.isArray(entries) ? entries : []).forEach(entry => {
+        if (!entry) return;
+        if (entry.type === 'category') {
+          if (!entry.label) return;
+          const group = document.createElement('optgroup');
+          group.label = entry.label;
+          select.appendChild(group);
+          currentGroup = group;
+          return;
+        }
+        if (entry.type !== 'object') {
+          return;
+        }
+        const option = document.createElement('option');
+        const name = entry.name || 'Object';
+        const id = entry.id || slugify(name);
+        const legacyIds = Array.isArray(entry.legacyIds)
+          ? entry.legacyIds.filter(Boolean)
+          : LEGACY_NAME_MAP.get(name) || [];
+        const hasLength = Number.isFinite(entry.lengthMm);
+        const hasWidth = Number.isFinite(entry.widthMm);
+        const hasRadius = Number.isFinite(entry.radiusMm);
+        const radiusPreferred =
+          hasRadius &&
+          (!hasLength || !hasWidth || Math.abs((entry.lengthMm || 0) - (entry.widthMm || 0)) <= Math.max(0.5, (entry.widthMm || 0) * 0.05));
+        const shape = (entry.shape || (radiusPreferred ? 'circle' : 'rect')).toLowerCase();
+
+        option.value = id;
+        option.textContent = name;
+        option.dataset.shape = shape;
+        option.dataset.lengthMm = hasLength ? String(entry.lengthMm) : '';
+        option.dataset.widthMm = hasWidth ? String(entry.widthMm) : '';
+        option.dataset.radiusMm = hasRadius ? String(entry.radiusMm) : '';
+        if (legacyIds.length) {
+          option.dataset.legacyIds = legacyIds.join(',');
+        }
+
+        if (currentGroup) {
+          currentGroup.appendChild(option);
+        } else {
+          select.appendChild(option);
+        }
+      });
+
+      const parsed = parseCalibrationObjects(select);
+      select.disabled = parsed.length === 0;
+      return parsed;
+    }
+
+    async function loadCalibrationObjectOptions() {
+      const select = calibrationElements.objectSelect;
+      if (!select) {
+        calibrationObjects = [];
+        return calibrationObjects;
+      }
+      const previousSelection = select.value;
+      select.disabled = true;
+
+      let entries = [];
+      try {
+        const response = await fetch('../shared-resources/reference-data/object-dimensions.ods', { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`Request failed with status ${response.status}`);
+        }
+        const xmlText = await response.text();
+        entries = extractEntriesFromSheet(xmlText);
+        if (!entries.some(entry => entry && entry.type === 'object')) {
+          throw new Error('No measurable reference objects found in the spreadsheet.');
+        }
+      } catch (error) {
+        console.warn('Falling back to bundled reference object list for calibration.', error);
+        entries = FALLBACK_CALIBRATION_ENTRIES;
+      }
+
+      const objects = applyCalibrationEntries(entries);
+      calibrationObjects = objects;
+
+      if (objects.length) {
+        const preferred =
+          objects.find(obj => obj.id === previousSelection) ||
+          objects.find(obj => Array.isArray(obj.legacyIds) && obj.legacyIds.includes(previousSelection));
+        const selected = preferred || objects[0];
+        select.value = selected.id;
+      } else {
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'No reference objects available';
+        select.appendChild(placeholder);
+      }
+
+      select.disabled = objects.length === 0;
+      updateCalibrationTargetInfo();
+      updateCalibrationShapeFromSlider();
+
+      return objects;
+    }
+
+    let calibrationObjects = [];
 
     function getCalibrationObjectById(id) {
-      return calibrationObjects.find(obj => obj.id === id) || calibrationObjects[0] || null;
+      if (!calibrationObjects || calibrationObjects.length === 0) {
+        return null;
+      }
+      if (!id) {
+        return calibrationObjects[0] || null;
+      }
+      return (
+        calibrationObjects.find(obj => obj.id === id) ||
+        calibrationObjects.find(obj => Array.isArray(obj.legacyIds) && obj.legacyIds.includes(id)) ||
+        calibrationObjects[0] ||
+        null
+      );
     }
 
     function getSelectedCalibrationObject() {
@@ -1010,7 +1250,14 @@
       updateCalibrationShapeFromSlider();
     });
 
-    initializeCalibration();
+    loadCalibrationObjectOptions()
+      .catch(error => {
+        console.error('Unable to load calibration reference objects from the spreadsheet.', error);
+        calibrationObjects = parseCalibrationObjects(calibrationElements.objectSelect);
+      })
+      .finally(() => {
+        initializeCalibration();
+      });
 
     const TOTAL_TRIALS = 1000;
     const FIRST_STIM_DURATION = 33;
