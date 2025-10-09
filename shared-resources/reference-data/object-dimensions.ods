@@ -15,10 +15,10 @@
           <table:table-cell office:value-type="string"><text:p>Radius (mm)</text:p></table:table-cell>
         </table:table-row>
         <table:table-row>
-          <table:table-cell office:value-type="string"><text:p>Cards & Electronics</text:p></table:table-cell>
-          <table:table-cell office:value-type="string"><text:p>N/A</text:p></table:table-cell>
-          <table:table-cell office:value-type="string"><text:p>N/A</text:p></table:table-cell>
-          <table:table-cell office:value-type="string"><text:p>N/A</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>Cards &amp; Electronics</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
         </table:table-row>
         <table:table-row>
           <table:table-cell office:value-type="string"><text:p>Credit / ID Card (ID-1)</text:p></table:table-cell>
@@ -45,34 +45,310 @@
           <table:table-cell office:value-type="string"><text:p>N/A</text:p></table:table-cell>
         </table:table-row>
         <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>Micro-SIM (3FF)</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="15.0"><text:p>15.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="12.0"><text:p>12.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>N/A</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
           <table:table-cell office:value-type="string"><text:p>Nano-SIM (4FF)</text:p></table:table-cell>
           <table:table-cell office:value-type="float" office:value="12.3"><text:p>12.3</text:p></table:table-cell>
           <table:table-cell office:value-type="float" office:value="8.8"><text:p>8.8</text:p></table:table-cell>
           <table:table-cell office:value-type="string"><text:p>N/A</text:p></table:table-cell>
         </table:table-row>
         <table:table-row>
-          <table:table-cell office:value-type="string"><text:p>iPhone 13</text:p></table:table-cell>
-          <table:table-cell office:value-type="float" office:value="146.7"><text:p>146.7</text:p></table:table-cell>
-          <table:table-cell office:value-type="float" office:value="71.5"><text:p>71.5</text:p></table:table-cell>
-          <table:table-cell office:value-type="string"><text:p>N/A</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>Euro Coins 💶</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
         </table:table-row>
         <table:table-row>
-          <table:table-cell office:value-type="string"><text:p>Post-it Note (3x3")</text:p></table:table-cell>
-          <table:table-cell office:value-type="float" office:value="76.0"><text:p>76.0</text:p></table:table-cell>
-          <table:table-cell office:value-type="float" office:value="76.0"><text:p>76.0</text:p></table:table-cell>
-          <table:table-cell office:value-type="string"><text:p>N/A</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>€2 Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="25.75"><text:p>25.75</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="25.75"><text:p>25.75</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="12.875"><text:p>12.875</text:p></table:table-cell>
         </table:table-row>
         <table:table-row>
-          <table:table-cell office:value-type="string"><text:p>Tennis Ball</text:p></table:table-cell>
-          <table:table-cell office:value-type="float" office:value="67.0"><text:p>67.0</text:p></table:table-cell>
-          <table:table-cell office:value-type="float" office:value="67.0"><text:p>67.0</text:p></table:table-cell>
-          <table:table-cell office:value-type="float" office:value="33.5"><text:p>33.5</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>50 Cent Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="24.25"><text:p>24.25</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="24.25"><text:p>24.25</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="12.125"><text:p>12.125</text:p></table:table-cell>
         </table:table-row>
         <table:table-row>
-          <table:table-cell office:value-type="string"><text:p>AA Battery</text:p></table:table-cell>
-          <table:table-cell office:value-type="float" office:value="50.5"><text:p>50.5</text:p></table:table-cell>
-          <table:table-cell office:value-type="float" office:value="14.5"><text:p>14.5</text:p></table:table-cell>
-          <table:table-cell office:value-type="float" office:value="7.25"><text:p>7.25</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>€1 Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="23.25"><text:p>23.25</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="23.25"><text:p>23.25</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="11.625"><text:p>11.625</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>5 Cent Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="21.25"><text:p>21.25</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="21.25"><text:p>21.25</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="10.625"><text:p>10.625</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>10 Cent Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="19.75"><text:p>19.75</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="19.75"><text:p>19.75</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="9.875"><text:p>9.875</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>2 Cent Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="18.75"><text:p>18.75</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="18.75"><text:p>18.75</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="9.375"><text:p>9.375</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>1 Cent Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="16.25"><text:p>16.25</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="16.25"><text:p>16.25</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="8.125"><text:p>8.125</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>US Coins 🇺🇸</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>US Quarter</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="24.26"><text:p>24.26</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="24.26"><text:p>24.26</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="12.13"><text:p>12.13</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>US Nickel</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="21.21"><text:p>21.21</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="21.21"><text:p>21.21</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="10.605"><text:p>10.605</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>US Penny</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="19.05"><text:p>19.05</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="19.05"><text:p>19.05</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="9.525"><text:p>9.525</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>US Dime</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="17.91"><text:p>17.91</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="17.91"><text:p>17.91</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="8.955"><text:p>8.955</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>UK Coins 🇬🇧</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>2 Pound (£2)</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="28.4"><text:p>28.4</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="28.4"><text:p>28.4</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="14.2"><text:p>14.2</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>50 Pence (50p)</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="27.3"><text:p>27.3</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="27.3"><text:p>27.3</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="13.65"><text:p>13.65</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>1 Pound (£1)</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="23.43"><text:p>23.43</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="23.43"><text:p>23.43</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="11.715"><text:p>11.715</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>20 Pence (20p)</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="21.4"><text:p>21.4</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="21.4"><text:p>21.4</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="10.7"><text:p>10.7</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>5 Pence (5p)</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="18.0"><text:p>18.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="18.0"><text:p>18.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="9.0"><text:p>9.0</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>10 Pence (10p)</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="24.5"><text:p>24.5</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="24.5"><text:p>24.5</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="12.25"><text:p>12.25</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>2 Pence (2p)</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="25.9"><text:p>25.9</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="25.9"><text:p>25.9</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="12.95"><text:p>12.95</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>1 Penny (1p)</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="20.3"><text:p>20.3</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="20.3"><text:p>20.3</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="10.15"><text:p>10.15</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>Japanese Yen Coins 🇯🇵</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>¥1 Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="20.0"><text:p>20.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="20.0"><text:p>20.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="10.0"><text:p>10.0</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>¥5 Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="22.0"><text:p>22.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="22.0"><text:p>22.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="11.0"><text:p>11.0</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>¥10 Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="23.5"><text:p>23.5</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="23.5"><text:p>23.5</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="11.75"><text:p>11.75</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>¥50 Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="21.0"><text:p>21.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="21.0"><text:p>21.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="10.5"><text:p>10.5</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>¥100 Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="22.6"><text:p>22.6</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="22.6"><text:p>22.6</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="11.3"><text:p>11.3</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>¥500 Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="26.5"><text:p>26.5</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="26.5"><text:p>26.5</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="13.25"><text:p>13.25</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>Chinese Yuan Coins 🇨🇳</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>¥1 Yuan Coin (CNY)</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="25.0"><text:p>25.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="25.0"><text:p>25.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="12.5"><text:p>12.5</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>5 Jiao Coin (0.5 CNY)</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="20.5"><text:p>20.5</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="20.5"><text:p>20.5</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="10.25"><text:p>10.25</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>1 Jiao Coin (0.1 CNY)</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="19.03"><text:p>19.03</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="19.03"><text:p>19.03</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="9.515"><text:p>9.515</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>Indian Rupee Coins 🇮🇳</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>₹1 Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="25.0"><text:p>25.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="25.0"><text:p>25.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="12.5"><text:p>12.5</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>₹2 Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="26.75"><text:p>26.75</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="26.75"><text:p>26.75</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="13.375"><text:p>13.375</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>₹5 Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="23.0"><text:p>23.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="23.0"><text:p>23.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="11.5"><text:p>11.5</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>₹10 Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="27.0"><text:p>27.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="27.0"><text:p>27.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="13.5"><text:p>13.5</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>Canadian Coins 🇨🇦</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>$1 Loonie Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="26.5"><text:p>26.5</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="26.5"><text:p>26.5</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="13.25"><text:p>13.25</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>$2 Toonie Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="28.0"><text:p>28.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="28.0"><text:p>28.0</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="14.0"><text:p>14.0</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>Swiss Franc Coins 🇨🇭</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>5 Franc Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="31.45"><text:p>31.45</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="31.45"><text:p>31.45</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="15.725"><text:p>15.725</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>2 Franc Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="27.4"><text:p>27.4</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="27.4"><text:p>27.4</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="13.7"><text:p>13.7</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>1 Franc Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="23.2"><text:p>23.2</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="23.2"><text:p>23.2</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="11.6"><text:p>11.6</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>1/2 Franc Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="18.2"><text:p>18.2</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="18.2"><text:p>18.2</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="9.1"><text:p>9.1</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>20 Rappen Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="21.05"><text:p>21.05</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="21.05"><text:p>21.05</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="10.525"><text:p>10.525</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>10 Rappen Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="19.1"><text:p>19.1</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="19.1"><text:p>19.1</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="9.55"><text:p>9.55</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>5 Rappen Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="17.15"><text:p>17.15</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="17.15"><text:p>17.15</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="8.575"><text:p>8.575</text:p></table:table-cell>
         </table:table-row>
       </table:table>
     </office:spreadsheet>
