@@ -536,6 +536,21 @@
   <script> initAdaptiveQuest(); </script>
 
   <script>
+    // CALIBRATION FALLBACK (Pages)
+    (function enforceCalibrationFallback() {
+      const originalFetch = window.fetch;
+      if (typeof originalFetch !== 'function') {
+        return;
+      }
+      const disabledPath = 'shared-resources/reference-data/object-dimensions.ods';
+      window.fetch = function patchedFetch(resource, init) {
+        if (typeof resource === 'string' && resource.includes(disabledPath)) {
+          return Promise.reject(new Error('Calibration reference file disabled for GitHub Pages fallback.'));
+        }
+        return originalFetch.call(this, resource, init);
+      };
+    })();
+
     const jsPsych = initJsPsych({
       display_element: 'jspsych-target',
       show_progress_bar: true,
@@ -819,6 +834,19 @@
       };
     }
 
+    // PAPER DISPLAY & TIMING
+    function samplePointInDiskDeg(rMaxDeg = MAX_TARGET_ECCENTRICITY_DVA) {
+      const u = Math.random();
+      const r = Math.sqrt(u) * rMaxDeg;
+      const th = Math.random() * Math.PI * 2;
+      return {
+        xDeg: r * Math.cos(th),
+        yDeg: r * Math.sin(th),
+        rDeg: r,
+        thRad: th
+      };
+    }
+
     function createRange(start, end, step) {
       const output = [];
       if (end < start) {
@@ -912,15 +940,16 @@
       jsPsych.getDisplayElement().innerHTML = '';
     }
 
+    // PAPER DISPLAY & TIMING
     function stageHTML(content = '', { showFixation = false } = {}) {
       const fixation = showFixation
-        ? `<div class="fixation-dot" style="width:${FIXATION_DIAMETER_PX}px; height:${FIXATION_DIAMETER_PX}px;"></div>`
+        ? `<div class="fixation-dot" style="width:${FIXATION_DIAMETER_PX}px;height:${FIXATION_DIAMETER_PX}px;"></div>`
         : '';
       return `<div class="stage">${fixation}${content}</div>`;
     }
 
-    function dotHTML(x, y, diameter) {
-      return `<div class="dot" style="left:${x}px; top:${y}px; width:${diameter}px; height:${diameter}px;"></div>`;
+    function dotHTML(x, y, diameter = DOT_DIAMETER) {
+      return `<div class="dot" style="left:${x}px;top:${y}px;width:${diameter}px;height:${diameter}px;"></div>`;
     }
 
     let trialState = {};
@@ -1058,19 +1087,37 @@
           };
           lastHoldStartTime = holdStartedAt;
 
-          let baseTheta = Math.random() * Math.PI * 2;
+          const sampled = samplePointInDiskDeg(MAX_TARGET_ECCENTRICITY_DVA);
+          let baseTheta = sampled.thRad;
           let baseRadius = 0;
           let radiusLimit = maxRadius;
-          const dvaRadiusLimit = reference && typeof VisualAngle !== 'undefined'
-            ? VisualAngle.dvaToPixels(MAX_TARGET_ECCENTRICITY_DVA, reference)
-            : null;
-          if (typeof dvaRadiusLimit === 'number' && Number.isFinite(dvaRadiusLimit)) {
-            radiusLimit = dvaRadiusLimit;
-            baseRadius = Math.sqrt(Math.random()) * radiusLimit;
-          } else {
-            radiusLimit = 120;
-            baseRadius = Math.sqrt(Math.random()) * radiusLimit;
+          const referenceReady = Boolean(reference && typeof VisualAngle !== 'undefined');
+
+          if (referenceReady) {
+            try {
+              const pxLimit = VisualAngle.dvaToPixels(MAX_TARGET_ECCENTRICITY_DVA, reference);
+              if (Number.isFinite(pxLimit) && pxLimit > 0) {
+                radiusLimit = pxLimit;
+              }
+              const pxRadius = VisualAngle.dvaToPixels(sampled.rDeg, reference);
+              if (Number.isFinite(pxRadius)) {
+                baseRadius = pxRadius;
+              }
+            } catch (error) {
+              console.warn('Falling back to pixel-based sampling for stimulus location.', error);
+            }
           }
+
+          if (!Number.isFinite(radiusLimit) || radiusLimit <= 0) {
+            radiusLimit = Math.max(120, maxRadius);
+          }
+
+          if (!Number.isFinite(baseRadius)) {
+            const scale = MAX_TARGET_ECCENTRICITY_DVA > 0 ? sampled.rDeg / MAX_TARGET_ECCENTRICITY_DVA : 0;
+            baseRadius = scale * radiusLimit;
+          }
+
+          baseRadius = clamp(baseRadius, 0, radiusLimit);
           trialState.maxRadiusPx = radiusLimit;
           const baseDiameter = DOT_DIAMETER;
           let secondTheta = baseTheta;
