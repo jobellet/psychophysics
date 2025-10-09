@@ -12,7 +12,7 @@
     :root {
       color-scheme: light dark;
       font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
-      --bg: radial-gradient(circle at top, #0f172a 0%, #111827 60%, #020617 100%);
+      --bg: #d4d7dd;
       --card-bg: rgba(15, 23, 42, 0.9);
       --accent: #38bdf8;
       --stage-size: min(68vw, 68vh);
@@ -324,9 +324,9 @@
       width: var(--stage-size);
       height: var(--stage-size);
       margin: 0 auto;
-      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.95) 0%, rgba(2, 6, 23, 0.88) 80%);
+      background: var(--bg);
       border-radius: clamp(24px, 6vw, 36px);
-      box-shadow: inset 0 0 0 2px rgba(148, 163, 184, 0.08), 0 24px 60px rgba(2, 6, 23, 0.6);
+      box-shadow: none;
       overflow: hidden;
       display: flex;
       align-items: center;
@@ -338,21 +338,20 @@
       left: 50%;
       top: 50%;
       border-radius: 999px;
-      background: #f8fafc;
-      box-shadow: 0 0 20px rgba(248, 250, 252, 0.65);
+      background: #ffffff;
+      box-shadow: none;
       transform: translate(-50%, -50%);
+      pointer-events: none;
       will-change: transform;
     }
 
-    .fixation {
+    .fixation-dot {
       position: absolute;
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
-      font-size: clamp(36px, 7vw, 64px);
-      font-weight: 600;
-      color: rgba(241, 245, 249, 0.85);
-      text-shadow: 0 8px 30px rgba(15, 23, 42, 0.7);
+      border-radius: 999px;
+      background: #000000;
       pointer-events: none;
     }
 
@@ -593,10 +592,17 @@
     });
 
     const TOTAL_TRIALS = 1000;
-    const FIRST_STIM_DURATION = 33;
-    const SECOND_STIM_DURATION = 33;
+    // Timing constants: we will override below
+    // (Keep QUEST as-is; only change durations/intervals)
+    const FIRST_STIM_DURATION = 59;
+    const SECOND_STIM_DURATION = 59;
     const RESPONSE_WINDOW = 1400;
-    const DOT_DIAMETER = 30;
+    const FIXATION_DIAMETER_DVA = 0.12;
+    const TARGET_DIAMETER_DVA = 0.12;
+    const MAX_TARGET_ECCENTRICITY_DVA = 3.0;
+
+    let DOT_DIAMETER = 30;
+    let FIXATION_DIAMETER_PX = 6;
 
     let uploadedDataArray = [];
     let previousTrialCount = 0;
@@ -631,17 +637,23 @@
         minRadiusDva = null;
         maxRadiusDva = null;
         dotDiameterDva = null;
+        DOT_DIAMETER = 30;
+        FIXATION_DIAMETER_PX = 6;
         return;
       }
       try {
-        minRadiusDva = VisualAngle.pixelsToDVA(minRadius, reference);
-        maxRadiusDva = VisualAngle.pixelsToDVA(maxRadius, reference);
+        DOT_DIAMETER = Math.max(2, Math.round(VisualAngle.dvaToPixels(TARGET_DIAMETER_DVA, reference)));
+        FIXATION_DIAMETER_PX = Math.max(2, Math.round(VisualAngle.dvaToPixels(FIXATION_DIAMETER_DVA, reference)));
+        minRadiusDva = 0;
+        maxRadiusDva = MAX_TARGET_ECCENTRICITY_DVA;
         dotDiameterDva = VisualAngle.pixelsToDVA(DOT_DIAMETER, reference);
       } catch (error) {
         console.warn('Failed to derive DVA metrics', error);
         minRadiusDva = null;
         maxRadiusDva = null;
         dotDiameterDva = null;
+        DOT_DIAMETER = 30;
+        FIXATION_DIAMETER_PX = 6;
       }
     }
 
@@ -791,13 +803,6 @@
       statusEl.dataset.state = state;
     }
 
-    function randomBetween(min, max) {
-      if (max <= min) {
-        return min;
-      }
-      return min + Math.random() * (max - min);
-    }
-
     function degToRad(deg) {
       return (deg * Math.PI) / 180;
     }
@@ -908,20 +913,14 @@
     }
 
     function stageHTML(content = '', { showFixation = false } = {}) {
-      const fixation = showFixation ? '<div class="fixation">+</div>' : '';
+      const fixation = showFixation
+        ? `<div class="fixation-dot" style="width:${FIXATION_DIAMETER_PX}px; height:${FIXATION_DIAMETER_PX}px;"></div>`
+        : '';
       return `<div class="stage">${fixation}${content}</div>`;
     }
 
-    function createDotColor() {
-      const hue = Math.floor(Math.random() * 360);
-      return {
-        fill: `hsl(${hue}, 85%, 70%)`,
-        glow: `hsla(${hue}, 85%, 70%, 0.65)`
-      };
-    }
-
-    function dotHTML(x, y, diameter, color = { fill: '#f8fafc', glow: 'rgba(248, 250, 252, 0.65)' }) {
-      return `<div class="dot" style="left:${x}px; top:${y}px; width:${diameter}px; height:${diameter}px; background:${color.fill}; box-shadow:0 0 20px ${color.glow};"></div>`;
+    function dotHTML(x, y, diameter) {
+      return `<div class="dot" style="left:${x}px; top:${y}px; width:${diameter}px; height:${diameter}px;"></div>`;
     }
 
     let trialState = {};
@@ -944,13 +943,15 @@
         return `
           <h1 style="margin-top:0">Just Noticeable Difference (Go/No-Go)</h1>
           <p>
-            A coloured dot will flash twice. The first (odd-index) flash always marks the reference position and size.
-            After a brief random delay (50–1000 ms) the dot reappears in the same hue for the even-index comparison dot.
+            A white dot will flash twice while you maintain fixation on the central black spot. The first (odd-index)
+            flash always marks the reference position. After a random blank interval (100–1500&nbsp;ms) the dot reappears
+            in the same white color for the even-index comparison.
           </p>
           <p>
             On most trials the dot is identical (<strong>no-go</strong>). About one third of the time the
-            dot shifts slightly in angle or distance from the centre (<strong>go</strong> trials). Both flashes
-            always keep the same ${DOT_DIAMETER}&nbsp;px diameter${dotInfo}.
+            dot shifts slightly in angle or distance from the centre (<strong>go</strong> trials). Each flash lasts
+            about ${FIRST_STIM_DURATION}&nbsp;ms and shares the same ${DOT_DIAMETER}&nbsp;px diameter${dotInfo}.
+            Targets are sampled uniformly within a ${MAX_TARGET_ECCENTRICITY_DVA.toFixed(1)}° radius when calibrated.
           </p>
           <ul>
             <li>Hold the glowing control button in the lower-right corner (or hold the spacebar) to initiate and continue trials.</li>
@@ -1034,7 +1035,7 @@
             index: offset + index + 1,
             isNoGo,
             isGo: !isNoGo,
-            isi: jsPsych.randomization.randomInt(50, 1000),
+            isi: jsPsych.randomization.randomInt(100, 1500),
             changeType: 'none',
             questStimValue: null,
             questContext: null,
@@ -1050,15 +1051,27 @@
             baseDiameterDva: null,
             secondDiameterDva: null,
             deltaRadiusDva: null,
-            deltaDiameterDva: null
+            deltaDiameterDva: null,
+            dotColor: null,
+            maxRadiusPx: null,
+            maxRadiusDva: null
           };
           lastHoldStartTime = holdStartedAt;
 
-          const dotColor = createDotColor();
-          trialState.dotColor = dotColor;
-
           let baseTheta = Math.random() * Math.PI * 2;
-          let baseRadius = randomBetween(minRadius, maxRadius);
+          let baseRadius = 0;
+          let radiusLimit = maxRadius;
+          const dvaRadiusLimit = reference && typeof VisualAngle !== 'undefined'
+            ? VisualAngle.dvaToPixels(MAX_TARGET_ECCENTRICITY_DVA, reference)
+            : null;
+          if (typeof dvaRadiusLimit === 'number' && Number.isFinite(dvaRadiusLimit)) {
+            radiusLimit = dvaRadiusLimit;
+            baseRadius = Math.sqrt(Math.random()) * radiusLimit;
+          } else {
+            radiusLimit = 120;
+            baseRadius = Math.sqrt(Math.random()) * radiusLimit;
+          }
+          trialState.maxRadiusPx = radiusLimit;
           const baseDiameter = DOT_DIAMETER;
           let secondTheta = baseTheta;
           let secondRadius = baseRadius;
@@ -1092,8 +1105,8 @@
               trialState.deltaRadius = stim;
               const direction = jsPsych.randomization.sampleWithoutReplacement([-1, 1], 1)[0];
               secondRadius = baseRadius + direction * stim;
-              if (secondRadius < minRadius) secondRadius = minRadius;
-              if (secondRadius > maxRadius) secondRadius = maxRadius;
+              if (secondRadius < 0) secondRadius = 0;
+              if (secondRadius > radiusLimit) secondRadius = radiusLimit;
             }
           }
 
@@ -1119,6 +1132,7 @@
               trialState.secondDiameterDva = VisualAngle.pixelsToDVA(secondDiameter, reference);
               trialState.deltaRadiusDva = VisualAngle.pixelsToDVA(Math.abs(trialState.deltaRadius), reference);
               trialState.deltaDiameterDva = VisualAngle.pixelsToDVA(Math.abs(trialState.deltaDiameter), reference);
+              trialState.maxRadiusDva = VisualAngle.pixelsToDVA(trialState.maxRadiusPx, reference);
             } catch (error) {
               console.warn('Could not derive DVA for trial', error);
               trialState.baseRadiusDva = null;
@@ -1127,6 +1141,7 @@
               trialState.secondDiameterDva = null;
               trialState.deltaRadiusDva = null;
               trialState.deltaDiameterDva = null;
+              trialState.maxRadiusDva = null;
             }
           } else {
             trialState.baseRadiusDva = null;
@@ -1135,6 +1150,7 @@
             trialState.secondDiameterDva = null;
             trialState.deltaRadiusDva = null;
             trialState.deltaDiameterDva = null;
+            trialState.maxRadiusDva = null;
           }
 
           if (trialState.questContext) {
@@ -1148,14 +1164,14 @@
         type: jsPsychHtmlKeyboardResponse,
         stimulus: () => stageHTML('', { showFixation: true }),
         choices: 'NO_KEYS',
-        trial_duration: 350,
+        trial_duration: () => jsPsych.randomization.randomInt(500, 1000),
         data: { stage: 'fixation' }
       };
 
       const firstStim = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: () =>
-          stageHTML(dotHTML(trialState.firstX, trialState.firstY, trialState.baseDiameter, trialState.dotColor), {
+          stageHTML(dotHTML(trialState.firstX, trialState.firstY, trialState.baseDiameter), {
             showFixation: true
           }),
         choices: 'NO_KEYS',
@@ -1174,8 +1190,8 @@
       const secondStim = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: () =>
-          stageHTML(dotHTML(trialState.secondX, trialState.secondY, trialState.secondDiameter, trialState.dotColor), {
-            showFixation: true
+          stageHTML(dotHTML(trialState.secondX, trialState.secondY, trialState.secondDiameter), {
+            showFixation: false
           }),
         choices: 'NO_KEYS',
         trial_duration: SECOND_STIM_DURATION,
@@ -1197,6 +1213,38 @@
           const responseStart = performance.now();
           let finished = false;
           let timerId = null;
+          let reappearTimer = null;
+          let fixationRestored = false;
+
+          const baselineOnset =
+            typeof trialState.secondStimOnset === 'number' ? trialState.secondStimOnset : responseStart;
+
+          const scheduleFixationReturn = delay => {
+            if (delay <= 0) {
+              if (!fixationRestored) {
+                const el = jsPsych.getDisplayElement();
+                if (el) {
+                  el.innerHTML = stageHTML('', { showFixation: true });
+                }
+                fixationRestored = true;
+              }
+              return null;
+            }
+            return window.setTimeout(() => {
+              if (!fixationRestored) {
+                const el = jsPsych.getDisplayElement();
+                if (el) {
+                  el.innerHTML = stageHTML('', { showFixation: true });
+                }
+                fixationRestored = true;
+              }
+              reappearTimer = null;
+            }, delay);
+          };
+
+          reappearTimer = scheduleFixationReturn(
+            Math.max(0, 500 - (performance.now() - baselineOnset))
+          );
 
           const finish = result => {
             if (finished) return;
@@ -1207,6 +1255,13 @@
             if (timerId !== null) {
               window.clearTimeout(timerId);
               timerId = null;
+            }
+            const remaining = Math.max(0, 500 - (performance.now() - baselineOnset));
+            if (reappearTimer !== null) {
+              window.clearTimeout(reappearTimer);
+              reappearTimer = scheduleFixationReturn(remaining);
+            } else if (!fixationRestored) {
+              reappearTimer = scheduleFixationReturn(remaining);
             }
             if (trialState.releaseListener) {
               holdState.releaseListeners.delete(trialState.releaseListener);
@@ -1332,6 +1387,16 @@
           data.second_diameter_dva = trialState.secondDiameterDva;
           data.second_onset = typeof trialState.secondStimOnset === 'number' ? trialState.secondStimOnset : null;
           data.dot_color = trialState.dotColor?.fill ?? null;
+          data.first_stim_duration = FIRST_STIM_DURATION;
+          data.second_stim_duration = SECOND_STIM_DURATION;
+          data.fixation_reappear_delay = 500;
+          data.fixation_diameter_px = FIXATION_DIAMETER_PX;
+          data.fixation_diameter_dva = FIXATION_DIAMETER_DVA;
+          data.target_diameter_px = DOT_DIAMETER;
+          data.target_diameter_dva = TARGET_DIAMETER_DVA;
+          data.max_radius_px = trialState.maxRadiusPx;
+          data.max_radius_dva = trialState.maxRadiusDva;
+          data.max_target_eccentricity_dva = MAX_TARGET_ECCENTRICITY_DVA;
           data.interstimulus = trialState.isi;
           data.trial_number = trialState.index;
           data.go_success = trialState.isGo ? responded : null;
