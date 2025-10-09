@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<office:document xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+  xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
+  xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+  xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"
+  office:version="1.2">
+  <office:automatic-styles />
+  <office:body>
+    <office:spreadsheet>
+      <table:table table:name="ReferenceObjects">
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>Object</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>Length (mm)</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>Width (mm)</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>Radius (mm)</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>Credit / ID Card (ID-1)</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="85.6"><text:p>85.6</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="53.98"><text:p>53.98</text:p></table:table-cell>
+          <table:table-cell office:value-type="string"><text:p>N/A</text:p></table:table-cell>
+        </table:table-row>
+        <table:table-row>
+          <table:table-cell office:value-type="string"><text:p>€1 Coin</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="23.25"><text:p>23.25</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="23.25"><text:p>23.25</text:p></table:table-cell>
+          <table:table-cell office:value-type="float" office:value="11.625"><text:p>11.625</text:p></table:table-cell>
+        </table:table-row>
+      </table:table>
+    </office:spreadsheet>
+  </office:body>
+</office:document>
