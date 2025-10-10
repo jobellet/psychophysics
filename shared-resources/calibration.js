@@ -72,6 +72,11 @@ let suppressCalibrationUpdates = false;
 let initPromise = null;
 let startButtonElement = null;
 
+const ZIP_LIBRARY_URL = typeof import.meta !== 'undefined' && import.meta.url
+  ? new URL('./vendor/fflate.mjs', import.meta.url).href
+  : null;
+let zipLibraryPromise = null;
+
 const readyListeners = new Set();
 
 function resolveElement(name, fallbackId, overrides = {}) {
@@ -94,6 +99,68 @@ function assignCalibrationElements(overrides = {}) {
     viewingDistance: resolveElement('viewingDistance', 'viewing-distance', overrides),
     target: resolveElement('target', 'calibration-target-info', overrides)
   };
+}
+
+function resolveZipModuleExports(mod) {
+  if (!mod) return null;
+  if (typeof mod.unzipSync === 'function') {
+    return mod;
+  }
+  if (mod.default && typeof mod.default.unzipSync === 'function') {
+    return { ...mod.default, ...mod };
+  }
+  return null;
+}
+
+async function ensureZipLibrary() {
+  if (typeof ZIP_LIBRARY_URL !== 'string' || !ZIP_LIBRARY_URL) {
+    throw new Error('Zip library URL is not available.');
+  }
+  if (zipLibraryPromise) {
+    return zipLibraryPromise;
+  }
+  zipLibraryPromise = import(/* @vite-ignore */ ZIP_LIBRARY_URL)
+    .then(resolveZipModuleExports)
+    .then(mod => {
+      if (!mod || typeof mod.unzipSync !== 'function') {
+        throw new Error('Zip library missing unzipSync export.');
+      }
+      return mod;
+    })
+    .catch(error => {
+      zipLibraryPromise = null;
+      throw error;
+    });
+  return zipLibraryPromise;
+}
+
+function arrayBufferToUint8(buffer) {
+  if (buffer instanceof Uint8Array) {
+    return buffer;
+  }
+  return new Uint8Array(buffer);
+}
+
+async function extractXmlFromOdsBuffer(buffer) {
+  const zipModule = await ensureZipLibrary();
+  const data = arrayBufferToUint8(buffer);
+  const archive = zipModule.unzipSync(data);
+  const filenames = Object.keys(archive || {});
+  const contentName = filenames.find(name => /content\.xml$/i.test(name));
+  if (!contentName) {
+    throw new Error('content.xml not found inside the ODS archive.');
+  }
+  const xmlBytes = archive[contentName];
+  if (!xmlBytes) {
+    throw new Error('content.xml is empty or unreadable.');
+  }
+  if (typeof TextDecoder !== 'undefined') {
+    return new TextDecoder('utf-8').decode(xmlBytes);
+  }
+  if (typeof zipModule.strFromU8 === 'function') {
+    return zipModule.strFromU8(xmlBytes);
+  }
+  throw new Error('No UTF-8 decoder available for the extracted XML.');
 }
 
 function slugify(text, fallback = 'object') {
@@ -605,7 +672,16 @@ async function loadCalibrationObjectOptions() {
     if (!response.ok) {
       throw new Error(`Request failed with status ${response.status}`);
     }
-    const xmlText = await response.text();
+    const contentType = (response.headers && response.headers.get && response.headers.get('content-type')) || '';
+    const urlLower = typeof options.referenceDataUrl === 'string' ? options.referenceDataUrl.toLowerCase() : '';
+    const isXml = contentType.includes('xml') || urlLower.endsWith('.xml');
+    let xmlText = '';
+    if (isXml) {
+      xmlText = await response.text();
+    } else {
+      const buffer = await response.arrayBuffer();
+      xmlText = await extractXmlFromOdsBuffer(buffer);
+    }
     entries = extractEntriesFromSheet(xmlText);
     if (!entries.some(entry => entry && entry.type === 'object')) {
       throw new Error('No measurable reference objects found in the spreadsheet.');
