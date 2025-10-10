@@ -303,7 +303,14 @@
   <script type="module" src="noGoController.js"></script>
   <script> initAdaptiveQuest(); </script>
 
-  <script>
+  <script type="module">
+    import {
+      init as initCalibration,
+      getReference as getCalibrationReference,
+      getState as getCalibrationState,
+      onReady as onCalibrationReady
+    } from '../shared-resources/calibration.js';
+
     const jsPsych = initJsPsych({ display_element: 'jspsych-target', show_progress_bar: true, auto_update_progress_bar: false });
 
     const preExperimentOverlay = document.getElementById('pre-experiment');
@@ -320,7 +327,7 @@
       calibrationStatusEl.dataset.state = state;
     }
 
-    Calibration.init({
+    initCalibration({
       defaultObjectId: 'credit-card',
       storageKey: 'visual-jnd-calibration',
       startButton,
@@ -341,10 +348,10 @@
       showCalibrationStatus('Calibration could not be initialised. Please reload the page.', 'error');
     });
 
-    const calibrationState = Calibration.getState();
-    function getVisualReference() { return Calibration.getReference(); }
+    const calibrationState = getCalibrationState();
+    function getVisualReference() { return getCalibrationReference(); }
 
-    Calibration.onReady(() => { updateDerivedDvaMetrics(); });
+    onCalibrationReady(() => { updateDerivedDvaMetrics(); });
     window.addEventListener('visual-calibration-cleared', () => { updateDerivedDvaMetrics(); });
 
     const TOTAL_TRIALS = 1000;
