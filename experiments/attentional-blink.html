@@ -64,6 +64,14 @@
       font-weight: 600;
       letter-spacing: 4px;
       text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: clamp(120px, 24vw, 180px);
+    }
+
+    .rsvp-stimulus--blank {
+      visibility: hidden;
     }
 
     .response-grid {
@@ -223,7 +231,7 @@
         });
         rsvpTimeline.push({
           type: jsPsychHtmlKeyboardResponse,
-          stimulus: '',
+          stimulus: '<div class="rsvp-stimulus rsvp-stimulus--blank" aria-hidden="true">&nbsp;</div>',
           choices: 'NO_KEYS',
           trial_duration: 50,
           data: {
