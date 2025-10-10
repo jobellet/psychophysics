@@ -5,7 +5,7 @@ const DEFAULT_OPTIONS = {
   defaultObjectId: 'credit-card',
   storageKey: 'visual-calibration',
   legacyStorageKeys: ['visual-jnd-calibration'],
-  referenceDataUrl: '../shared-resources/reference-data/object-dimensions.ods',
+  referenceDataUrl: '../shared-resources/reference-data/object-dimensions.xml',
   elements: {},
   startButton: null
 };
@@ -673,15 +673,18 @@ async function loadCalibrationObjectOptions() {
     if (!response.ok) {
       throw new Error(`Request failed with status ${response.status}`);
     }
-    const contentType = (response.headers && response.headers.get && response.headers.get('content-type')) || '';
-    const urlLower = typeof options.referenceDataUrl === 'string' ? options.referenceDataUrl.toLowerCase() : '';
-    const isXml = contentType.includes('xml') || urlLower.endsWith('.xml');
+    const buffer = await response.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
     let xmlText = '';
-    if (isXml) {
-      xmlText = await response.text();
-    } else {
-      const buffer = await response.arrayBuffer();
+    const isZip = bytes.length >= 2 && bytes[0] === 0x50 && bytes[1] === 0x4b;
+    if (isZip) {
       xmlText = await extractXmlFromOdsBuffer(buffer);
+    } else {
+      if (typeof TextDecoder !== 'undefined') {
+        xmlText = new TextDecoder('utf-8').decode(bytes);
+      } else {
+        xmlText = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
+      }
     }
     entries = extractEntriesFromSheet(xmlText);
     if (!entries.some(entry => entry && entry.type === 'object')) {
