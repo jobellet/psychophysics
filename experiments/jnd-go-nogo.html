@@ -12,7 +12,7 @@
     :root {
       color-scheme: light dark;
       font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
-      --bg: #d4d7dd;
+      --bg: radial-gradient(circle at top, #0f172a 0%, #111827 60%, #020617 100%);
       --card-bg: rgba(15, 23, 42, 0.9);
       --accent: #38bdf8;
       --stage-size: min(68vw, 68vh);
@@ -161,10 +161,14 @@
       width: var(--stage-size);
       height: var(--stage-size);
       margin: 0 auto;
-      background: var(--bg);
+      background: radial-gradient(circle at center, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.94) 100%);
+      border: 1px solid rgba(148, 163, 184, 0.25);
       border-radius: clamp(24px, 6vw, 36px);
-      box-shadow: none; overflow: hidden;
-      display: flex; align-items: center; justify-content: center;
+      box-shadow: inset 0 0 0 1px rgba(2, 6, 23, 0.45);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .dot {
