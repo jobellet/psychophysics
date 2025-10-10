@@ -18,11 +18,7 @@
       --stage-size: min(68vw, 68vh);
     }
 
-    html,
-    body {
-      height: 100%;
-    }
-
+    html, body { height: 100%; }
     body {
       margin: 0;
       min-height: 100vh;
@@ -39,285 +35,126 @@
     }
 
     #pre-experiment {
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.96) 0%, rgba(2, 6, 23, 0.94) 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: fixed; inset: 0;
+      background: radial-gradient(circle at top, rgba(15,23,42,.96) 0%, rgba(2,6,23,.94) 100%);
+      display: flex; align-items: center; justify-content: center;
       padding: clamp(24px, 6vw, 72px);
-      overflow-y: auto;
-      z-index: 10;
-      transition: opacity 220ms ease;
+      overflow-y: auto; z-index: 10; transition: opacity 220ms ease;
     }
-
-    #pre-experiment.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
+    #pre-experiment.hidden { opacity: 0; pointer-events: none; }
 
     .session-card {
-      margin: auto;
-      width: min(92vw, 720px);
-      max-width: min(92vw, 720px);
+      margin: auto; width: min(92vw, 720px); max-width: min(92vw, 720px);
       max-height: calc(100vh - clamp(48px, 12vw, 96px));
       background: rgba(15, 23, 42, 0.85);
       border-radius: clamp(24px, 4vw, 36px);
       box-shadow: 0 30px 70px rgba(2, 6, 23, 0.6);
       padding: clamp(28px, 6vw, 56px);
-      display: flex;
-      flex-direction: column;
-      gap: clamp(16px, 4vw, 28px);
-      overflow-y: auto;
-      box-sizing: border-box;
+      display: flex; flex-direction: column; gap: clamp(16px, 4vw, 28px);
+      overflow-y: auto; box-sizing: border-box;
     }
 
-    .session-card h1 {
-      margin: 0;
-      font-size: clamp(1.6rem, 4vw, 2.15rem);
-    }
-
-    .session-card p {
-      margin: 0;
-      color: rgba(203, 213, 225, 0.92);
-    }
+    .session-card h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.15rem); }
+    .session-card p  { margin: 0; color: rgba(203, 213, 225, 0.92); }
 
     .calibration-section {
       border: 1px solid rgba(148, 163, 184, 0.22);
       border-radius: clamp(18px, 3.5vw, 28px);
       padding: clamp(16px, 4vw, 28px);
       background: rgba(15, 23, 42, 0.6);
-      display: flex;
-      flex-direction: column;
-      gap: clamp(12px, 3vw, 20px);
+      display: flex; flex-direction: column; gap: clamp(12px, 3vw, 20px);
     }
-
-    .calibration-section h2 {
-      margin: 0;
-      font-size: clamp(1.15rem, 3vw, 1.35rem);
-      color: #f8fafc;
-    }
-
-    .calibration-section p.small-print {
-      font-size: clamp(0.85rem, 2.4vw, 0.95rem);
-      color: rgba(148, 163, 184, 0.92);
-    }
+    .calibration-section h2 { margin: 0; font-size: clamp(1.15rem, 3vw, 1.35rem); color: #f8fafc; }
+    .calibration-section p.small-print { font-size: .95rem; color: rgba(148,163,184,.92); }
 
     .calibration-display {
-      position: relative;
-      width: 100%;
-      min-height: clamp(160px, 45vw, 260px);
-      border-radius: clamp(16px, 4vw, 24px);
-      background: rgba(15, 23, 42, 0.72);
-      border: 1px dashed rgba(148, 163, 184, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
+      position: relative; width: 100%; min-height: clamp(160px, 45vw, 260px);
+      border-radius: clamp(16px, 4vw, 24px); background: rgba(15,23,42,.72);
+      border: 1px dashed rgba(148,163,184,.4);
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
       touch-action: none;
     }
-
     .calibration-instruction {
-      position: absolute;
-      top: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: clamp(0.75rem, 2.4vw, 0.9rem);
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
-      color: rgba(148, 163, 184, 0.88);
-      pointer-events: none;
+      position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+      font-size: .9rem; letter-spacing: .02em; text-transform: uppercase;
+      color: rgba(148,163,184,.88); pointer-events: none;
     }
-
     .calibration-shape {
       position: relative;
-      border: 2px solid rgba(56, 189, 248, 0.85);
-      background: rgba(56, 189, 248, 0.12);
-      box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.35);
+      border: 2px solid rgba(56,189,248,.85);
+      background: rgba(56,189,248,.12);
+      box-shadow: inset 0 0 0 1px rgba(148,163,184,.35);
       border-radius: clamp(8px, 2vw, 12px);
-      transition: width 0.12s ease, height 0.12s ease, border-radius 0.12s ease;
+      transition: width .12s ease, height .12s ease, border-radius .12s ease;
     }
+    .calibration-shape.circle { border-radius: 9999px; }
 
-    .calibration-shape.circle {
-      border-radius: 9999px;
-    }
-
-    .calibration-controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: clamp(8px, 2vw, 16px);
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .calibration-controls label {
-      font-size: clamp(0.95rem, 2.6vw, 1rem);
-      color: rgba(226, 232, 240, 0.92);
-    }
-
+    .calibration-controls { display:flex; flex-wrap:wrap; gap: clamp(8px,2vw,16px); align-items:center; justify-content:space-between; }
+    .calibration-controls label { font-size: 1rem; color: rgba(226,232,240,.92); }
     .calibration-controls input[type='number'] {
       width: clamp(90px, 24vw, 120px);
-      padding: 10px 14px;
-      border-radius: 12px;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      background: rgba(15, 23, 42, 0.75);
-      color: #f8fafc;
-      font-size: clamp(0.95rem, 2.6vw, 1rem);
-      -moz-appearance: textfield;
+      padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(148,163,184,.35);
+      background: rgba(15,23,42,.75); color: #f8fafc; font-size: 1rem; -moz-appearance: textfield;
     }
-
     .calibration-controls input[type='number']::-webkit-outer-spin-button,
-    .calibration-controls input[type='number']::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
+    .calibration-controls input[type='number']::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
 
-    .calibration-slider {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
+    .calibration-slider { display:flex; flex-direction:column; gap:6px; }
+    .calibration-slider input[type='range'] { width:100%; }
+    .calibration-slider span { font-size:.95rem; color: rgba(148,163,184,.9); align-self:flex-end; }
 
-    .calibration-slider input[type='range'] {
-      width: 100%;
-    }
+    .calibration-status { margin:0; font-size:.95rem; color: rgba(148,163,184,.88); }
+    .calibration-status[data-state='error'] { color:#fca5a5; }
+    .calibration-status[data-state='success'] { color:#a7f3d0; }
 
-    .calibration-slider span {
-      font-size: clamp(0.8rem, 2.3vw, 0.95rem);
-      color: rgba(148, 163, 184, 0.9);
-      align-self: flex-end;
-    }
-
-    .calibration-status {
-      margin: 0;
-      font-size: clamp(0.85rem, 2.3vw, 0.95rem);
-      color: rgba(148, 163, 184, 0.88);
-    }
-
-    .calibration-status[data-state='error'] {
-      color: #fca5a5;
-    }
-
-    .calibration-status[data-state='success'] {
-      color: #a7f3d0;
-    }
-
-    .calibration-target {
-      font-size: clamp(0.85rem, 2.3vw, 0.95rem);
-      color: rgba(148, 163, 184, 0.9);
-    }
+    .calibration-target { font-size:.95rem; color: rgba(148,163,184,.9); }
 
     .jspsych-btn.secondary {
-      background: rgba(56, 189, 248, 0.18);
-      color: #38bdf8;
-      box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.45);
+      background: rgba(56,189,248,.18);
+      color:#38bdf8; box-shadow: inset 0 0 0 1px rgba(56,189,248,.45);
     }
+    .jspsych-btn.secondary:hover { background: rgba(56,189,248,.28); }
 
-    .jspsych-btn.secondary:hover {
-      background: rgba(56, 189, 248, 0.28);
-    }
+    .file-picker { position: relative; display: inline-flex; align-items:center; justify-content:center;
+      border-radius:999px; padding:0; overflow:hidden; width:fit-content;
+      background: rgba(148,163,184,.12); border:1px solid rgba(148,163,184,.18); cursor: pointer; }
+    .file-picker input[type='file'] { position:absolute; inset:0; opacity:0; cursor:pointer; }
+    .file-picker span { padding:12px 24px; font-weight:600; color:#e2e8f0; font-size:1.05rem; }
 
-    .file-picker {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 999px;
-      padding: 0;
-      overflow: hidden;
-      width: fit-content;
-      background: rgba(148, 163, 184, 0.12);
-      border: 1px solid rgba(148, 163, 184, 0.18);
-      cursor: pointer;
-    }
+    .session-status { margin:0; font-size:1.05rem; color: rgba(148,163,184,.88); }
+    .session-status[data-state='error'] { color:#fca5a5; }
+    .session-status[data-state='warning'] { color:#facc15; }
+    .session-status strong { color:#f8fafc; }
 
-    .file-picker input[type='file'] {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      cursor: pointer;
-    }
+    .session-actions { display:flex; flex-wrap:wrap; gap:12px; }
+    .session-actions .jspsych-btn:disabled { opacity:.55; cursor:not-allowed; }
 
-    .file-picker span {
-      padding: 12px 24px;
-      font-weight: 600;
-      color: #e2e8f0;
-      font-size: clamp(0.95rem, 2.4vw, 1.05rem);
-    }
-
-    .session-status {
-      margin: 0;
-      font-size: clamp(0.95rem, 2.6vw, 1.05rem);
-      color: rgba(148, 163, 184, 0.88);
-    }
-
-    .session-status[data-state='error'] {
-      color: #fca5a5;
-    }
-
-    .session-status[data-state='warning'] {
-      color: #facc15;
-    }
-
-    .session-status strong {
-      color: #f8fafc;
-    }
-
-    .session-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .session-actions .jspsych-btn:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-
-    .psychometrics-output {
-      border-top: 1px solid rgba(148, 163, 184, 0.18);
-      padding-top: clamp(16px, 4vw, 28px);
-      display: flex;
-      flex-direction: column;
-      gap: clamp(16px, 4vw, 24px);
-    }
+    .psychometrics-output { border-top:1px solid rgba(148,163,184,.18); padding-top: clamp(16px,4vw,28px);
+      display:flex; flex-direction:column; gap: clamp(16px,4vw,24px); }
 
     #jspsych-target {
       width: min(96vw, 860px);
       max-height: calc(100vh - clamp(48px, 10vw, 120px));
-      background: rgba(15, 23, 42, 0.82);
+      background: rgba(15,23,42,.82);
       backdrop-filter: blur(18px);
       border-radius: 32px;
-      box-shadow: 0 24px 60px rgba(2, 6, 23, 0.55);
-      padding: clamp(24px, 5vw, 56px);
-      margin: clamp(24px, 5vw, 56px) auto;
-      overflow-y: auto;
-      box-sizing: border-box;
+      box-shadow: 0 24px 60px rgba(2,6,23,.55);
+      padding: clamp(24px,5vw,56px);
+      margin: clamp(24px,5vw,56px) auto;
+      overflow-y: auto; box-sizing: border-box;
     }
 
-    .jspsych-display-element {
-      font-size: clamp(18px, 3vw, 22px);
-      line-height: 1.7;
-      min-height: 100%;
-    }
+    .jspsych-display-element { font-size: clamp(18px,3vw,22px); line-height:1.7; min-height:100%; }
 
     .jspsych-btn {
       font-size: clamp(1rem, 2.6vw, 1.15rem);
-      padding: clamp(12px, 3vw, 16px) clamp(24px, 5vw, 36px);
-      border-radius: 999px;
-      border: none;
+      padding: clamp(12px,3vw,16px) clamp(24px,5vw,36px);
+      border-radius: 999px; border: none;
       background: linear-gradient(135deg, var(--accent), #2563eb);
-      color: white;
-      font-weight: 600;
-      box-shadow: inset 0 -2px 0 rgba(15, 23, 42, 0.25);
-      transition: transform 160ms ease, box-shadow 160ms ease;
-      touch-action: manipulation;
+      color: white; font-weight: 600; box-shadow: inset 0 -2px 0 rgba(15,23,42,.25);
+      transition: transform 160ms ease, box-shadow 160ms ease; touch-action: manipulation;
     }
-
-    .jspsych-btn:active {
-      transform: translateY(2px);
-      box-shadow: inset 0 2px 0 rgba(15, 23, 42, 0.35);
-    }
+    .jspsych-btn:active { transform: translateY(2px); box-shadow: inset 0 2px 0 rgba(15,23,42,.35); }
 
     .stage {
       position: relative;
@@ -326,115 +163,52 @@
       margin: 0 auto;
       background: var(--bg);
       border-radius: clamp(24px, 6vw, 36px);
-      box-shadow: none;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      box-shadow: none; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
     }
 
     .dot {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      border-radius: 999px;
-      background: #ffffff;
-      box-shadow: none;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-      will-change: transform;
+      position: absolute; left: 50%; top: 50%;
+      border-radius: 999px; background: #ffffff; box-shadow: none;
+      transform: translate(-50%,-50%); pointer-events: none; will-change: transform;
     }
-
     .fixation-dot {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      border-radius: 999px;
-      background: #000000;
-      pointer-events: none;
+      position: absolute; left:50%; top:50%; transform: translate(-50%,-50%);
+      border-radius: 999px; background: #000000; pointer-events: none;
     }
 
-    .response-text {
-      font-size: clamp(18px, 3.2vw, 24px);
-      color: rgba(226, 232, 240, 0.94);
-      text-align: center;
-      padding: 24px;
-    }
-
-    .trial-progress {
-      font-size: clamp(14px, 2.5vw, 16px);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: rgba(148, 163, 184, 0.8);
-      text-align: center;
-      margin-bottom: 16px;
-    }
+    .response-text { font-size: clamp(18px,3.2vw,24px); color: rgba(226,232,240,.94); text-align:center; padding:24px; }
+    .trial-progress { font-size: clamp(14px,2.5vw,16px); letter-spacing:.08em; text-transform:uppercase; color: rgba(148,163,184,.8); text-align:center; margin-bottom: 16px; }
 
     .control-button {
-      position: fixed;
-      z-index: 30;
-      border: none;
-      font-family: inherit;
-      font-weight: 600;
-      letter-spacing: 0.01em;
-      border-radius: clamp(18px, 4vw, 26px);
-      box-shadow: 0 18px 40px rgba(2, 6, 23, 0.45);
-      cursor: pointer;
+      position: fixed; z-index: 30; border: none; font-family: inherit; font-weight: 600; letter-spacing:.01em;
+      border-radius: clamp(18px,4vw,26px); box-shadow: 0 18px 40px rgba(2,6,23,.45); cursor: pointer;
       transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
-      pointer-events: auto;
-      touch-action: manipulation;
-      user-select: none;
+      pointer-events: auto; touch-action: manipulation; user-select: none;
     }
-
-    .control-button:active {
-      transform: translateY(2px);
-      box-shadow: 0 8px 24px rgba(2, 6, 23, 0.35);
-    }
-
-    .control-button:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: 0 8px 24px rgba(2, 6, 23, 0.25);
-    }
+    .control-button:active { transform: translateY(2px); box-shadow: 0 8px 24px rgba(2,6,23,.35); }
+    .control-button:disabled { opacity:.55; cursor:not-allowed; transform:none; box-shadow: 0 8px 24px rgba(2,6,23,.25); }
 
     #hold-button {
-      bottom: clamp(24px, 5vw, 48px);
-      right: clamp(24px, 5vw, 48px);
-      padding: clamp(18px, 4.8vw, 24px) clamp(32px, 7vw, 48px);
-      font-size: clamp(1rem, 3vw, 1.3rem);
-      background: linear-gradient(135deg, #38bdf8, #2563eb);
-      color: #f8fafc;
-      min-width: clamp(200px, 40vw, 320px);
-      text-align: center;
+      bottom: clamp(24px,5vw,48px); right: clamp(24px,5vw,48px);
+      padding: clamp(18px,4.8vw,24px) clamp(32px,7vw,48px);
+      font-size: clamp(1rem,3vw,1.3rem);
+      background: linear-gradient(135deg,#38bdf8,#2563eb);
+      color:#f8fafc; min-width: clamp(200px,40vw,320px); text-align:center;
     }
-
-    #hold-button.holding {
-      background: linear-gradient(135deg, #f97316, #ef4444);
-    }
+    #hold-button.holding { background: linear-gradient(135deg,#f97316,#ef4444); }
 
     #stop-experiment {
-      top: clamp(24px, 5vw, 48px);
-      left: clamp(24px, 5vw, 48px);
-      padding: clamp(16px, 4vw, 20px) clamp(28px, 6vw, 42px);
-      font-size: clamp(0.95rem, 2.8vw, 1.2rem);
-      background: rgba(248, 250, 252, 0.9);
-      color: #0f172a;
+      top: clamp(24px,5vw,48px); left: clamp(24px,5vw,48px);
+      padding: clamp(16px,4vw,20px) clamp(28px,6vw,42px);
+      font-size: clamp(.95rem,2.8vw,1.2rem);
+      background: rgba(248,250,252,.9); color:#0f172a;
     }
 
     @media (max-width: 600px) {
-      #pre-experiment {
-        padding: 20px;
-      }
-
-      #jspsych-target {
-        padding: clamp(20px, 6vw, 40px);
-      }
-
-      .stage {
-        border-radius: clamp(20px, 8vw, 32px);
-      }
+      #pre-experiment { padding: 20px; }
+      #jspsych-target { padding: clamp(20px,6vw,40px); }
+      .stage { border-radius: clamp(20px,8vw,32px); }
     }
   </style>
 </head>
@@ -451,6 +225,7 @@
         <span>Select JSON file</span>
       </label>
       <p id="session-status" class="session-status" data-state="info">No previous session loaded.</p>
+
       <div id="calibration-section" class="calibration-section">
         <h2>Calibrate your viewing geometry</h2>
         <p>
@@ -460,6 +235,7 @@
         <p class="small-print">
           Keep the screen at the same distance from your eyes throughout the experiment. If you move, stop and recalibrate before continuing.
         </p>
+
         <div class="calibration-controls">
           <label for="calibration-object">Reference object</label>
           <select id="calibration-object" disabled>
@@ -467,37 +243,35 @@
           </select>
           <div class="calibration-target" id="calibration-target-info"></div>
         </div>
+
         <div class="calibration-display" id="calibration-display">
           <div class="calibration-instruction">Pinch to zoom or use the slider</div>
           <div class="calibration-shape" id="calibration-shape"></div>
         </div>
+
         <div class="calibration-slider">
           <input type="range" id="calibration-slider" min="40" max="400" value="200" />
           <span id="calibration-size-readout"></span>
         </div>
+
         <div class="calibration-controls">
           <label for="viewing-distance">Viewing distance</label>
           <div style="display:flex; align-items:center; gap:8px;">
-            <input
-              type="number"
-              id="viewing-distance"
-              inputmode="decimal"
-              min="10"
-              max="200"
-              step="0.5"
-              placeholder="40"
-            />
+            <input type="number" id="viewing-distance" inputmode="decimal" min="10" max="200" step="0.5" placeholder="40" />
             <span style="color:rgba(148,163,184,0.9); font-size:0.95em;">cm</span>
           </div>
         </div>
+
         <button id="calibration-confirm" class="jspsych-btn secondary" type="button">Save calibration</button>
         <p id="calibration-status" class="calibration-status" data-state="info">
           Calibration required before the experiment can begin.
         </p>
       </div>
+
       <div class="session-actions">
         <button id="start-experiment" class="jspsych-btn" disabled>Calibrate to start</button>
       </div>
+
       <div id="psychometrics-output" class="psychometrics-output">
         <div style="display:flex; gap:.5rem; align-items:center; margin:.5rem 0; flex-wrap:wrap;">
           <label for="pm-dim">Dimension:</label>
@@ -505,20 +279,14 @@
             <option value="theta">θ (angle)</option>
             <option value="radius">radius</option>
           </select>
-
           <button id="view-psychometrics" class="jspsych-btn" disabled>View my psychometrics</button>
           <span id="pm-status" style="font-size:.9rem;color:#666;"></span>
         </div>
-
-        <canvas
-          id="pm-canvas"
-          width="800"
-          height="420"
-          style="max-width:100%;border:1px solid #eee"
-        ></canvas>
+        <canvas id="pm-canvas" width="800" height="420" style="max-width:100%;border:1px solid #eee"></canvas>
       </div>
     </div>
   </div>
+
   <div id="jspsych-target"></div>
   <button id="stop-experiment" class="control-button" hidden disabled>Stop &amp; Download</button>
   <button id="hold-button" class="control-button" hidden>Hold to Run Trials</button>
@@ -528,20 +296,19 @@
   <script src="../jspsych/plugins/html-keyboard-response.js"></script>
   <script src="../jspsych/plugins/call-function.js"></script>
   <script src="../shared-resources/visual-angle.js"></script>
+  <!-- OUR calibration (no ODS fetch) -->
   <script type="module" src="../shared-resources/calibration.js"></script>
+
   <script src="https://unpkg.com/jsquest-plus@2.1.0/dist/jsQuestPlus.js"></script>
-  <!-- Context-aware QUEST+ -->
   <script src="adaptiveQuest.js"></script>
   <script type="module" src="noGoController.js"></script>
   <script> initAdaptiveQuest(); </script>
 
   <script>
-    // CALIBRATION FALLBACK (Pages)
+    // Optional: keep this guard—does nothing now that we don't fetch ODS.
     (function enforceCalibrationFallback() {
       const originalFetch = window.fetch;
-      if (typeof originalFetch !== 'function') {
-        return;
-      }
+      if (typeof originalFetch !== 'function') return;
       const disabledPath = 'shared-resources/reference-data/object-dimensions.ods';
       window.fetch = function patchedFetch(resource, init) {
         if (typeof resource === 'string' && resource.includes(disabledPath)) {
@@ -551,11 +318,7 @@
       };
     })();
 
-    const jsPsych = initJsPsych({
-      display_element: 'jspsych-target',
-      show_progress_bar: true,
-      auto_update_progress_bar: false
-    });
+    const jsPsych = initJsPsych({ display_element: 'jspsych-target', show_progress_bar: true, auto_update_progress_bar: false });
 
     const preExperimentOverlay = document.getElementById('pre-experiment');
     const startButton = document.getElementById('start-experiment');
@@ -563,7 +326,6 @@
     const statusEl = document.getElementById('session-status');
     const holdButton = document.getElementById('hold-button');
     const stopExperimentButton = document.getElementById('stop-experiment');
-
     const calibrationStatusEl = document.getElementById('calibration-status');
 
     function showCalibrationStatus(message, state = 'info') {
@@ -594,24 +356,16 @@
     });
 
     const calibrationState = Calibration.getState();
+    function getVisualReference() { return Calibration.getReference(); }
 
-    function getVisualReference() {
-      return Calibration.getReference();
-    }
-
-    Calibration.onReady(() => {
-      updateDerivedDvaMetrics();
-    });
-    window.addEventListener('visual-calibration-cleared', () => {
-      updateDerivedDvaMetrics();
-    });
+    Calibration.onReady(() => { updateDerivedDvaMetrics(); });
+    window.addEventListener('visual-calibration-cleared', () => { updateDerivedDvaMetrics(); });
 
     const TOTAL_TRIALS = 1000;
-    // Timing constants: we will override below
-    // (Keep QUEST as-is; only change durations/intervals)
     const FIRST_STIM_DURATION = 59;
     const SECOND_STIM_DURATION = 59;
     const RESPONSE_WINDOW = 1400;
+
     const FIXATION_DIAMETER_DVA = 0.12;
     const TARGET_DIAMETER_DVA = 0.12;
     const MAX_TARGET_ECCENTRICITY_DVA = 3.0;
@@ -628,7 +382,6 @@
     let lastHoldStartTime = null;
 
     window.JND_SESSION = { trials: [] };
-
     function broadcastSessionUpdate() {
       const trials = Array.isArray(uploadedDataArray) ? [...uploadedDataArray] : [];
       window.JND_SESSION = { trials };
@@ -640,21 +393,14 @@
     const stageCenter = stageSide / 2;
     const stagePadding = Math.max(28, stageSide * 0.06);
     const maxRadius = Math.max(90, stageCenter - stagePadding);
-    const minRadius = Math.max(36, maxRadius * 0.28);
 
-    let minRadiusDva = null;
-    let maxRadiusDva = null;
-    let dotDiameterDva = null;
+    let minRadiusDva = null, maxRadiusDva = null, dotDiameterDva = null;
 
     function updateDerivedDvaMetrics() {
       const reference = getVisualReference();
       if (!reference || typeof VisualAngle === 'undefined') {
-        minRadiusDva = null;
-        maxRadiusDva = null;
-        dotDiameterDva = null;
-        DOT_DIAMETER = 30;
-        FIXATION_DIAMETER_PX = 6;
-        return;
+        minRadiusDva = null; maxRadiusDva = null; dotDiameterDva = null;
+        DOT_DIAMETER = 30; FIXATION_DIAMETER_PX = 6; return;
       }
       try {
         DOT_DIAMETER = Math.max(2, Math.round(VisualAngle.dvaToPixels(TARGET_DIAMETER_DVA, reference)));
@@ -664,14 +410,10 @@
         dotDiameterDva = VisualAngle.pixelsToDVA(DOT_DIAMETER, reference);
       } catch (error) {
         console.warn('Failed to derive DVA metrics', error);
-        minRadiusDva = null;
-        maxRadiusDva = null;
-        dotDiameterDva = null;
-        DOT_DIAMETER = 30;
-        FIXATION_DIAMETER_PX = 6;
+        minRadiusDva = null; maxRadiusDva = null; dotDiameterDva = null;
+        DOT_DIAMETER = 30; FIXATION_DIAMETER_PX = 6;
       }
     }
-
     updateDerivedDvaMetrics();
 
     function updateHoldButton(isActive) {
@@ -680,276 +422,78 @@
       holdButton.setAttribute('aria-pressed', isActive ? 'true' : 'false');
       holdButton.textContent = isActive ? 'Release to Report Change' : 'Hold to Run Trials';
     }
-
     function updateStopButtonState() {
       if (!stopExperimentButton) return;
-      if (!sessionRunning) {
-        stopExperimentButton.disabled = true;
-        return;
-      }
+      if (!sessionRunning) { stopExperimentButton.disabled = true; return; }
       stopExperimentButton.disabled = holdState.isActive();
     }
 
     const holdState = {
-      sources: new Map(),
-      holdStart: null,
-      primarySource: 'none',
-      holdStartListeners: new Set(),
-      releaseListeners: new Set(),
-      lastReleaseInfo: null,
-      activate(key, source = 'pointer') {
+      sources: new Map(), holdStart: null, primarySource: 'none',
+      holdStartListeners: new Set(), releaseListeners: new Set(), lastReleaseInfo: null,
+      activate(key, source='pointer') {
         if (this.sources.has(key)) return;
         const now = performance.now();
         this.sources.set(key, { source, startedAt: now });
         if (this.sources.size === 1) {
-          this.holdStart = now;
-          this.primarySource = source;
-          this.lastReleaseInfo = null;
-          updateHoldButton(true);
-          updateStopButtonState();
-          Array.from(this.holdStartListeners).forEach(listener => {
-            try {
-              listener({ source, startedAt: now });
-            } catch (error) {
-              console.error(error);
-            }
-          });
+          this.holdStart = now; this.primarySource = source; this.lastReleaseInfo = null;
+          updateHoldButton(true); updateStopButtonState();
+          Array.from(this.holdStartListeners).forEach(fn => { try { fn({ source, startedAt: now }); } catch {} });
         }
       },
-      release(key, source = 'pointer') {
+      release(key, source='pointer') {
         if (!this.sources.has(key)) return;
         this.sources.delete(key);
         if (this.sources.size === 0) {
           const now = performance.now();
           const startedAt = this.holdStart;
-          const info = {
-            source: source || this.primarySource || 'none',
-            duration: typeof startedAt === 'number' ? now - startedAt : null,
-            startedAt: typeof startedAt === 'number' ? startedAt : null,
-            releasedAt: now
-          };
-          this.holdStart = null;
-          this.primarySource = 'none';
-          this.lastReleaseInfo = info;
-          updateHoldButton(false);
-          updateStopButtonState();
-          Array.from(this.releaseListeners).forEach(listener => {
-            try {
-              listener(info);
-            } catch (error) {
-              console.error(error);
-            }
-          });
+          const info = { source: source || this.primarySource || 'none', duration: (typeof startedAt==='number'? now-startedAt:null), startedAt: (typeof startedAt==='number'? startedAt:null), releasedAt: now };
+          this.holdStart = null; this.primarySource = 'none'; this.lastReleaseInfo = info;
+          updateHoldButton(false); updateStopButtonState();
+          Array.from(this.releaseListeners).forEach(fn => { try { fn(info); } catch {} });
         }
       },
-      isActive() {
-        return this.sources.size > 0;
-      },
+      isActive() { return this.sources.size > 0; },
       reset() {
-        this.sources.clear();
-        this.holdStart = null;
-        this.primarySource = 'none';
-        this.holdStartListeners.clear();
-        this.releaseListeners.clear();
-        this.lastReleaseInfo = null;
-        updateHoldButton(false);
-        updateStopButtonState();
+        this.sources.clear(); this.holdStart=null; this.primarySource='none';
+        this.holdStartListeners.clear(); this.releaseListeners.clear();
+        this.lastReleaseInfo = null; updateHoldButton(false); updateStopButtonState();
       }
     };
 
-    updateHoldButton(false);
-    updateStopButtonState();
+    updateHoldButton(false); updateStopButtonState();
 
     const HOLD_KEY = 'keyboard-space';
-
     if (holdButton) {
-      holdButton.addEventListener('pointerdown', event => {
+      holdButton.addEventListener('pointerdown', e => {
         if (!sessionRunning) return;
-        event.preventDefault();
-        if (typeof holdButton.setPointerCapture === 'function') {
-          try {
-            holdButton.setPointerCapture(event.pointerId);
-          } catch (error) {
-            console.warn('Pointer capture rejected', error);
-          }
-        }
-        holdState.activate(`pointer-${event.pointerId}`, 'pointer');
+        e.preventDefault();
+        try { holdButton.setPointerCapture(e.pointerId); } catch {}
+        holdState.activate(`pointer-${e.pointerId}`, 'pointer');
       });
-
-      const releasePointer = event => {
-        if (typeof holdButton.releasePointerCapture === 'function') {
-          try {
-            holdButton.releasePointerCapture(event.pointerId);
-          } catch (error) {
-            // Ignored.
-          }
-        }
-        holdState.release(`pointer-${event.pointerId}`, 'pointer');
-      };
-
+      const releasePointer = e => { try { holdButton.releasePointerCapture(e.pointerId); } catch {} holdState.release(`pointer-${e.pointerId}`, 'pointer'); };
       holdButton.addEventListener('pointerup', releasePointer);
       holdButton.addEventListener('pointercancel', releasePointer);
       holdButton.addEventListener('lostpointercapture', releasePointer);
     }
-
-    document.addEventListener('keydown', event => {
+    document.addEventListener('keydown', e => {
       if (!sessionRunning) return;
-      if (event.code === 'Space' || event.key === ' ') {
-        if (event.repeat) return;
-        event.preventDefault();
-        holdState.activate(HOLD_KEY, 'keyboard');
-      }
+      if (e.code==='Space' || e.key===' ') { if (e.repeat) return; e.preventDefault(); holdState.activate(HOLD_KEY,'keyboard'); }
     });
+    document.addEventListener('keyup', e => { if (e.code==='Space'||e.key===' ') { e.preventDefault(); holdState.release(HOLD_KEY,'keyboard'); } });
 
-    document.addEventListener('keyup', event => {
-      if (event.code === 'Space' || event.key === ' ') {
-        event.preventDefault();
-        holdState.release(HOLD_KEY, 'keyboard');
-      }
-    });
+    function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+    function setStatus(msg, state='info') { if (!statusEl) return; statusEl.textContent = msg; statusEl.dataset.state = state; }
+    const degToRad = deg => (deg * Math.PI) / 180;
+    const wrapAngle = t => ((t % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+    function polarToCartesian(cx, cy, r, th) { return { x: cx + r*Math.cos(th), y: cy + r*Math.sin(th) }; }
 
-    function clamp(value, min, max) {
-      return Math.min(max, Math.max(min, value));
-    }
-
-    function setStatus(message, state = 'info') {
-      if (!statusEl) return;
-      statusEl.textContent = message;
-      statusEl.dataset.state = state;
-    }
-
-    function degToRad(deg) {
-      return (deg * Math.PI) / 180;
-    }
-
-    function wrapAngle(theta) {
-      const tau = Math.PI * 2;
-      return ((theta % tau) + tau) % tau;
-    }
-
-    function polarToCartesian(cx, cy, radius, theta) {
-      return {
-        x: cx + radius * Math.cos(theta),
-        y: cy + radius * Math.sin(theta)
-      };
-    }
-
-    // PAPER DISPLAY & TIMING
+    // Uniform in area within 3° disk
     function samplePointInDiskDeg(rMaxDeg = MAX_TARGET_ECCENTRICITY_DVA) {
       const u = Math.random();
       const r = Math.sqrt(u) * rMaxDeg;
-      const th = Math.random() * Math.PI * 2;
-      return {
-        xDeg: r * Math.cos(th),
-        yDeg: r * Math.sin(th),
-        rDeg: r,
-        thRad: th
-      };
-    }
-
-    function createRange(start, end, step) {
-      const output = [];
-      if (end < start) {
-        output.push(parseFloat(start.toFixed(3)));
-        return output;
-      }
-      for (let value = start; value <= end + 1e-6; value += step) {
-        output.push(parseFloat(value.toFixed(3)));
-      }
-      return output;
-    }
-
-    function seedQuestsFromData(dataArray) {
-      initAdaptiveQuest();
-      previousTrialCount = 0;
-      if (!Array.isArray(dataArray)) {
-        return;
-      }
-      dataArray.forEach(trial => {
-        if (!trial || trial.stage !== 'response') {
-          return;
-        }
-        const trialNumber = Number(trial.trial_number ?? trial.trialIndex ?? trial.trial_index);
-        if (Number.isFinite(trialNumber)) {
-          previousTrialCount = Math.max(previousTrialCount, trialNumber);
-        }
-      });
-    }
-
-    function downloadBlob(content, filename, type) {
-      const blob = new Blob([content], { type });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = filename;
-      anchor.rel = 'noopener';
-      document.body.appendChild(anchor);
-      anchor.click();
-      document.body.removeChild(anchor);
-      setTimeout(() => URL.revokeObjectURL(url), 0);
-    }
-
-    function finalizeSession(reason = 'complete') {
-      if (sessionFinalized) {
-        return;
-      }
-      sessionFinalized = true;
-      sessionRunning = false;
-      lastHoldStartTime = null;
-      holdState.reset();
-      updateStopButtonState();
-
-      if (holdButton) {
-        holdButton.hidden = true;
-      }
-      if (stopExperimentButton) {
-        stopExperimentButton.hidden = true;
-        stopExperimentButton.disabled = true;
-      }
-
-      jsPsych.setProgressBar(1);
-
-      const newValues = jsPsych.data.get().values();
-      const combined = uploadedDataArray.length ? [...uploadedDataArray, ...newValues] : [...newValues];
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      if (newValues.length) {
-        downloadBlob(JSON.stringify(combined, null, 2), `jnd-go-nogo-${timestamp}.json`, 'application/json');
-        downloadBlob(jsPsych.data.get().csv(), `jnd-go-nogo-${timestamp}.csv`, 'text/csv');
-      }
-
-      uploadedDataArray = combined;
-      seedQuestsFromData(uploadedDataArray);
-      progressBase = previousTrialCount;
-      progressTotal = previousTrialCount + TOTAL_TRIALS;
-      broadcastSessionUpdate();
-
-      if (startButton) {
-        startButton.textContent = uploadedDataArray.length ? 'Run another block' : 'Start experiment';
-      }
-
-      setStatus(
-        newValues.length
-          ? `${reason === 'stopped' ? 'Session stopped early.' : 'Session complete.'} Downloaded ${newValues.length} new trials.`
-          : `${reason === 'stopped' ? 'Session stopped.' : 'Session ended.'} No new trials were recorded.`,
-        'info'
-      );
-
-      if (preExperimentOverlay) {
-        preExperimentOverlay.classList.remove('hidden');
-      }
-      jsPsych.getDisplayElement().innerHTML = '';
-    }
-
-    // PAPER DISPLAY & TIMING
-    function stageHTML(content = '', { showFixation = false } = {}) {
-      const fixation = showFixation
-        ? `<div class="fixation-dot" style="width:${FIXATION_DIAMETER_PX}px;height:${FIXATION_DIAMETER_PX}px;"></div>`
-        : '';
-      return `<div class="stage">${fixation}${content}</div>`;
-    }
-
-    function dotHTML(x, y, diameter = DOT_DIAMETER) {
-      return `<div class="dot" style="left:${x}px;top:${y}px;width:${diameter}px;height:${diameter}px;"></div>`;
+      const th = Math.random() * 2 * Math.PI;
+      return { xDeg: r * Math.cos(th), yDeg: r * Math.sin(th), rDeg: r, thRad: th };
     }
 
     let trialState = {};
@@ -962,244 +506,156 @@
           : '';
         let dotInfo = '';
         let eccInfo = '';
-        if (Number.isFinite(dotDiameterDva)) {
-          dotInfo = ` (~${dotDiameterDva.toFixed(2)}° visual angle)`;
-        }
+        if (Number.isFinite(dotDiameterDva)) dotInfo = ` (~${dotDiameterDva.toFixed(2)}° visual angle)`;
         if (Number.isFinite(minRadiusDva) && Number.isFinite(maxRadiusDva)) {
           eccInfo = `Your calibrated eccentricities span roughly ${minRadiusDva.toFixed(2)}°–${maxRadiusDva.toFixed(2)}° from fixation.`;
         }
         const eccInfoText = eccInfo ? `${eccInfo} ` : '';
         return `
           <h1 style="margin-top:0">Just Noticeable Difference (Go/No-Go)</h1>
-          <p>
-            A white dot will flash twice while you maintain fixation on the central black spot. The first (odd-index)
-            flash always marks the reference position. After a random blank interval (100–1500&nbsp;ms) the dot reappears
-            in the same white color for the even-index comparison.
+          <p>A white dot will flash twice while you maintain fixation on the central black spot.
+             After a random blank interval (100–1500&nbsp;ms) the dot reappears for comparison.
           </p>
-          <p>
-            On most trials the dot is identical (<strong>no-go</strong>). About one third of the time the
-            dot shifts slightly in angle or distance from the centre (<strong>go</strong> trials). Each flash lasts
-            about ${FIRST_STIM_DURATION}&nbsp;ms and shares the same ${DOT_DIAMETER}&nbsp;px diameter${dotInfo}.
-            Targets are sampled uniformly within a ${MAX_TARGET_ECCENTRICITY_DVA.toFixed(1)}° radius when calibrated.
+          <p>On most trials the dot is identical (<strong>no-go</strong>). About one third of the time
+             it shifts slightly in angle or radius (<strong>go</strong> trials). Each flash lasts
+             about ${FIRST_STIM_DURATION}&nbsp;ms and shares the same ${DOT_DIAMETER}&nbsp;px diameter${dotInfo}.
+             Targets are sampled uniformly within a ${MAX_TARGET_ECCENTRICITY_DVA.toFixed(1)}° radius when calibrated.
           </p>
           <ul>
-            <li>Hold the glowing control button in the lower-right corner (or hold the spacebar) to initiate and continue trials.</li>
-            <li>Release the button or the spacebar as soon as you detect that the comparison dot differs from the reference.</li>
-            <li>If the dots look identical, keep holding the control so the next trial starts immediately.</li>
+            <li>Hold the glowing control button (or spacebar) to run trials.</li>
+            <li>Release as soon as the comparison differs from the reference.</li>
+            <li>If identical, keep holding to start the next trial immediately.</li>
           </ul>
-          <p>
-            The stimulus differences adapt during the experiment to maintain roughly 70% accuracy on go trials using the jsQuestPlus staircase.
-          </p>
-          <p>
-            ${eccInfoText}Keep the screen at the calibrated distance from your eyes for the full session—if your posture changes, pause and recalibrate before resuming.
-            Keep your finger near the screen or the spacebar.
-            When you release the control, you can use the large stop button in the upper-left corner to finish the session and download your data.
-          </p>
+          <p>${eccInfoText}Keep the screen at the calibrated distance; if posture changes, recalibrate before resuming.</p>
           ${continuation}
         `;
       },
       choices: ['Begin']
     };
 
-    function createTrial(index, offset = 0) {
+    function createTrial(index, offset=0) {
       let holdGateListener = null;
       const waitForHold = {
-        type: jsPsychCallFunction,
-        async: true,
-        data: { stage: 'hold_gate', trial_index: offset + index + 1 },
+        type: jsPsychCallFunction, async: true, data: { stage: 'hold_gate', trial_index: offset + index + 1 },
         func: callback => {
           const resolve = startedAt => {
-            if (holdGateListener) {
-              holdState.holdStartListeners.delete(holdGateListener);
-              holdGateListener = null;
-            }
+            if (holdGateListener) { holdState.holdStartListeners.delete(holdGateListener); holdGateListener = null; }
             lastHoldStartTime = typeof startedAt === 'number' ? startedAt : performance.now();
             callback({ startedAt: lastHoldStartTime });
           };
-
-          if (holdState.isActive()) {
-            resolve(holdState.holdStart);
-            return;
-          }
-
-          const display = jsPsych.getDisplayElement();
-          if (display) {
-            display.innerHTML = stageHTML(
-              '<div class="response-text">Hold the control button or spacebar to begin the next trial.</div>'
-            );
-          }
-
-          holdGateListener = info => {
-            const startedAt = typeof info?.startedAt === 'number' ? info.startedAt : holdState.holdStart;
-            resolve(startedAt);
-          };
+          if (holdState.isActive()) { resolve(holdState.holdStart); return; }
+          const d = jsPsych.getDisplayElement(); if (d) d.innerHTML = stageHTML('<div class="response-text">Hold the control button or spacebar to begin the next trial.</div>');
+          holdGateListener = info => resolve(typeof info?.startedAt === 'number' ? info.startedAt : holdState.holdStart);
           holdState.holdStartListeners.add(holdGateListener);
         },
         on_finish: data => {
-          if (holdGateListener) {
-            holdState.holdStartListeners.delete(holdGateListener);
-            holdGateListener = null;
-          }
+          if (holdGateListener) { holdState.holdStartListeners.delete(holdGateListener); holdGateListener = null; }
           const info = data.value || {};
-          if (typeof info.startedAt === 'number') {
-            lastHoldStartTime = info.startedAt;
-          } else if (typeof holdState.holdStart === 'number') {
-            lastHoldStartTime = holdState.holdStart;
-          } else {
-            lastHoldStartTime = performance.now();
-          }
+          if (typeof info.startedAt === 'number') lastHoldStartTime = info.startedAt;
+          else if (typeof holdState.holdStart === 'number') lastHoldStartTime = holdState.holdStart;
+          else lastHoldStartTime = performance.now();
         }
       };
+
       const setup = {
         type: jsPsychCallFunction,
         func: () => {
           const total = Math.max(progressTotal, 1);
           jsPsych.setProgressBar((progressBase + index) / total);
+
           const reference = getVisualReference();
-          const holdStartedAt = typeof lastHoldStartTime === 'number' ? lastHoldStartTime : holdState.holdStart ?? null;
-          const ctrl = typeof NoGoCtrl !== 'undefined' ? NoGoCtrl : null;
+          const ctrl = (typeof NoGoCtrl !== 'undefined') ? NoGoCtrl : null;
           const isNoGo = ctrl && typeof ctrl.decideNoGo === 'function' ? ctrl.decideNoGo() : false;
 
           trialState = {
             index: offset + index + 1,
-            isNoGo,
-            isGo: !isNoGo,
+            isNoGo, isGo: !isNoGo,
             isi: jsPsych.randomization.randomInt(100, 1500),
             changeType: 'none',
-            questStimValue: null,
-            questContext: null,
-            deltaTheta: 0,
-            deltaRadius: 0,
-            deltaDiameter: 0,
-            holdStartedAt,
+            questStimValue: null, questContext: null,
+            deltaTheta: 0, deltaRadius: 0, deltaDiameter: 0,
+            holdStartedAt: lastHoldStartTime,
             visualReference: reference || null,
             mmPerPixel: reference?.mmPerPixel ?? null,
             viewingDistanceMm: reference?.viewingDistanceMm ?? null,
-            baseRadiusDva: null,
-            secondRadiusDva: null,
-            baseDiameterDva: null,
-            secondDiameterDva: null,
-            deltaRadiusDva: null,
-            deltaDiameterDva: null,
-            dotColor: null,
-            maxRadiusPx: null,
-            maxRadiusDva: null
+            baseRadiusDva: null, secondRadiusDva: null,
+            baseDiameterDva: null, secondDiameterDva: null,
+            deltaRadiusDva: null, deltaDiameterDva: null,
+            dotColor: null, maxRadiusPx: null, maxRadiusDva: null
           };
-          lastHoldStartTime = holdStartedAt;
 
+          // Sample S1 in 3° disk (uniform area)
           const sampled = samplePointInDiskDeg(MAX_TARGET_ECCENTRICITY_DVA);
           let baseTheta = sampled.thRad;
           let baseRadius = 0;
           let radiusLimit = maxRadius;
           const referenceReady = Boolean(reference && typeof VisualAngle !== 'undefined');
-
           if (referenceReady) {
             try {
               const pxLimit = VisualAngle.dvaToPixels(MAX_TARGET_ECCENTRICITY_DVA, reference);
-              if (Number.isFinite(pxLimit) && pxLimit > 0) {
-                radiusLimit = pxLimit;
-              }
+              if (Number.isFinite(pxLimit) && pxLimit > 0) radiusLimit = pxLimit;
               const pxRadius = VisualAngle.dvaToPixels(sampled.rDeg, reference);
-              if (Number.isFinite(pxRadius)) {
-                baseRadius = pxRadius;
-              }
-            } catch (error) {
-              console.warn('Falling back to pixel-based sampling for stimulus location.', error);
-            }
+              if (Number.isFinite(pxRadius)) baseRadius = pxRadius;
+            } catch (e) { console.warn('Fallback to px-based sampling', e); }
           }
-
-          if (!Number.isFinite(radiusLimit) || radiusLimit <= 0) {
-            radiusLimit = Math.max(120, maxRadius);
-          }
-
+          if (!Number.isFinite(radiusLimit) || radiusLimit <= 0) radiusLimit = Math.max(120, maxRadius);
           if (!Number.isFinite(baseRadius)) {
             const scale = MAX_TARGET_ECCENTRICITY_DVA > 0 ? sampled.rDeg / MAX_TARGET_ECCENTRICITY_DVA : 0;
             baseRadius = scale * radiusLimit;
           }
-
           baseRadius = clamp(baseRadius, 0, radiusLimit);
           trialState.maxRadiusPx = radiusLimit;
+
           const baseDiameter = DOT_DIAMETER;
-          let secondTheta = baseTheta;
-          let secondRadius = baseRadius;
-          let secondDiameter = DOT_DIAMETER;
+          let secondTheta = baseTheta, secondRadius = baseRadius, secondDiameter = DOT_DIAMETER;
 
           if (trialState.isGo) {
-            const changeOptions = ['theta', 'radius'];
-            const selected = jsPsych.randomization.sampleWithoutReplacement(changeOptions, 1)[0];
+            const selected = jsPsych.randomization.sampleWithoutReplacement(['theta', 'radius'], 1)[0];
             trialState.changeType = selected;
 
-            const eccDva =
-              reference && typeof VisualAngle !== 'undefined'
-                ? VisualAngle.pixelsToDVA(baseRadius, reference)
-                : null;
-            const ctx = {
-              changeType: selected,
-              soaMs: trialState.isi,
-              eccPx: baseRadius,
-              eccDva,
-              thetaRad: baseTheta
-            };
+            const eccDva = reference && typeof VisualAngle !== 'undefined'
+              ? VisualAngle.pixelsToDVA(baseRadius, reference) : null;
+
+            const ctx = { changeType: selected, soaMs: trialState.isi, eccPx: baseRadius, eccDva, thetaRad: baseTheta };
             const stim = suggestDeltaForContext(ctx);
             trialState.questStimValue = stim;
             trialState.questContext = ctx;
 
             if (selected === 'theta') {
               trialState.deltaTheta = stim;
-              const direction = jsPsych.randomization.sampleWithoutReplacement([-1, 1], 1)[0];
-              secondTheta = wrapAngle(baseTheta + direction * degToRad(stim));
+              const dir = jsPsych.randomization.sampleWithoutReplacement([-1, 1], 1)[0];
+              secondTheta = wrapAngle(baseTheta + dir * degToRad(stim));
             } else {
               trialState.deltaRadius = stim;
-              const direction = jsPsych.randomization.sampleWithoutReplacement([-1, 1], 1)[0];
-              secondRadius = baseRadius + direction * stim;
-              if (secondRadius < 0) secondRadius = 0;
-              if (secondRadius > radiusLimit) secondRadius = radiusLimit;
+              const dir = jsPsych.randomization.sampleWithoutReplacement([-1, 1], 1)[0];
+              secondRadius = clamp(baseRadius + dir * stim, 0, radiusLimit);
             }
           }
 
           const firstCoords = polarToCartesian(stageCenter, stageCenter, baseRadius, baseTheta);
           const secondCoords = polarToCartesian(stageCenter, stageCenter, secondRadius, secondTheta);
 
-          trialState.baseTheta = baseTheta;
-          trialState.baseRadius = baseRadius;
-          trialState.baseDiameter = baseDiameter;
-          trialState.secondTheta = secondTheta;
-          trialState.secondRadius = secondRadius;
-          trialState.secondDiameter = secondDiameter;
-          trialState.firstX = firstCoords.x;
-          trialState.firstY = firstCoords.y;
-          trialState.secondX = secondCoords.x;
-          trialState.secondY = secondCoords.y;
+          Object.assign(trialState, {
+            baseTheta, baseRadius, baseDiameter,
+            secondTheta, secondRadius, secondDiameter,
+            firstX: firstCoords.x, firstY: firstCoords.y,
+            secondX: secondCoords.x, secondY: secondCoords.y
+          });
 
           if (reference && typeof VisualAngle !== 'undefined') {
             try {
-              trialState.baseRadiusDva = VisualAngle.pixelsToDVA(baseRadius, reference);
+              trialState.baseRadiusDva   = VisualAngle.pixelsToDVA(baseRadius, reference);
               trialState.secondRadiusDva = VisualAngle.pixelsToDVA(secondRadius, reference);
               trialState.baseDiameterDva = VisualAngle.pixelsToDVA(baseDiameter, reference);
               trialState.secondDiameterDva = VisualAngle.pixelsToDVA(secondDiameter, reference);
-              trialState.deltaRadiusDva = VisualAngle.pixelsToDVA(Math.abs(trialState.deltaRadius), reference);
-              trialState.deltaDiameterDva = VisualAngle.pixelsToDVA(Math.abs(trialState.deltaDiameter), reference);
-              trialState.maxRadiusDva = VisualAngle.pixelsToDVA(trialState.maxRadiusPx, reference);
-            } catch (error) {
-              console.warn('Could not derive DVA for trial', error);
-              trialState.baseRadiusDva = null;
-              trialState.secondRadiusDva = null;
-              trialState.baseDiameterDva = null;
-              trialState.secondDiameterDva = null;
-              trialState.deltaRadiusDva = null;
-              trialState.deltaDiameterDva = null;
-              trialState.maxRadiusDva = null;
+              trialState.deltaRadiusDva  = VisualAngle.pixelsToDVA(Math.abs(trialState.deltaRadius), reference);
+              trialState.deltaDiameterDva= VisualAngle.pixelsToDVA(Math.abs(trialState.deltaDiameter), reference);
+              trialState.maxRadiusDva    = VisualAngle.pixelsToDVA(trialState.maxRadiusPx, reference);
+            } catch (e) {
+              trialState.baseRadiusDva = trialState.secondRadiusDva = trialState.baseDiameterDva = trialState.secondDiameterDva = null;
+              trialState.deltaRadiusDva = trialState.deltaDiameterDva = trialState.maxRadiusDva = null;
             }
-          } else {
-            trialState.baseRadiusDva = null;
-            trialState.secondRadiusDva = null;
-            trialState.baseDiameterDva = null;
-            trialState.secondDiameterDva = null;
-            trialState.deltaRadiusDva = null;
-            trialState.deltaDiameterDva = null;
-            trialState.maxRadiusDva = null;
           }
-
           if (trialState.questContext) {
             trialState.questContext.eccDva = trialState.baseRadiusDva;
             trialState.questContext.mmPerPixel = calibrationState.ready ? calibrationState.mmPerPixel : null;
@@ -1207,267 +663,125 @@
         }
       };
 
-      const fixation = {
-        type: jsPsychHtmlKeyboardResponse,
-        stimulus: () => stageHTML('', { showFixation: true }),
-        choices: 'NO_KEYS',
-        trial_duration: () => jsPsych.randomization.randomInt(500, 1000),
-        data: { stage: 'fixation' }
-      };
-
-      const firstStim = {
-        type: jsPsychHtmlKeyboardResponse,
-        stimulus: () =>
-          stageHTML(dotHTML(trialState.firstX, trialState.firstY, trialState.baseDiameter), {
-            showFixation: true
-          }),
-        choices: 'NO_KEYS',
-        trial_duration: FIRST_STIM_DURATION,
-        data: { stage: 'stimulus_1', trial_index: trialState.index }
-      };
-
-      const isi = {
-        type: jsPsychHtmlKeyboardResponse,
-        stimulus: () => stageHTML('', { showFixation: true }),
-        choices: 'NO_KEYS',
-        trial_duration: () => trialState.isi,
-        data: { stage: 'isi' }
-      };
+      const fixation = { type: jsPsychHtmlKeyboardResponse, stimulus: () => stageHTML('', { showFixation: true }), choices: 'NO_KEYS', trial_duration: () => jsPsych.randomization.randomInt(500, 1000), data: { stage: 'fixation' } };
+      const firstStim = { type: jsPsychHtmlKeyboardResponse, stimulus: () => stageHTML(dotHTML(trialState.firstX, trialState.firstY, trialState.baseDiameter), { showFixation: true }), choices: 'NO_KEYS', trial_duration: FIRST_STIM_DURATION, data: { stage: 'stimulus_1', trial_index: trialState.index } };
+      const isi = { type: jsPsychHtmlKeyboardResponse, stimulus: () => stageHTML('', { showFixation: true }), choices: 'NO_KEYS', trial_duration: () => trialState.isi, data: { stage: 'isi' } };
 
       const secondStim = {
         type: jsPsychHtmlKeyboardResponse,
-        stimulus: () =>
-          stageHTML(dotHTML(trialState.secondX, trialState.secondY, trialState.secondDiameter), {
-            showFixation: false
-          }),
-        choices: 'NO_KEYS',
-        trial_duration: SECOND_STIM_DURATION,
-        on_load: () => {
-          trialState.secondStimOnset = performance.now();
-        },
+        stimulus: () => stageHTML(dotHTML(trialState.secondX, trialState.secondY, trialState.secondDiameter), { showFixation: false }),
+        choices: 'NO_KEYS', trial_duration: SECOND_STIM_DURATION,
+        on_load: () => { trialState.secondStimOnset = performance.now(); },
         data: { stage: 'stimulus_2', trial_index: trialState.index }
       };
 
       const response = {
-        type: jsPsychCallFunction,
-        async: true,
-        data: { stage: 'response' },
+        type: jsPsychCallFunction, async: true, data: { stage: 'response' },
         func: callback => {
-          const display = jsPsych.getDisplayElement();
-          if (display) {
-            display.innerHTML = stageHTML();
-          }
+          const d = jsPsych.getDisplayElement(); if (d) d.innerHTML = stageHTML();
           const responseStart = performance.now();
-          let finished = false;
-          let timerId = null;
-          let reappearTimer = null;
-          let fixationRestored = false;
-
-          const baselineOnset =
-            typeof trialState.secondStimOnset === 'number' ? trialState.secondStimOnset : responseStart;
+          let finished = false, timerId = null, reappearTimer = null, fixationRestored = false;
+          const baselineOnset = (typeof trialState.secondStimOnset === 'number' ? trialState.secondStimOnset : responseStart);
 
           const scheduleFixationReturn = delay => {
             if (delay <= 0) {
-              if (!fixationRestored) {
-                const el = jsPsych.getDisplayElement();
-                if (el) {
-                  el.innerHTML = stageHTML('', { showFixation: true });
-                }
-                fixationRestored = true;
-              }
+              if (!fixationRestored) { const el = jsPsych.getDisplayElement(); if (el) el.innerHTML = stageHTML('', { showFixation: true }); fixationRestored = true; }
               return null;
             }
             return window.setTimeout(() => {
-              if (!fixationRestored) {
-                const el = jsPsych.getDisplayElement();
-                if (el) {
-                  el.innerHTML = stageHTML('', { showFixation: true });
-                }
-                fixationRestored = true;
-              }
+              if (!fixationRestored) { const el = jsPsych.getDisplayElement(); if (el) el.innerHTML = stageHTML('', { showFixation: true }); fixationRestored = true; }
               reappearTimer = null;
             }, delay);
           };
-
-          reappearTimer = scheduleFixationReturn(
-            Math.max(0, 500 - (performance.now() - baselineOnset))
-          );
+          reappearTimer = scheduleFixationReturn(Math.max(0, 500 - (performance.now() - baselineOnset)));
 
           const finish = result => {
-            if (finished) return;
-            finished = true;
-            if (result) {
-              holdState.lastReleaseInfo = null;
-            }
-            if (timerId !== null) {
-              window.clearTimeout(timerId);
-              timerId = null;
-            }
+            if (finished) return; finished = true;
+            if (result) holdState.lastReleaseInfo = null;
+            if (timerId !== null) window.clearTimeout(timerId);
             const remaining = Math.max(0, 500 - (performance.now() - baselineOnset));
-            if (reappearTimer !== null) {
-              window.clearTimeout(reappearTimer);
-              reappearTimer = scheduleFixationReturn(remaining);
-            } else if (!fixationRestored) {
-              reappearTimer = scheduleFixationReturn(remaining);
-            }
-            if (trialState.releaseListener) {
-              holdState.releaseListeners.delete(trialState.releaseListener);
-              trialState.releaseListener = null;
-            }
+            if (reappearTimer !== null) { window.clearTimeout(reappearTimer); reappearTimer = scheduleFixationReturn(remaining); }
+            else if (!fixationRestored) { reappearTimer = scheduleFixationReturn(remaining); }
+            if (trialState.releaseListener) { holdState.releaseListeners.delete(trialState.releaseListener); trialState.releaseListener = null; }
             callback(result);
           };
 
           const handleRelease = info => {
-            const holdStartedAt =
-              typeof info?.startedAt === 'number'
-                ? info.startedAt
-                : typeof trialState.holdStartedAt === 'number'
-                ? trialState.holdStartedAt
-                : typeof holdState.holdStart === 'number'
-                ? holdState.holdStart
-                : lastHoldStartTime;
-            const holdReleasedAt = typeof info?.releasedAt === 'number' ? info.releasedAt : performance.now();
-            const holdDuration =
-              typeof info?.duration === 'number'
-                ? info.duration
-                : holdStartedAt != null && holdReleasedAt != null
-                ? holdReleasedAt - holdStartedAt
-                : null;
-            finish({
-              responded: true,
-              response_source: info?.source || holdState.primarySource || 'none',
-              rt: performance.now() - responseStart,
-              hold_started_at: holdStartedAt ?? null,
-              hold_released_at: holdReleasedAt ?? null,
-              hold_duration: holdDuration ?? null
-            });
+            const hs = (typeof info?.startedAt === 'number' ? info.startedAt :
+                       typeof trialState.holdStartedAt === 'number' ? trialState.holdStartedAt :
+                       typeof holdState.holdStart === 'number' ? holdState.holdStart : lastHoldStartTime);
+            const hr = typeof info?.releasedAt === 'number' ? info.releasedAt : performance.now();
+            const dur = typeof info?.duration === 'number' ? info.duration :
+                        (hs != null && hr != null ? hr - hs : null);
+            finish({ responded: true, response_source: info?.source || holdState.primarySource || 'none', rt: performance.now() - responseStart, hold_started_at: hs ?? null, hold_released_at: hr ?? null, hold_duration: dur ?? null });
           };
 
           trialState.releaseListener = handleRelease;
           holdState.releaseListeners.add(handleRelease);
 
-          const cachedRelease = holdState.lastReleaseInfo;
-          if (
-            cachedRelease &&
-            typeof cachedRelease.releasedAt === 'number' &&
-            typeof trialState.secondStimOnset === 'number' &&
-            cachedRelease.releasedAt >= trialState.secondStimOnset
-          ) {
-            handleRelease(cachedRelease);
+          const cached = holdState.lastReleaseInfo;
+          if (cached && typeof cached.releasedAt === 'number' && typeof trialState.secondStimOnset === 'number' && cached.releasedAt >= trialState.secondStimOnset) {
+            handleRelease(cached);
           }
 
-          if (finished) {
-            return;
-          }
-
+          if (finished) return;
           timerId = window.setTimeout(() => {
-            const holdStartedAt =
-              typeof trialState.holdStartedAt === 'number'
-                ? trialState.holdStartedAt
-                : typeof holdState.holdStart === 'number'
-                ? holdState.holdStart
-                : lastHoldStartTime;
-            const holdDuration =
-              holdStartedAt != null ? performance.now() - holdStartedAt : null;
-            finish({
-              responded: false,
-              response_source: 'none',
-              rt: null,
-              hold_started_at: holdStartedAt ?? null,
-              hold_released_at: null,
-              hold_duration: holdDuration
-            });
+            const hs = typeof trialState.holdStartedAt === 'number' ? trialState.holdStartedAt : (typeof holdState.holdStart === 'number' ? holdState.holdStart : lastHoldStartTime);
+            const dur = (hs != null ? performance.now() - hs : null);
+            finish({ responded: false, response_source: 'none', rt: null, hold_started_at: hs ?? null, hold_released_at: null, hold_duration: dur });
           }, RESPONSE_WINDOW);
         },
         on_finish: data => {
-          if (trialState.releaseListener) {
-            holdState.releaseListeners.delete(trialState.releaseListener);
-            trialState.releaseListener = null;
-          }
+          if (trialState.releaseListener) { holdState.releaseListeners.delete(trialState.releaseListener); trialState.releaseListener = null; }
           const result = data.value || {};
           const responded = result.responded === true;
           const rt = typeof result.rt === 'number' ? result.rt : null;
-          const holdStartedAt =
-            typeof result.hold_started_at === 'number'
-              ? result.hold_started_at
-              : typeof trialState.holdStartedAt === 'number'
-              ? trialState.holdStartedAt
-              : lastHoldStartTime;
-          const holdReleasedAt =
-            typeof result.hold_released_at === 'number'
-              ? result.hold_released_at
-              : responded && typeof holdStartedAt === 'number'
-              ? holdStartedAt + (typeof result.hold_duration === 'number' ? result.hold_duration : rt ?? 0)
-              : null;
-          const holdDuration =
-            typeof result.hold_duration === 'number'
-              ? result.hold_duration
-              : holdReleasedAt != null && holdStartedAt != null
-              ? holdReleasedAt - holdStartedAt
-              : null;
-          const source = responded ? result.response_source || holdState.primarySource || 'none' : 'none';
+          const hs = typeof result.hold_started_at === 'number' ? result.hold_started_at :
+                     typeof trialState.holdStartedAt === 'number' ? trialState.holdStartedAt : lastHoldStartTime;
+          const hr = typeof result.hold_released_at === 'number' ? result.hold_released_at :
+                     (responded && typeof hs === 'number' ? hs + (typeof result.hold_duration === 'number' ? result.hold_duration : rt ?? 0) : null);
+          const dur = typeof result.hold_duration === 'number' ? result.hold_duration :
+                      (hr != null && hs != null ? hr - hs : null);
+          const source = responded ? (result.response_source || holdState.primarySource || 'none') : 'none';
 
-          const ctrl = typeof NoGoCtrl !== 'undefined' ? NoGoCtrl : null;
-          if (ctrl && typeof ctrl.onTrialEnd === 'function') {
-            ctrl.onTrialEnd({ isNoGo: trialState.isNoGo === true, responded });
-          }
+          const ctrl = (typeof NoGoCtrl !== 'undefined') ? NoGoCtrl : null;
+          if (ctrl && typeof ctrl.onTrialEnd === 'function') ctrl.onTrialEnd({ isNoGo: trialState.isNoGo === true, responded });
 
-          data.rt = rt;
-          data.response_source = source;
-          data.is_go = trialState.isGo;
-          data.is_no_go = trialState.isNoGo;
-          data.change_type = trialState.changeType;
-          data.delta_theta = trialState.deltaTheta;
-          data.delta_radius = trialState.deltaRadius;
-          data.delta_diameter = trialState.deltaDiameter;
-          data.delta_radius_dva = trialState.deltaRadiusDva;
-          data.delta_diameter_dva = trialState.deltaDiameterDva;
-          data.first_theta = trialState.baseTheta;
-          data.first_radius = trialState.baseRadius;
-          data.first_diameter = trialState.baseDiameter;
-          data.first_radius_dva = trialState.baseRadiusDva;
-          data.first_diameter_dva = trialState.baseDiameterDva;
-          data.second_theta = trialState.secondTheta;
-          data.second_radius = trialState.secondRadius;
-          data.second_diameter = trialState.secondDiameter;
-          data.second_radius_dva = trialState.secondRadiusDva;
-          data.second_diameter_dva = trialState.secondDiameterDva;
-          data.second_onset = typeof trialState.secondStimOnset === 'number' ? trialState.secondStimOnset : null;
-          data.dot_color = trialState.dotColor?.fill ?? null;
-          data.first_stim_duration = FIRST_STIM_DURATION;
-          data.second_stim_duration = SECOND_STIM_DURATION;
-          data.fixation_reappear_delay = 500;
-          data.fixation_diameter_px = FIXATION_DIAMETER_PX;
-          data.fixation_diameter_dva = FIXATION_DIAMETER_DVA;
-          data.target_diameter_px = DOT_DIAMETER;
-          data.target_diameter_dva = TARGET_DIAMETER_DVA;
-          data.max_radius_px = trialState.maxRadiusPx;
-          data.max_radius_dva = trialState.maxRadiusDva;
-          data.max_target_eccentricity_dva = MAX_TARGET_ECCENTRICITY_DVA;
-          data.interstimulus = trialState.isi;
-          data.trial_number = trialState.index;
-          data.go_success = trialState.isGo ? responded : null;
-          data.correct = trialState.isGo ? responded : !responded;
-          data.quest_value = trialState.questStimValue;
-          data.calibration_mm_per_pixel = trialState.mmPerPixel ?? (calibrationState.ready ? calibrationState.mmPerPixel : null);
-          data.calibration_viewing_distance_mm =
-            trialState.viewingDistanceMm ?? (calibrationState.ready ? calibrationState.viewingDistanceMm : null);
-          data.calibration_dva_per_pixel = calibrationState.ready ? calibrationState.dvaPerPixel : null;
-          data.calibration_object_id = calibrationState.ready ? calibrationState.objectId : null;
-          data.hold_started_at = typeof holdStartedAt === 'number' ? holdStartedAt : null;
-          data.hold_released_at = typeof holdReleasedAt === 'number' ? holdReleasedAt : null;
-          data.hold_duration = typeof holdDuration === 'number' ? holdDuration : null;
-          data.responded = responded;
+          Object.assign(data, {
+            rt, response_source: source,
+            is_go: trialState.isGo, is_no_go: trialState.isNoGo,
+            change_type: trialState.changeType,
+            delta_theta: trialState.deltaTheta, delta_radius: trialState.deltaRadius, delta_diameter: trialState.deltaDiameter,
+            delta_radius_dva: trialState.deltaRadiusDva, delta_diameter_dva: trialState.deltaDiameterDva,
+            first_theta: trialState.baseTheta, first_radius: trialState.baseRadius, first_diameter: trialState.baseDiameter,
+            first_radius_dva: trialState.baseRadiusDva, first_diameter_dva: trialState.baseDiameterDva,
+            second_theta: trialState.secondTheta, second_radius: trialState.secondRadius, second_diameter: trialState.secondDiameter,
+            second_radius_dva: trialState.secondRadiusDva, second_diameter_dva: trialState.secondDiameterDva,
+            second_onset: typeof trialState.secondStimOnset === 'number' ? trialState.secondStimOnset : null,
+            dot_color: trialState.dotColor?.fill ?? null,
+            first_stim_duration: FIRST_STIM_DURATION, second_stim_duration: SECOND_STIM_DURATION,
+            fixation_reappear_delay: 500,
+            fixation_diameter_px: FIXATION_DIAMETER_PX, fixation_diameter_dva: FIXATION_DIAMETER_DVA,
+            target_diameter_px: DOT_DIAMETER, target_diameter_dva: TARGET_DIAMETER_DVA,
+            max_radius_px: trialState.maxRadiusPx, max_radius_dva: trialState.maxRadiusDva,
+            max_target_eccentricity_dva: MAX_TARGET_ECCENTRICITY_DVA,
+            interstimulus: trialState.isi, trial_number: trialState.index,
+            go_success: trialState.isGo ? responded : null,
+            correct: trialState.isGo ? responded : !responded,
+            quest_value: trialState.questStimValue,
+            calibration_mm_per_pixel: trialState.mmPerPixel ?? (calibrationState.ready ? calibrationState.mmPerPixel : null),
+            calibration_viewing_distance_mm: trialState.viewingDistanceMm ?? (calibrationState.ready ? calibrationState.viewingDistanceMm : null),
+            calibration_dva_per_pixel: calibrationState.ready ? calibrationState.dvaPerPixel : null,
+            calibration_object_id: calibrationState.ready ? calibrationState.objectId : null,
+            hold_started_at: typeof hs === 'number' ? hs : null, hold_released_at: typeof hr === 'number' ? hr : null, hold_duration: typeof dur === 'number' ? dur : null,
+            responded
+          });
 
           trialState.holdStartedAt = data.hold_started_at;
 
           if (trialState.isGo && typeof trialState.questStimValue === 'number' && trialState.questContext) {
             const responseIndex = responded ? 1 : 0;
-            try {
-              updateQuestWithOutcome(trialState.questContext, trialState.questStimValue, responseIndex);
-            } catch (error) {
-              console.warn('AdaptiveQuest update skipped', error);
-            }
+            try { updateQuestWithOutcome(trialState.questContext, trialState.questStimValue, responseIndex); } catch {}
           }
         }
       };
@@ -1475,42 +789,49 @@
       return [waitForHold, setup, fixation, firstStim, isi, secondStim, response];
     }
 
-    const sessionComplete = {
-      type: jsPsychCallFunction,
-      data: { stage: 'session_complete' },
-      func: () => {
-        finalizeSession('complete');
-        return { stage: 'session_complete' };
-      }
-    };
+    const sessionComplete = { type: jsPsychCallFunction, data: { stage: 'session_complete' }, func: () => { finalizeSession('complete'); return { stage: 'session_complete' }; } };
 
-    function buildTimeline(offset = 0) {
+    function buildTimeline(offset=0) {
       const timeline = [instructions];
-      for (let i = 0; i < TOTAL_TRIALS; i++) {
-        timeline.push(...createTrial(i, offset));
-      }
+      for (let i=0;i<TOTAL_TRIALS;i++) timeline.push(...createTrial(i, offset));
       timeline.push(sessionComplete);
       return timeline;
+    }
+
+    function finalizeSession(reason='complete') {
+      if (sessionFinalized) return;
+      sessionFinalized = true; sessionRunning = false; lastHoldStartTime = null; holdState.reset(); updateStopButtonState();
+      if (holdButton) { holdButton.hidden = true; }
+      if (stopExperimentButton) { stopExperimentButton.hidden = true; stopExperimentButton.disabled = true; }
+      jsPsych.setProgressBar(1);
+
+      const newValues = jsPsych.data.get().values();
+      const combined = uploadedDataArray.length ? [...uploadedDataArray, ...newValues] : [...newValues];
+      const ts = new Date().toISOString().replace(/[:.]/g,'-');
+      if (newValues.length) {
+        const blob = (content, name, type) => { const b=new Blob([content],{type}); const url=URL.createObjectURL(b); const a=document.createElement('a'); a.href=url; a.download=name; a.rel='noopener'; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url),0); };
+        blob(JSON.stringify(combined,null,2), `jnd-go-nogo-${ts}.json`, 'application/json');
+        blob(jsPsych.data.get().csv(), `jnd-go-nogo-${ts}.csv`, 'text/csv');
+      }
+      uploadedDataArray = combined;
+      seedQuestsFromData(uploadedDataArray);
+      progressBase = previousTrialCount; progressTotal = previousTrialCount + TOTAL_TRIALS;
+      broadcastSessionUpdate();
+      if (startButton) startButton.textContent = uploadedDataArray.length ? 'Run another block' : 'Start experiment';
+      setStatus(newValues.length ? `${reason === 'stopped' ? 'Session stopped early.' : 'Session complete.'} Downloaded ${newValues.length} new trials.` : `${reason === 'stopped' ? 'Session stopped.' : 'Session ended.'} No new trials were recorded.`, 'info');
+      if (preExperimentOverlay) preExperimentOverlay.classList.remove('hidden');
+      jsPsych.getDisplayElement().innerHTML = '';
     }
 
     function startExperiment() {
       progressBase = previousTrialCount;
       progressTotal = previousTrialCount + TOTAL_TRIALS;
       const timeline = buildTimeline(previousTrialCount);
-      sessionRunning = true;
-      sessionFinalized = false;
-      lastHoldStartTime = null;
-      holdState.reset();
-      if (holdButton) {
-        holdButton.hidden = false;
-      }
-      if (stopExperimentButton) {
-        stopExperimentButton.hidden = false;
-      }
+      sessionRunning = true; sessionFinalized = false; lastHoldStartTime = null; holdState.reset();
+      if (holdButton) holdButton.hidden = false;
+      if (stopExperimentButton) { stopExperimentButton.hidden = false; stopExperimentButton.disabled = false; }
       updateStopButtonState();
-      if (preExperimentOverlay) {
-        preExperimentOverlay.classList.add('hidden');
-      }
+      if (preExperimentOverlay) preExperimentOverlay.classList.add('hidden');
       jsPsych.run(timeline);
     }
 
@@ -1533,60 +854,48 @@
       });
     }
 
+    function seedQuestsFromData(arr) {
+      initAdaptiveQuest();
+      previousTrialCount = 0;
+      if (!Array.isArray(arr)) return;
+      arr.forEach(t => {
+        if (!t || t.stage !== 'response') return;
+        const n = Number(t.trial_number ?? t.trialIndex ?? t.trial_index);
+        if (Number.isFinite(n)) previousTrialCount = Math.max(previousTrialCount, n);
+      });
+    }
+
     if (fileInput) {
-      fileInput.addEventListener('change', event => {
-        const files = event.target.files || [];
+      fileInput.addEventListener('change', evt => {
+        const files = evt.target.files || [];
         const file = files[0];
         if (!file) {
-          uploadedDataArray = [];
-          previousTrialCount = 0;
-          initAdaptiveQuest();
-          progressBase = 0;
-          progressTotal = TOTAL_TRIALS;
+          uploadedDataArray = []; previousTrialCount = 0;
+          initAdaptiveQuest(); progressBase = 0; progressTotal = TOTAL_TRIALS;
           broadcastSessionUpdate();
           if (startButton) startButton.textContent = 'Start experiment';
           setStatus('No previous session loaded.', 'info');
           return;
         }
-
         const reader = new FileReader();
-        reader.onload = loadEvent => {
+        reader.onload = e => {
           try {
-            const raw = JSON.parse(loadEvent.target.result);
-            const normalised = Array.isArray(raw)
-              ? raw
-              : Array.isArray(raw.data)
-              ? raw.data
-              : Array.isArray(raw.trials)
-              ? raw.trials
-              : [];
-            if (!Array.isArray(normalised)) {
-              throw new Error('Invalid JSON structure');
-            }
-            uploadedDataArray = normalised.filter(entry => entry && typeof entry === 'object');
+            const raw = JSON.parse(e.target.result);
+            const normalised = Array.isArray(raw) ? raw : Array.isArray(raw.data) ? raw.data : Array.isArray(raw.trials) ? raw.trials : [];
+            if (!Array.isArray(normalised)) throw new Error('Invalid JSON structure');
+            uploadedDataArray = normalised.filter(x => x && typeof x === 'object');
             seedQuestsFromData(uploadedDataArray);
-            progressBase = previousTrialCount;
-            progressTotal = previousTrialCount + TOTAL_TRIALS;
+            progressBase = previousTrialCount; progressTotal = previousTrialCount + TOTAL_TRIALS;
             broadcastSessionUpdate();
-            const responseCount = uploadedDataArray.filter(trial => trial && trial.stage === 'response').length;
-            let message = `Loaded ${uploadedDataArray.length} trials from ${file.name}.`;
-            if (previousTrialCount) {
-              message += ` Continuing from trial ${previousTrialCount + 1}.`;
-            }
-            if (responseCount) {
-              message += ` ${responseCount} response-stage records detected.`;
-            }
-            setStatus(message, 'info');
-            if (startButton) {
-              startButton.textContent = uploadedDataArray.length ? 'Continue experiment' : 'Start experiment';
-            }
-          } catch (error) {
-            console.error(error);
-            uploadedDataArray = [];
-            previousTrialCount = 0;
-            initAdaptiveQuest();
-            progressBase = 0;
-            progressTotal = TOTAL_TRIALS;
+            const rc = uploadedDataArray.filter(tr => tr && tr.stage === 'response').length;
+            let msg = `Loaded ${uploadedDataArray.length} trials from ${file.name}.`;
+            if (previousTrialCount) msg += ` Continuing from trial ${previousTrialCount + 1}.`;
+            if (rc) msg += ` ${rc} response-stage records detected.`;
+            setStatus(msg, 'info');
+            if (startButton) startButton.textContent = uploadedDataArray.length ? 'Continue experiment' : 'Start experiment';
+          } catch (err) {
+            console.error(err);
+            uploadedDataArray = []; previousTrialCount = 0; initAdaptiveQuest(); progressBase = 0; progressTotal = TOTAL_TRIALS;
             broadcastSessionUpdate();
             if (startButton) startButton.textContent = 'Start experiment';
             setStatus('Could not parse that JSON file. Please ensure it was exported from this experiment.', 'error');
@@ -1595,11 +904,7 @@
           }
         };
         reader.onerror = () => {
-          uploadedDataArray = [];
-          previousTrialCount = 0;
-          initAdaptiveQuest();
-          progressBase = 0;
-          progressTotal = TOTAL_TRIALS;
+          uploadedDataArray = []; previousTrialCount = 0; initAdaptiveQuest(); progressBase = 0; progressTotal = TOTAL_TRIALS;
           broadcastSessionUpdate();
           if (startButton) startButton.textContent = 'Start experiment';
           setStatus('Unable to read the selected file.', 'error');
@@ -1610,255 +915,15 @@
     }
 
     setStatus('No previous session loaded.', 'info');
-  </script>
 
-  <script>
-    (() => {
-      function getResponses() {
-        const sess = window.JND_SESSION || window.SESSION || window.sessionData || {};
-        const trials = Array.isArray(sess) ? sess : sess.trials || sess.data || [];
-        const rows = [];
-        for (const t of trials || []) {
-          if (t && t.stage === 'response') {
-            rows.push(t);
-          } else if (t && Array.isArray(t.events)) {
-            const r = t.events.find(e => e && e.stage === 'response');
-            if (r) rows.push(r);
-          }
-        }
-        return rows;
-      }
-
-      function questValueFor(response, dim) {
-        if (!response) return null;
-        const direct = response.quest_value;
-        if (direct !== null && direct !== undefined) {
-          const numeric = Number(direct);
-          if (Number.isFinite(numeric)) {
-            return numeric;
-          }
-        }
-        const entries = Array.isArray(response.quest_values) ? response.quest_values : null;
-        if (entries) {
-          const match = entries.find(entry => entry && entry.key === dim);
-          if (match && match.value !== null && match.value !== undefined) {
-            const numeric = Number(match.value);
-            if (Number.isFinite(numeric)) {
-              return numeric;
-            }
-          }
-        }
-        return null;
-      }
-
-      function psychometricData(responses, dim) {
-        const go = responses.filter(r => r && r.is_go === true && r.change_type === dim);
-        const byDelta = new Map();
-        for (const r of go) {
-          const d = questValueFor(r, dim);
-          if (!Number.isFinite(d)) continue;
-          const cur = byDelta.get(d) || { n: 0, k: 0 };
-          cur.n += 1;
-          cur.k += r.responded ? 1 : 0;
-          byDelta.set(d, cur);
-        }
-        return [...byDelta.entries()]
-          .sort((a, b) => a[0] - b[0])
-          .map(([delta, { n, k }]) => ({ delta, p: n ? k / n : 0, n }));
-      }
-
-      function falseAlarmRate(responses) {
-        const nogo = responses.filter(r => r && r.is_go === false);
-        if (!nogo.length) return 0;
-        const fa = nogo.filter(r => r.responded).length;
-        return fa / nogo.length;
-      }
-
-      function drawPsychometric(canvas, series, fa) {
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        const W = canvas.width;
-        const H = canvas.height;
-        ctx.clearRect(0, 0, W, H);
-
-        if (!series || series.length === 0) {
-          ctx.fillStyle = '#444';
-          ctx.font = '16px system-ui, sans-serif';
-          ctx.fillText('No data to plot for this dimension.', 16, 32);
-          return;
-        }
-
-        const pad = { l: 60, r: 20, t: 24, b: 40 };
-        const xs = series.map(s => s.delta);
-        const ys = series.map(s => s.p);
-        const xMin = Math.min(...xs);
-        const xMax = Math.max(...xs);
-        const yMin = 0;
-        const yMax = 1;
-
-        const span = Math.max(1e-9, xMax - xMin || 1);
-        const X = x => pad.l + ((W - pad.l - pad.r) * (x - xMin)) / span;
-        const Y = y => H - pad.b - ((H - pad.t - pad.b) * (y - yMin)) / (yMax - yMin || 1);
-
-        ctx.strokeStyle = '#bbb';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(pad.l, Y(0));
-        ctx.lineTo(W - pad.r, Y(0));
-        ctx.moveTo(pad.l, pad.t);
-        ctx.lineTo(pad.l, H - pad.b);
-        ctx.stroke();
-
-        ctx.strokeStyle = '#eee';
-        for (let g = 0; g <= 10; g++) {
-          const gy = g / 10;
-          ctx.beginPath();
-          ctx.moveTo(pad.l, Y(gy));
-          ctx.lineTo(W - pad.r, Y(gy));
-          ctx.stroke();
-        }
-
-        if (fa && fa > 0) {
-          ctx.strokeStyle = '#f0a';
-          ctx.setLineDash([5, 4]);
-          ctx.beginPath();
-          ctx.moveTo(pad.l, Y(fa));
-          ctx.lineTo(W - pad.r, Y(fa));
-          ctx.stroke();
-          ctx.setLineDash([]);
-          ctx.fillStyle = '#a06';
-          ctx.font = '12px system-ui, sans-serif';
-          ctx.fillText(`FA ≈ ${fa.toFixed(2)}`, W - pad.r - 80, Y(fa) - 6);
-        }
-
-        ctx.strokeStyle = '#08c';
-        ctx.fillStyle = '#08c';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        series.forEach((point, index) => {
-          const x = X(point.delta);
-          const y = Y(point.p);
-          if (index === 0) {
-            ctx.moveTo(x, y);
-          } else {
-            ctx.lineTo(x, y);
-          }
-        });
-        ctx.stroke();
-
-        ctx.font = '12px system-ui, sans-serif';
-        for (const s of series) {
-          const x = X(s.delta);
-          const y = Y(s.p);
-          ctx.beginPath();
-          ctx.arc(x, y, 3, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillText(String(s.n), x + 5, y - 6);
-        }
-
-        ctx.fillStyle = '#222';
-        ctx.font = '14px system-ui, sans-serif';
-        ctx.fillText('Δ (QUEST)', pad.l, H - 12);
-        ctx.save();
-        ctx.translate(16, H / 2 + 20);
-        ctx.rotate(-Math.PI / 2);
-        ctx.fillText('P(respond GO)', 0, 0);
-        ctx.restore();
-
-        const tickCount = Math.min(8, series.length);
-        const xticks = tickCount
-          ? series.map(s => s.delta).filter((_, i) => i % Math.ceil(series.length / tickCount || 1) === 0)
-          : [];
-        ctx.fillStyle = '#555';
-        ctx.font = '12px system-ui, sans-serif';
-        xticks.forEach(v => {
-          const x = X(v);
-          ctx.beginPath();
-          ctx.moveTo(x, H - pad.b);
-          ctx.lineTo(x, H - pad.b + 4);
-          ctx.strokeStyle = '#bbb';
-          ctx.stroke();
-          ctx.fillText(String(v), x - 8, H - pad.b + 16);
-        });
-
-        for (let g = 0; g <= 10; g += 2) {
-          const gy = g / 10;
-          const y = Y(gy);
-          ctx.beginPath();
-          ctx.moveTo(pad.l - 4, y);
-          ctx.lineTo(pad.l, y);
-          ctx.strokeStyle = '#bbb';
-          ctx.stroke();
-          ctx.fillText(gy.toFixed(1), pad.l - 36, y + 4);
-        }
-
-        ctx.font = '16px system-ui, sans-serif';
-        ctx.fillText('Psychometric (dimension-filtered)', pad.l, pad.t - 6);
-      }
-
-      const btn = document.getElementById('view-psychometrics');
-      const sel = document.getElementById('pm-dim');
-      const status = document.getElementById('pm-status');
-      const canvas = document.getElementById('pm-canvas');
-
-      const optionEntries = sel
-        ? Array.from(sel.options).map(opt => [opt.value, opt.textContent.trim()])
-        : [
-            ['theta', 'θ (angle)'],
-            ['radius', 'radius']
-          ];
-      const dims = optionEntries.map(([value]) => value);
-      const labels = Object.fromEntries(optionEntries);
-
-      const formatCounts = counts =>
-        optionEntries
-          .map(([value, label]) => `${label} ${counts[value] ?? 0}`)
-          .join(', ');
-
-      const labelFor = dim => labels[dim] || dim;
-
-      function refreshStatus() {
-        const r = getResponses();
-        const n = r.length;
-        const counts = Object.fromEntries(dims.map(value => [value, 0]));
-        for (const t of r) {
-          if (t && t.is_go && Object.prototype.hasOwnProperty.call(counts, t.change_type)) {
-            counts[t.change_type] += 1;
-          }
-        }
-        if (status) {
-          status.textContent = n
-            ? `Loaded ${n} response rows — go-trials by dim: ${formatCounts(counts)}`
-            : 'No previous session loaded — run the task or load a JSON.';
-        }
-        if (btn) {
-          btn.disabled = n === 0;
-        }
-      }
-
-      if (btn) {
-        btn.addEventListener('click', () => {
-          const r = getResponses();
-          if (!r.length) {
-            drawPsychometric(canvas, [], 0);
-            return;
-          }
-          const dim = sel && sel.value ? sel.value : dims[0];
-          const series = psychometricData(r, dim);
-          const fa = falseAlarmRate(r);
-          const label = labelFor(dim);
-          if (status) {
-            status.textContent = series.length
-              ? `Plotted ${series.length} Δ-bins for "${label}" (FA≈${fa.toFixed(2)}).`
-              : `No data for "${label}". Try another dimension or run more GO trials.`;
-          }
-          drawPsychometric(canvas, series, fa);
-        });
-      }
-
-      refreshStatus();
-      window.addEventListener('jnd-session-loaded', refreshStatus);
-    })();
+    // helpers used earlier
+    function stageHTML(content = '', { showFixation = false } = {}) {
+      const fixation = showFixation ? `<div class="fixation-dot" style="width:${FIXATION_DIAMETER_PX}px;height:${FIXATION_DIAMETER_PX}px;"></div>` : '';
+      return `<div class="stage">${fixation}${content}</div>`;
+    }
+    function dotHTML(x, y, diameter = DOT_DIAMETER) {
+      return `<div class="dot" style="left:${x}px;top:${y}px;width:${diameter}px;height:${diameter}px;"></div>`;
+    }
   </script>
 </body>
 </html>
