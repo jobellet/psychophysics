@@ -409,6 +409,13 @@
     }
     updateDerivedDvaMetrics();
 
+    function canAcceptHoldInteraction() {
+      if (sessionRunning) return true;
+      if (holdButton && holdButton.hidden === false) return true;
+      if (holdButton && !holdButton.hasAttribute('hidden')) return true;
+      return false;
+    }
+
     function updateHoldButton(isActive) {
       if (!holdButton) return;
       holdButton.classList.toggle('holding', Boolean(isActive));
@@ -454,12 +461,17 @@
       }
     };
 
+    if (typeof window !== 'undefined') {
+      window.JND_HOLD_STATE = holdState;
+      window.JND_CAN_ACCEPT_HOLD = canAcceptHoldInteraction;
+    }
+
     updateHoldButton(false); updateStopButtonState();
 
     const HOLD_KEY = 'keyboard-space';
     if (holdButton) {
       holdButton.addEventListener('pointerdown', e => {
-        if (!sessionRunning) return;
+        if (!canAcceptHoldInteraction()) return;
         e.preventDefault();
         try { holdButton.setPointerCapture(e.pointerId); } catch {}
         holdState.activate(`pointer-${e.pointerId}`, 'pointer');
@@ -470,10 +482,15 @@
       holdButton.addEventListener('lostpointercapture', releasePointer);
     }
     document.addEventListener('keydown', e => {
-      if (!sessionRunning) return;
+      if (!canAcceptHoldInteraction()) return;
       if (e.code==='Space' || e.key===' ') { if (e.repeat) return; e.preventDefault(); holdState.activate(HOLD_KEY,'keyboard'); }
     });
-    document.addEventListener('keyup', e => { if (e.code==='Space'||e.key===' ') { e.preventDefault(); holdState.release(HOLD_KEY,'keyboard'); } });
+    document.addEventListener('keyup', e => {
+      if (e.code==='Space'||e.key===' ') {
+        e.preventDefault();
+        holdState.release(HOLD_KEY,'keyboard');
+      }
+    });
 
     function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
     function setStatus(msg, state='info') { if (!statusEl) return; statusEl.textContent = msg; statusEl.dataset.state = state; }
