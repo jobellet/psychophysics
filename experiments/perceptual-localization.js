@@ -92,7 +92,7 @@ function ensureElement(id) {
   return el;
 }
 
-export function run({ reference, trialCount = 120 } = {}) {
+export function run({ reference, trialCount = 1000 } = {}) {
   if (!reference) {
     throw new Error('A calibration reference is required to run the experiment.');
   }
