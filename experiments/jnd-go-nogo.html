@@ -227,7 +227,7 @@
       <p id="session-status" class="session-status" data-state="info">No previous session loaded.</p>
 
       <div id="calibration-section" class="calibration-section">
-        <h2>Calibrate your viewing geometry</h2>
+        <h2>Calibrate your display</h2>
         <p>
           Pick a familiar object, hold it gently against the screen, and resize the on-screen shape so it matches.
           This lets us convert every pixel on your display into degrees of visual angle.
@@ -296,7 +296,6 @@
   <script src="../jspsych/plugins/html-keyboard-response.js"></script>
   <script src="../jspsych/plugins/call-function.js"></script>
   <script src="../shared-resources/visual-angle.js"></script>
-  <!-- OUR calibration (no ODS fetch) -->
   <script type="module" src="../shared-resources/calibration.js"></script>
 
   <script src="https://unpkg.com/jsquest-plus@2.1.0/dist/jsQuestPlus.js"></script>
@@ -305,19 +304,6 @@
   <script> initAdaptiveQuest(); </script>
 
   <script>
-    // Optional: keep this guard—does nothing now that we don't fetch ODS.
-    (function enforceCalibrationFallback() {
-      const originalFetch = window.fetch;
-      if (typeof originalFetch !== 'function') return;
-      const disabledPath = 'shared-resources/reference-data/object-dimensions.ods';
-      window.fetch = function patchedFetch(resource, init) {
-        if (typeof resource === 'string' && resource.includes(disabledPath)) {
-          return Promise.reject(new Error('Calibration reference file disabled for GitHub Pages fallback.'));
-        }
-        return originalFetch.call(this, resource, init);
-      };
-    })();
-
     const jsPsych = initJsPsych({ display_element: 'jspsych-target', show_progress_bar: true, auto_update_progress_bar: false });
 
     const preExperimentOverlay = document.getElementById('pre-experiment');
