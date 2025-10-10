@@ -1,4 +1,3 @@
-<script>
 // ===== Context-aware QUEST+ wrapper for visual JND =====
 
 // --- BINS (edit these to taste; you can also make them quantiles) ---
@@ -167,4 +166,3 @@ window.initAdaptiveQuest = initAdaptiveQuest;
 window.suggestDeltaForContext = suggestDeltaForContext;
 window.updateQuestWithOutcome = updateQuestWithOutcome;
 window.exportAdaptivePosteriors = exportPosteriors;
-</script>
