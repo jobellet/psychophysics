@@ -577,8 +577,9 @@ function applyCalibrationToUI(data) {
 function updateCalibrationSliderRange() {
   const slider = calibrationElements.slider;
   if (!slider) return;
-  const screenMin = Math.min(window.innerWidth, window.innerHeight);
-  const max = Math.max(60, Math.round(screenMin * 0.4));
+  const screenMax = Math.max(window.innerWidth, window.innerHeight);
+  const currentValue = Number(slider.value) || 0;
+  const max = Math.max(60, Math.ceil(Math.max(screenMax, currentValue)));
   slider.min = '20';
   slider.max = String(max);
   if (Number(slider.value) > max) {
