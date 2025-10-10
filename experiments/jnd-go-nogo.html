@@ -178,7 +178,7 @@
     }
     .fixation-dot {
       position: absolute; left:50%; top:50%; transform: translate(-50%,-50%);
-      border-radius: 999px; background: #000000; pointer-events: none;
+      border-radius: 999px; background: #ffffff; pointer-events: none;
     }
 
     .response-text { font-size: clamp(18px,3.2vw,24px); color: rgba(226,232,240,.94); text-align:center; padding:24px; }
@@ -528,7 +528,7 @@
         const eccInfoText = eccInfo ? `${eccInfo} ` : '';
         return `
           <h1 style="margin-top:0">Just Noticeable Difference (Go/No-Go)</h1>
-          <p>A white dot will flash twice while you maintain fixation on the central black spot.
+          <p>A white dot will flash twice while you maintain fixation on the central white spot.
              After a random blank interval (100–1500&nbsp;ms) the dot reappears for comparison.
           </p>
           <p>On most trials the dot is identical (<strong>no-go</strong>). About one third of the time
