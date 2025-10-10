@@ -545,20 +545,34 @@
 
     function createTrial(index, offset=0) {
       let holdGateListener = null;
+      let holdGateKeyListener = null;
       const waitForHold = {
         type: jsPsychCallFunction, async: true, data: { stage: 'hold_gate', trial_index: offset + index + 1 },
         func: callback => {
+          const cleanup = () => {
+            if (holdGateKeyListener) {
+              document.removeEventListener('keydown', holdGateKeyListener);
+              holdGateKeyListener = null;
+            }
+            if (holdGateListener) {
+              holdState.holdStartListeners.delete(holdGateListener);
+              holdGateListener = null;
+            }
+          };
           const resolve = startedAt => {
-            if (holdGateListener) { holdState.holdStartListeners.delete(holdGateListener); holdGateListener = null; }
+            cleanup();
             lastHoldStartTime = typeof startedAt === 'number' ? startedAt : performance.now();
             callback({ startedAt: lastHoldStartTime });
           };
           if (holdState.isActive()) { resolve(holdState.holdStart); return; }
           const d = jsPsych.getDisplayElement(); if (d) d.innerHTML = stageHTML('<div class="response-text">Hold the control button or spacebar to begin the next trial.</div>');
+          holdGateKeyListener = e => { if (e.code === 'Space' || e.key === ' ') resolve(performance.now()); };
+          document.addEventListener('keydown', holdGateKeyListener);
           holdGateListener = info => resolve(typeof info?.startedAt === 'number' ? info.startedAt : holdState.holdStart);
           holdState.holdStartListeners.add(holdGateListener);
         },
         on_finish: data => {
+          if (holdGateKeyListener) { document.removeEventListener('keydown', holdGateKeyListener); holdGateKeyListener = null; }
           if (holdGateListener) { holdState.holdStartListeners.delete(holdGateListener); holdGateListener = null; }
           const info = data.value || {};
           if (typeof info.startedAt === 'number') lastHoldStartTime = info.startedAt;
