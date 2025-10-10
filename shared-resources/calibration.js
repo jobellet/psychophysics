@@ -1,819 +1,342 @@
-// Shared calibration utilities for experiments requiring visual angle conversions.
-// Provides UI management, object list loading, persistence, and state access.
+<script type="module">
+// shared-resources/calibration.js
+// Exposes a global "Calibration" used by experiment pages.
+// Works entirely offline/Pages by using built-in reference objects (no ODS/fetch).
 
-const DEFAULT_OPTIONS = {
-  defaultObjectId: 'credit-card',
-  storageKey: 'visual-calibration',
-  legacyStorageKeys: ['visual-jnd-calibration'],
-  referenceDataUrl: '../shared-resources/reference-data/object-dimensions.ods',
-  elements: {},
-  startButton: null
-};
+(() => {
+  const DEFAULT_ENTRIES = [
+    { id: 'credit-card', label: 'Credit / ID Card (ID-1)', width_mm: 85.60, height_mm: 53.98 },
+    { id: 'eur-1-coin', label: '€1 coin', diameter_mm: 23.25 }
+  ];
 
-const LEGACY_NAME_MAP = new Map([
-  ['Credit / ID Card (ID-1)', ['ID-1']],
-  ['€1 Coin', ['EUR-1']]
-]);
-
-const FALLBACK_CALIBRATION_ENTRIES = [
-  {
-    type: 'object',
-    name: 'Credit / ID Card (ID-1)',
-    shape: 'rect',
-    lengthMm: 85.6,
-    widthMm: 53.98,
-    radiusMm: null,
-    legacyIds: ['ID-1']
-  },
-  {
-    type: 'object',
-    name: '€1 Coin',
-    shape: 'circle',
-    lengthMm: 23.25,
-    widthMm: 23.25,
-    radiusMm: 11.625,
-    legacyIds: ['EUR-1']
-  }
-];
-
-const TABLE_NS = 'urn:oasis:names:tc:opendocument:xmlns:table:1.0';
-const TEXT_NS = 'urn:oasis:names:tc:opendocument:xmlns:text:1.0';
-
-const slugRegistry = new Set();
-
-const calibrationState = {
-  ready: false,
-  mmPerPixel: null,
-  viewingDistanceMm: null,
-  reference: null,
-  objectId: null,
-  pixelSize: null,
-  timestamp: null,
-  dvaPerPixel: null
-};
-
-let options = { ...DEFAULT_OPTIONS };
-let calibrationElements = {
-  section: null,
-  objectSelect: null,
-  display: null,
-  shape: null,
-  slider: null,
-  readout: null,
-  status: null,
-  confirm: null,
-  viewingDistance: null,
-  target: null
-};
-
-let calibrationObjects = [];
-let calibrationDirty = true;
-let suppressCalibrationUpdates = false;
-let initPromise = null;
-let startButtonElement = null;
-
-const readyListeners = new Set();
-
-function resolveElement(name, fallbackId, overrides = {}) {
-  if (overrides && overrides[name]) {
-    return overrides[name];
-  }
-  return document.getElementById(fallbackId);
-}
-
-function assignCalibrationElements(overrides = {}) {
-  calibrationElements = {
-    section: resolveElement('section', 'calibration-section', overrides),
-    objectSelect: resolveElement('objectSelect', 'calibration-object', overrides),
-    display: resolveElement('display', 'calibration-display', overrides),
-    shape: resolveElement('shape', 'calibration-shape', overrides),
-    slider: resolveElement('slider', 'calibration-slider', overrides),
-    readout: resolveElement('readout', 'calibration-size-readout', overrides),
-    status: resolveElement('status', 'calibration-status', overrides),
-    confirm: resolveElement('confirm', 'calibration-confirm', overrides),
-    viewingDistance: resolveElement('viewingDistance', 'viewing-distance', overrides),
-    target: resolveElement('target', 'calibration-target-info', overrides)
+  // Persistent state object (same reference returned by getState())
+  const state = {
+    ready: false,
+    objectId: null,
+    objectLabel: null,
+    // geometry
+    mmPerPixel: null,
+    viewingDistanceMm: null,
+    dvaPerPixel: null,
+    // UI bookkeeping
+    _dirty: false,
+    _storageKey: 'visual-calibration'
   };
-}
 
-function slugify(text, fallback = 'object') {
-  if (!text) {
-    return fallback;
+  const readyListeners = new Set();
+
+  function clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }
+
+  function degPerPixel(mmPerPixel, viewingDistanceMm) {
+    // dva per pixel = 2*atan((px_mm)/(2*d_mm)) in radians, then to degrees
+    // here px_mm = mmPerPixel (for 1 px); d_mm = viewingDistanceMm
+    if (!mmPerPixel || !viewingDistanceMm) return null;
+    const rad = 2 * Math.atan((mmPerPixel) / (2 * viewingDistanceMm));
+    return rad * (180 / Math.PI);
   }
-  let normalized = text;
-  if (typeof normalized.normalize === 'function') {
-    normalized = normalized.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  }
-  normalized = normalized.replace(/€/g, 'eur').replace(/£/g, 'gbp').replace(/\$/g, 'usd');
-  const base = normalized.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  const slug = base || fallback;
-  let candidate = slug;
-  let counter = 2;
-  while (slugRegistry.has(candidate)) {
-    candidate = `${slug}-${counter++}`;
-  }
-  slugRegistry.add(candidate);
-  return candidate;
-}
 
-function parseCalibrationObjects(selectEl) {
-  if (!selectEl) return [];
-  return Array.from(selectEl.options || [])
-    .map(option => {
-      const id = option.value;
-      if (!id) {
-        return null;
-      }
-      const shape = (option.dataset.shape || 'rect').toLowerCase();
-      const lengthMm = parseFloat(option.dataset.lengthMm);
-      const widthMm = parseFloat(option.dataset.widthMm);
-      const radiusMm = parseFloat(option.dataset.radiusMm);
-      const hasLength = Number.isFinite(lengthMm) && lengthMm > 0;
-      const hasWidth = Number.isFinite(widthMm) && widthMm > 0;
-      const hasRadius = Number.isFinite(radiusMm) && radiusMm > 0;
-      const legacyIds = (option.dataset.legacyIds || '')
-        .split(',')
-        .map(value => value.trim())
-        .filter(Boolean);
-      let widthReferenceMm = null;
-      let heightReferenceMm = null;
-      let diameterMm = null;
-
-      if (shape === 'circle') {
-        if (hasRadius) {
-          diameterMm = radiusMm * 2;
-        } else if (hasLength) {
-          diameterMm = lengthMm;
-        } else if (hasWidth) {
-          diameterMm = widthMm;
-        }
-        widthReferenceMm = diameterMm;
-        heightReferenceMm = diameterMm;
-      } else {
-        widthReferenceMm = hasLength ? lengthMm : hasWidth ? widthMm : null;
-        heightReferenceMm = hasWidth ? widthMm : hasLength ? lengthMm : null;
-      }
-
-      if (!widthReferenceMm || widthReferenceMm <= 0) {
-        return null;
-      }
-
-      return {
-        id,
-        name: option.textContent.trim(),
-        shape,
-        lengthMm: hasLength ? lengthMm : null,
-        widthMm: hasWidth ? widthMm : null,
-        radiusMm: hasRadius ? radiusMm : null,
-        diameterMm: diameterMm || (hasRadius ? radiusMm * 2 : null),
-        widthReferenceMm,
-        heightReferenceMm: heightReferenceMm && heightReferenceMm > 0 ? heightReferenceMm : widthReferenceMm,
-        aspectRatio:
-          widthReferenceMm && heightReferenceMm && heightReferenceMm > 0
-            ? heightReferenceMm / widthReferenceMm
-            : 1,
-        legacyIds
-      };
-    })
-    .filter(Boolean);
-}
-
-function decodeCellValue(cell) {
-  if (!cell) return null;
-  const textP = cell.getElementsByTagNameNS(TEXT_NS, 'p')[0];
-  if (!textP) return null;
-  const text = textP.textContent.trim();
-  if (!text) return null;
-  if (/^[-+]?\d+(?:\.\d+)?$/.test(text)) {
-    return parseFloat(text);
-  }
-  return text;
-}
-
-function extractEntriesFromSheet(xmlText) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(xmlText, 'text/xml');
-  const table = doc.getElementsByTagNameNS(TABLE_NS, 'table')[0];
-  if (!table) return [];
-
-  const entries = [];
-  const rows = Array.from(table.getElementsByTagNameNS(TABLE_NS, 'table-row'));
-  rows.forEach(row => {
-    const cells = Array.from(row.getElementsByTagNameNS(TABLE_NS, 'table-cell'));
-    const values = cells.map(decodeCellValue);
-    if (values.length < 2) return;
-    const [type, name, ...rest] = values;
-    if (!type || typeof type !== 'string') return;
-    if (type === 'category') {
-      if (typeof name === 'string' && name.trim()) {
-        entries.push({ type: 'category', label: name.trim() });
-      }
-      return;
-    }
-    if (type !== 'object') return;
-
-    const [shape, lengthMm, widthMm, radiusMm, legacyIdsRaw] = rest;
-    const legacyIds = typeof legacyIdsRaw === 'string'
-      ? legacyIdsRaw
-          .split(',')
-          .map(value => value.trim())
-          .filter(Boolean)
-      : [];
-
-    entries.push({
-      type: 'object',
-      name: typeof name === 'string' ? name.trim() : 'Object',
-      shape: typeof shape === 'string' ? shape.trim() : null,
-      lengthMm: Number.isFinite(lengthMm) ? lengthMm : null,
-      widthMm: Number.isFinite(widthMm) ? widthMm : null,
-      radiusMm: Number.isFinite(radiusMm) ? radiusMm : null,
-      legacyIds
-    });
-  });
-
-  return entries;
-}
-
-function applyCalibrationEntries(entries) {
-  const select = calibrationElements.objectSelect;
-  if (!select) return [];
-  select.innerHTML = '';
-  slugRegistry.clear();
-
-  let currentGroup = null;
-  (Array.isArray(entries) ? entries : []).forEach(entry => {
-    if (!entry) return;
-    if (entry.type === 'category') {
-      if (!entry.label) return;
-      const group = document.createElement('optgroup');
-      group.label = entry.label;
-      select.appendChild(group);
-      currentGroup = group;
-      return;
-    }
-    if (entry.type !== 'object') {
-      return;
-    }
-    const option = document.createElement('option');
-    const name = entry.name || 'Object';
-    const id = entry.id || slugify(name);
-    const legacyIds = Array.isArray(entry.legacyIds)
-      ? entry.legacyIds.filter(Boolean)
-      : LEGACY_NAME_MAP.get(name) || [];
-    const hasLength = Number.isFinite(entry.lengthMm);
-    const hasWidth = Number.isFinite(entry.widthMm);
-    const hasRadius = Number.isFinite(entry.radiusMm);
-    const radiusPreferred =
-      hasRadius &&
-      (!hasLength || !hasWidth || Math.abs((entry.lengthMm || 0) - (entry.widthMm || 0)) <= Math.max(0.5, (entry.widthMm || 0) * 0.05));
-    const shape = (entry.shape || (radiusPreferred ? 'circle' : 'rect')).toLowerCase();
-
-    option.value = id;
-    option.textContent = name;
-    option.dataset.shape = shape;
-    option.dataset.lengthMm = hasLength ? String(entry.lengthMm) : '';
-    option.dataset.widthMm = hasWidth ? String(entry.widthMm) : '';
-    option.dataset.radiusMm = hasRadius ? String(entry.radiusMm) : '';
-    if (legacyIds.length) {
-      option.dataset.legacyIds = legacyIds.join(',');
-    }
-
-    if (currentGroup) {
-      currentGroup.appendChild(option);
-    } else {
-      select.appendChild(option);
-    }
-  });
-
-  const parsed = parseCalibrationObjects(select);
-  select.disabled = parsed.length === 0;
-  return parsed;
-}
-
-function showCalibrationStatus(message, state = 'info') {
-  if (!calibrationElements.status) return;
-  calibrationElements.status.textContent = message;
-  calibrationElements.status.dataset.state = state;
-}
-
-function updateCalibrationTargetInfo() {
-  if (!calibrationElements.target) return;
-  const obj = getSelectedCalibrationObject();
-  if (!obj) {
-    calibrationElements.target.textContent = '';
-    return;
-  }
-  if (obj.shape === 'circle') {
-    if (Number.isFinite(obj.diameterMm)) {
-      calibrationElements.target.textContent = `Match a circle of ${obj.diameterMm.toFixed(2)} mm diameter.`;
-    } else {
-      calibrationElements.target.textContent = '';
-    }
-    return;
-  }
-  if (Number.isFinite(obj.widthReferenceMm) && Number.isFinite(obj.heightReferenceMm)) {
-    calibrationElements.target.textContent = `Match a rectangle ${obj.widthReferenceMm.toFixed(2)} × ${obj.heightReferenceMm.toFixed(2)} mm.`;
-  } else {
-    calibrationElements.target.textContent = '';
-  }
-}
-
-function updateCalibrationShapeFromSlider() {
-  const slider = calibrationElements.slider;
-  const shape = calibrationElements.shape;
-  if (!slider || !shape) return;
-  const value = Number(slider.value) || 0;
-  shape.dataset.sizePx = String(value);
-  const obj = getSelectedCalibrationObject();
-  if (obj && obj.shape === 'circle') {
-    shape.classList.add('circle');
-    shape.style.height = `${value}px`;
-  } else {
-    shape.classList.remove('circle');
-    const aspect = obj && Number.isFinite(obj.aspectRatio) && obj.aspectRatio > 0 ? obj.aspectRatio : 1;
-    shape.style.height = `${Math.max(4, value * aspect)}px`;
-  }
-  shape.style.width = `${value}px`;
-
-  if (calibrationElements.readout) {
-    let text = `Width: ${Math.round(value)} px`;
-    if (calibrationState.ready && calibrationState.reference && typeof VisualAngle !== 'undefined') {
-      try {
-        const mm = VisualAngle.pixelsToMillimeters(value, calibrationState.reference);
-        const dva = VisualAngle.pixelsToDVA(value, calibrationState.reference);
-        text += ` · ${mm.toFixed(1)} mm · ${dva.toFixed(2)}°`;
-      } catch (error) {
-        console.warn('Calibration readout conversion failed', error);
-      }
-    }
-    calibrationElements.readout.textContent = text;
-  }
-}
-
-function updateStartButtonAvailability() {
-  if (!startButtonElement) return;
-  startButtonElement.disabled = !calibrationState.ready;
-  startButtonElement.textContent = calibrationState.ready ? 'Start experiment' : 'Calibrate to start';
-}
-
-function getVisualReference() {
-  return calibrationState.ready && calibrationState.reference ? calibrationState.reference : null;
-}
-
-function describeCalibrationMessage(reference, { silent = false } = {}) {
-  if (!reference) return '';
-  const distanceCm = reference.viewingDistanceMm / 10;
-  let message = `${silent ? 'Loaded' : 'Saved'} calibration: viewing distance ${distanceCm.toFixed(1)} cm, 1 px ≈ ${reference.mmPerPixel.toFixed(3)} mm`;
-  if (typeof VisualAngle !== 'undefined') {
+  function loadFromStorage(storageKey) {
     try {
-      const pxPerDeg = VisualAngle.dvaToPixels(1, reference);
-      if (Number.isFinite(pxPerDeg)) {
-        message += `, 1° ≈ ${pxPerDeg.toFixed(1)} px`;
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      return parsed;
+    } catch {
+      return null;
+    }
+  }
+
+  function saveToStorage(storageKey, data) {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(data));
+    } catch {}
+  }
+
+  function setStatus(el, msg, kind='info') {
+    if (!el) return;
+    el.textContent = msg;
+    el.dataset.state = kind; // "info" | "error" | "success"
+  }
+
+  function applyEntriesToSelect(select, entries) {
+    if (!select) return;
+    select.innerHTML = '';
+    for (const e of entries) {
+      const opt = document.createElement('option');
+      opt.value = e.id;
+      opt.textContent = e.label;
+      opt.dataset.widthMm = e.width_mm ?? e.widthMm ?? '';
+      opt.dataset.heightMm = e.height_mm ?? e.heightMm ?? '';
+      opt.dataset.diameterMm = e.diameter_mm ?? e.diameterMm ?? '';
+      select.appendChild(opt);
+    }
+    select.disabled = false;
+  }
+
+  function describeEntry(entry) {
+    if (!entry) return '';
+    if (entry.diameter_mm || entry.diameterMm) {
+      const d = entry.diameter_mm ?? entry.diameterMm;
+      return `Ø ${d.toFixed(2)} mm`;
+    }
+    const w = entry.width_mm ?? entry.widthMm;
+    const h = entry.height_mm ?? entry.heightMm;
+    return `${w.toFixed(2)} × ${h.toFixed(2)} mm`;
+  }
+
+  function currentEntry(entries, id) {
+    return entries.find(e => e.id === id) || entries[0];
+  }
+
+  function pickDefaultId(entries, requested) {
+    if (entries.some(e => e.id === requested)) return requested;
+    if (entries.some(e => e.id === 'credit-card')) return 'credit-card';
+    return entries[0]?.id;
+  }
+
+  function setShapeFromEntry(shapeEl, sliderEl, entry) {
+    if (!shapeEl || !entry) return;
+    const px = Number(sliderEl?.value ?? 200);
+    if (entry.diameter_mm || entry.diameterMm) {
+      // Circle by diameter
+      shapeEl.classList.add('circle');
+      shapeEl.style.width = `${px}px`;
+      shapeEl.style.height = `${px}px`;
+    } else {
+      // Rectangle by width, height follows aspect ratio
+      shapeEl.classList.remove('circle');
+      const wmm = entry.width_mm ?? entry.widthMm;
+      const hmm = entry.height_mm ?? entry.heightMm;
+      const aspect = hmm / wmm;
+      shapeEl.style.width = `${px}px`;
+      shapeEl.style.height = `${Math.max(2, Math.round(px * aspect))}px`;
+    }
+  }
+
+  function updateSizeReadout(readoutEl, sliderEl) {
+    if (!readoutEl || !sliderEl) return;
+    readoutEl.textContent = `${Math.round(Number(sliderEl.value))} px`;
+  }
+
+  function populateTargetInfo(targetEl, entry) {
+    if (!targetEl) return;
+    targetEl.textContent = describeEntry(entry);
+  }
+
+  function enableStart(startBtn, enabled) {
+    if (!startBtn) return;
+    startBtn.disabled = !enabled;
+    if (enabled) {
+      if (startBtn.dataset.defaultLabelSaved !== '1') {
+        startBtn.dataset.defaultLabelSaved = '1';
+        startBtn.dataset.defaultLabel = startBtn.textContent || 'Start experiment';
       }
-    } catch (error) {
-      console.warn('Could not compute pixels per degree', error);
+      startBtn.textContent = startBtn.dataset.defaultLabel || 'Start experiment';
+    } else {
+      startBtn.textContent = 'Calibrate to start';
     }
   }
-  message += '.';
-  return message;
-}
 
-function persistCalibration(detail) {
-  if (!detail || typeof localStorage === 'undefined') return;
-  const payload = {
-    mmPerPixel: detail.mmPerPixel,
-    viewingDistanceMm: detail.viewingDistanceMm,
-    objectId: detail.objectId,
-    pixelSize: detail.pixelSize,
-    timestamp: detail.timestamp
-  };
-  try {
-    localStorage.setItem(options.storageKey, JSON.stringify(payload));
-  } catch (storageError) {
-    console.warn('Unable to persist calibration', storageError);
+  function dispatchUpdated() {
+    window.dispatchEvent(new Event('visual-calibration-updated'));
   }
-}
 
-function setCalibrationState(data, { persist = true, silent = false } = {}) {
-  if (!data) return null;
-  try {
-    if (typeof VisualAngle === 'undefined') {
-      throw new Error('VisualAngle helpers are not available.');
+  function dispatchCleared() {
+    window.dispatchEvent(new Event('visual-calibration-cleared'));
+  }
+
+  async function init(options = {}) {
+    const {
+      defaultObjectId = 'credit-card',
+      storageKey = 'visual-calibration',
+      startButton = null,
+      elements = {}
+    } = options;
+
+    state._storageKey = storageKey;
+
+    const select = elements.objectSelect || document.getElementById('calibration-object');
+    const display = elements.display || document.getElementById('calibration-display');
+    const shape   = elements.shape   || document.getElementById('calibration-shape');
+    const slider  = elements.slider  || document.getElementById('calibration-slider');
+    const readout = elements.readout || document.getElementById('calibration-size-readout');
+    const status  = elements.status  || document.getElementById('calibration-status');
+    const confirm = elements.confirm || document.getElementById('calibration-confirm');
+    const vdInput = elements.viewingDistance || document.getElementById('viewing-distance');
+    const target  = elements.target  || document.getElementById('calibration-target-info');
+
+    // Populate entries (no network)
+    applyEntriesToSelect(select, DEFAULT_ENTRIES);
+    const stored = loadFromStorage(storageKey);
+
+    // Choose object
+    const wantedId = pickDefaultId(DEFAULT_ENTRIES, stored?.objectId ?? defaultObjectId);
+    const entry = currentEntry(DEFAULT_ENTRIES, wantedId);
+    if (select) select.value = entry.id;
+    populateTargetInfo(target, entry);
+
+    // Prepare shape/slider UI
+    if (slider) {
+      // If we have a previous mmPerPixel + same object: set slider to match.
+      if (stored?.mmPerPixel && stored?.objectId === entry.id) {
+        const px = entry.diameter_mm
+          ? (entry.diameter_mm / stored.mmPerPixel)
+          : ((entry.width_mm / stored.mmPerPixel));
+        slider.value = String(clamp(Math.round(px), Number(slider.min || 40), Number(slider.max || 400)));
+      }
+      updateSizeReadout(readout, slider);
     }
-    const reference = VisualAngle.createReference({
-      mmPerPixel: data.mmPerPixel,
-      viewingDistanceMm: data.viewingDistanceMm
-    });
-    calibrationState.mmPerPixel = reference.mmPerPixel;
-    calibrationState.viewingDistanceMm = reference.viewingDistanceMm;
-    calibrationState.reference = reference;
-    calibrationState.objectId = data.objectId || null;
-    calibrationState.pixelSize = Number.isFinite(data.pixelSize) ? data.pixelSize : null;
-    calibrationState.timestamp = data.timestamp || Date.now();
-    calibrationState.ready = true;
-    calibrationState.dvaPerPixel = VisualAngle.pixelsToDVA(1, reference);
-    calibrationDirty = false;
+    setShapeFromEntry(shape, slider, entry);
 
-    if (persist) {
-      persistCalibration({
-        mmPerPixel: calibrationState.mmPerPixel,
-        viewingDistanceMm: calibrationState.viewingDistanceMm,
-        objectId: calibrationState.objectId,
-        pixelSize: calibrationState.pixelSize,
-        timestamp: calibrationState.timestamp
+    // Restore viewing distance
+    if (vdInput) {
+      if (stored?.viewingDistanceMm) {
+        vdInput.value = String(Math.round(stored.viewingDistanceMm / 10) / 10); // mm->cm
+      }
+    }
+
+    // If stored calibration complete, mark ready
+    if (stored?.mmPerPixel && stored?.viewingDistanceMm) {
+      state.objectId = entry.id;
+      state.objectLabel = entry.label;
+      state.mmPerPixel = stored.mmPerPixel;
+      state.viewingDistanceMm = stored.viewingDistanceMm;
+      state.dvaPerPixel = degPerPixel(state.mmPerPixel, state.viewingDistanceMm);
+      state.ready = true;
+      setStatus(status, 'Saved calibration: ready.', 'success');
+      enableStart(startButton, true);
+      readyListeners.forEach(cb => { try { cb(); } catch {} });
+      dispatchUpdated();
+    } else {
+      state.ready = false;
+      enableStart(startButton, false);
+      setStatus(status, 'Calibration required before the experiment can begin.', 'info');
+    }
+
+    // Interactions
+    if (select) {
+      select.addEventListener('change', () => {
+        const cur = currentEntry(DEFAULT_ENTRIES, select.value);
+        populateTargetInfo(target, cur);
+        setShapeFromEntry(shape, slider, cur);
+        state._dirty = true;
+        state.objectId = cur.id;
+        state.objectLabel = cur.label;
+        enableStart(startButton, false);
+        setStatus(status, 'Adjust the shape and save calibration.', 'info');
       });
     }
 
-    updateStartButtonAvailability();
-    updateCalibrationShapeFromSlider();
-    const message = describeCalibrationMessage(reference, { silent });
-    showCalibrationStatus(message, 'success');
-
-    const detail = {
-      mmPerPixel: calibrationState.mmPerPixel,
-      viewingDistanceMm: calibrationState.viewingDistanceMm,
-      dvaPerPixel: calibrationState.dvaPerPixel,
-      objectId: calibrationState.objectId,
-      pixelSize: calibrationState.pixelSize,
-      timestamp: calibrationState.timestamp
-    };
-    window.visualCalibration = detail;
-    window.dispatchEvent(new CustomEvent('visual-calibration-ready', { detail }));
-    readyListeners.forEach(listener => {
-      try {
-        listener(detail);
-      } catch (error) {
-        console.error('Calibration listener failed', error);
-      }
-    });
-    return reference;
-  } catch (error) {
-    console.error('Calibration validation failed', error);
-    calibrationState.ready = false;
-    calibrationState.reference = null;
-    calibrationState.dvaPerPixel = null;
-    if (!silent) {
-      showCalibrationStatus('Calibration could not be saved. Please review the inputs.', 'error');
-    }
-    updateStartButtonAvailability();
-    return null;
-  }
-}
-
-function getCalibrationObjectById(id) {
-  if (!calibrationObjects || calibrationObjects.length === 0) {
-    return null;
-  }
-  if (!id) {
-    return calibrationObjects[0] || null;
-  }
-  return (
-    calibrationObjects.find(obj => obj.id === id) ||
-    calibrationObjects.find(obj => Array.isArray(obj.legacyIds) && obj.legacyIds.includes(id)) ||
-    calibrationObjects[0] ||
-    null
-  );
-}
-
-function getSelectedCalibrationObject() {
-  const select = calibrationElements.objectSelect;
-  if (!select) return null;
-  return getCalibrationObjectById(select.value);
-}
-
-function applyCalibrationToUI(data) {
-  const obj = data?.objectId ? getCalibrationObjectById(data.objectId) : getSelectedCalibrationObject();
-  suppressCalibrationUpdates = true;
-  try {
-    if (obj && calibrationElements.objectSelect) {
-      calibrationElements.objectSelect.value = obj.id;
-    }
-    updateCalibrationTargetInfo();
-
-    if (calibrationElements.slider && Number.isFinite(data?.pixelSize)) {
-      const slider = calibrationElements.slider;
-      const value = Math.max(slider.min ? Number(slider.min) : 40, Math.min(Number(slider.max) || 400, data.pixelSize));
-      slider.value = String(value);
-    }
-
-    if (calibrationElements.viewingDistance && Number.isFinite(data?.viewingDistanceMm)) {
-      const cm = data.viewingDistanceMm / 10;
-      calibrationElements.viewingDistance.value = cm % 1 === 0 ? String(cm.toFixed(0)) : String(cm.toFixed(1));
-    }
-
-    updateCalibrationShapeFromSlider();
-  } finally {
-    suppressCalibrationUpdates = false;
-  }
-}
-
-function updateCalibrationSliderRange() {
-  const slider = calibrationElements.slider;
-  if (!slider) return;
-  const screenMin = Math.min(window.innerWidth, window.innerHeight);
-  const max = Math.max(60, Math.round(screenMin * 0.4));
-  slider.min = '20';
-  slider.max = String(max);
-  if (Number(slider.value) > max) {
-    slider.value = String(Math.round(max * 0.8));
-  }
-}
-
-function loadStoredCalibration() {
-  if (typeof localStorage === 'undefined') return null;
-  const keys = new Set([options.storageKey, ...(options.legacyStorageKeys || [])]);
-  for (const key of keys) {
-    try {
-      const stored = localStorage.getItem(key);
-      if (!stored) continue;
-      const parsed = JSON.parse(stored);
-      if (parsed && Number.isFinite(parsed.mmPerPixel) && Number.isFinite(parsed.viewingDistanceMm)) {
-        applyCalibrationToUI(parsed);
-        setCalibrationState(parsed, { persist: key === options.storageKey, silent: true });
-        return parsed;
-      }
-    } catch (error) {
-      console.warn('Ignoring stored calibration entry', error);
-    }
-  }
-  return null;
-}
-
-function handleCalibrationAdjustment(message) {
-  if (suppressCalibrationUpdates) return;
-  calibrationDirty = true;
-  window.visualCalibration = null;
-  window.dispatchEvent(new CustomEvent('visual-calibration-cleared'));
-  showCalibrationStatus(message, 'warning');
-  updateStartButtonAvailability();
-}
-
-function onCalibrationTouchStart(event) {
-  if (!calibrationElements.display) return;
-  if (event.touches && event.touches.length === 2) {
-    event.preventDefault();
-    calibrationElements.display.dataset.pinching = 'true';
-    const [a, b] = event.touches;
-    const dx = b.clientX - a.clientX;
-    const dy = b.clientY - a.clientY;
-    calibrationElements.display.dataset.pinchDistance = String(Math.hypot(dx, dy));
-  }
-}
-
-function onCalibrationTouchMove(event) {
-  if (!calibrationElements.display) return;
-  if (event.touches && event.touches.length === 2 && calibrationElements.display.dataset.pinching === 'true') {
-    event.preventDefault();
-    const [a, b] = event.touches;
-    const dx = b.clientX - a.clientX;
-    const dy = b.clientY - a.clientY;
-    const current = Math.hypot(dx, dy);
-    const initial = Number(calibrationElements.display.dataset.pinchDistance) || current;
-    const ratio = current / initial;
-    const slider = calibrationElements.slider;
     if (slider) {
-      const currentValue = Number(slider.value) || 0;
-      const newValue = Math.min(Number(slider.max) || 400, Math.max(Number(slider.min) || 20, currentValue * ratio));
-      suppressCalibrationUpdates = true;
-      slider.value = String(newValue);
-      updateCalibrationShapeFromSlider();
-      suppressCalibrationUpdates = false;
-      handleCalibrationAdjustment('Calibration changed. Save again to update the conversion.');
+      slider.addEventListener('input', () => {
+        const cur = currentEntry(DEFAULT_ENTRIES, select?.value || defaultObjectId);
+        setShapeFromEntry(shape, slider, cur);
+        updateSizeReadout(readout, slider);
+        state._dirty = true;
+        enableStart(startButton, false);
+        setStatus(status, 'Adjust the shape and save calibration.', 'info');
+      });
     }
-    calibrationElements.display.dataset.pinchDistance = String(current);
-  }
-}
 
-function onCalibrationTouchEnd() {
-  if (!calibrationElements.display) return;
-  calibrationElements.display.dataset.pinching = 'false';
-  calibrationElements.display.dataset.pinchDistance = '';
-}
-
-async function loadCalibrationObjectOptions() {
-  const select = calibrationElements.objectSelect;
-  if (!select) {
-    calibrationObjects = [];
-    return calibrationObjects;
-  }
-  const previousSelection = select.value;
-  select.disabled = true;
-
-  let entries = [];
-  try {
-    const response = await fetch(options.referenceDataUrl, { cache: 'no-store' });
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`);
+    // Optional: pinch/zoom on the display (simple wheel integration)
+    if (display && slider) {
+      display.addEventListener('wheel', (ev) => {
+        ev.preventDefault();
+        const step = (Number(slider.max || 400) - Number(slider.min || 40)) / 30;
+        const dir = ev.deltaY < 0 ? 1 : -1;
+        const next = clamp(Number(slider.value) + dir * step, Number(slider.min || 40), Number(slider.max || 400));
+        slider.value = String(Math.round(next));
+        slider.dispatchEvent(new Event('input', { bubbles: true }));
+      }, { passive: false });
     }
-    const xmlText = await response.text();
-    entries = extractEntriesFromSheet(xmlText);
-    if (!entries.some(entry => entry && entry.type === 'object')) {
-      throw new Error('No measurable reference objects found in the spreadsheet.');
-    }
-  } catch (error) {
-    console.warn('Falling back to bundled reference object list for calibration.', error);
-    entries = FALLBACK_CALIBRATION_ENTRIES;
-  }
 
-  const objects = applyCalibrationEntries(entries);
-  calibrationObjects = objects;
+    if (confirm) {
+      confirm.addEventListener('click', () => {
+        const cur = currentEntry(DEFAULT_ENTRIES, select?.value || defaultObjectId);
+        const px = Number(slider?.value || 200);
+        const vdCm = Number(vdInput?.value || 0);
+        const vdMm = vdCm > 0 ? vdCm * 10 : null;
 
-  if (objects.length) {
-    const preferred =
-      objects.find(obj => obj.id === previousSelection) ||
-      objects.find(obj => Array.isArray(obj.legacyIds) && obj.legacyIds.includes(previousSelection));
-    const defaultId = options.defaultObjectId;
-    const defaultObject = defaultId ? objects.find(obj => obj.id === defaultId) : null;
-    const selected = preferred || defaultObject || objects[0];
-    select.value = selected.id;
-  } else {
-    const placeholder = document.createElement('option');
-    placeholder.value = '';
-    placeholder.textContent = 'No reference objects available';
-    select.appendChild(placeholder);
-  }
+        if (!vdMm) {
+          setStatus(status, 'Please enter your viewing distance in cm.', 'error');
+          enableStart(startButton, false);
+          return;
+        }
 
-  select.disabled = objects.length === 0;
-  updateCalibrationTargetInfo();
-  updateCalibrationShapeFromSlider();
+        let mm;
+        if (cur.diameter_mm) {
+          mm = cur.diameter_mm;
+        } else {
+          mm = cur.width_mm; // We match width for rectangular object
+        }
+        const mpp = mm / px;
 
-  return objects;
-}
+        state.objectId = cur.id;
+        state.objectLabel = cur.label;
+        state.mmPerPixel = mpp;
+        state.viewingDistanceMm = vdMm;
+        state.dvaPerPixel = degPerPixel(mpp, vdMm);
+        state.ready = true;
+        state._dirty = false;
 
-function initializeCalibration() {
-  updateCalibrationSliderRange();
-  updateCalibrationTargetInfo();
-  updateCalibrationShapeFromSlider();
-  loadStoredCalibration();
-}
-
-function bindCalibrationEvents() {
-  if (calibrationElements.objectSelect) {
-    calibrationElements.objectSelect.addEventListener('change', () => {
-      updateCalibrationTargetInfo();
-      if (!suppressCalibrationUpdates) {
-        handleCalibrationAdjustment('Reference object changed. Save the calibration again.');
-      }
-    });
-  }
-
-  if (calibrationElements.slider) {
-    calibrationElements.slider.addEventListener('input', () => {
-      updateCalibrationShapeFromSlider();
-      if (!suppressCalibrationUpdates) {
-        handleCalibrationAdjustment('Calibration changed. Save again to update the conversion.');
-      }
-    });
-  }
-
-  if (calibrationElements.viewingDistance) {
-    calibrationElements.viewingDistance.addEventListener('input', () => {
-      if (!suppressCalibrationUpdates) {
-        handleCalibrationAdjustment('Viewing distance changed. Save the calibration to continue.');
-      }
-    });
-  }
-
-  if (calibrationElements.display) {
-    calibrationElements.display.addEventListener('touchstart', onCalibrationTouchStart, { passive: false });
-    calibrationElements.display.addEventListener('touchmove', onCalibrationTouchMove, { passive: false });
-    calibrationElements.display.addEventListener('touchend', onCalibrationTouchEnd);
-    calibrationElements.display.addEventListener('touchcancel', onCalibrationTouchEnd);
-  }
-
-  if (calibrationElements.confirm) {
-    calibrationElements.confirm.addEventListener('click', () => {
-      const select = calibrationElements.objectSelect;
-      const obj = getSelectedCalibrationObject();
-      const shape = calibrationElements.shape;
-      const slider = calibrationElements.slider;
-      const distanceInput = calibrationElements.viewingDistance;
-
-      if (!select || !obj) {
-        showCalibrationStatus('Select a reference object to calibrate.', 'error');
-        return;
-      }
-
-      if (!shape || !slider) {
-        showCalibrationStatus('Resize the on-screen shape to match your object before saving.', 'error');
-        return;
-      }
-
-      const pixelSize = Number(slider.value) || 0;
-      if (!Number.isFinite(pixelSize) || pixelSize <= 0) {
-        showCalibrationStatus('Resize the on-screen shape to match your object before saving.', 'error');
-        return;
-      }
-
-      if (!Number.isFinite(obj.widthReferenceMm)) {
-        showCalibrationStatus('The selected reference object is missing dimension information.', 'error');
-        return;
-      }
-
-      if (!distanceInput) {
-        showCalibrationStatus('Enter your viewing distance in centimetres before saving.', 'error');
-        return;
-      }
-
-      const distanceCm = Number(distanceInput.value);
-      if (!Number.isFinite(distanceCm) || distanceCm <= 0) {
-        showCalibrationStatus('Enter your viewing distance in centimetres before saving.', 'error');
-        return;
-      }
-
-      const mmPerPixel = obj.widthReferenceMm / pixelSize;
-      const viewingDistanceMm = distanceCm * 10;
-
-      const result = setCalibrationState(
-        {
-          mmPerPixel,
-          viewingDistanceMm,
-          objectId: obj.id,
-          pixelSize,
-          timestamp: Date.now()
-        },
-        { persist: true, silent: false }
-      );
-
-      if (result) {
-        calibrationDirty = false;
-        showCalibrationStatus(describeCalibrationMessage(result, { silent: false }), 'success');
-      }
-    });
-  }
-}
-
-async function init(userOptions = {}) {
-  if (initPromise) {
-    return initPromise;
-  }
-  initPromise = (async () => {
-    options = { ...DEFAULT_OPTIONS, ...userOptions };
-    startButtonElement = options.startButton || null;
-    assignCalibrationElements(options.elements || {});
-    updateStartButtonAvailability();
-
-    await loadCalibrationObjectOptions();
-    initializeCalibration();
-    bindCalibrationEvents();
-    return calibrationState;
-  })();
-
-  return initPromise;
-}
-
-function getReference() {
-  return getVisualReference();
-}
-
-function getState() {
-  return calibrationState;
-}
-
-function onReady(listener) {
-  if (typeof listener === 'function') {
-    readyListeners.add(listener);
-    if (calibrationState.ready) {
-      try {
-        listener({
-          mmPerPixel: calibrationState.mmPerPixel,
-          viewingDistanceMm: calibrationState.viewingDistanceMm,
-          dvaPerPixel: calibrationState.dvaPerPixel,
-          objectId: calibrationState.objectId,
-          pixelSize: calibrationState.pixelSize,
-          timestamp: calibrationState.timestamp
+        saveToStorage(storageKey, {
+          objectId: state.objectId,
+          mmPerPixel: state.mmPerPixel,
+          viewingDistanceMm: state.viewingDistanceMm
         });
-      } catch (error) {
-        console.error('Calibration listener failed', error);
+
+        setStatus(status, `Saved calibration: ${cur.label} @ ${px}px → ${mpp.toFixed(3)} mm/px; distance ${vdCm} cm.`, 'success');
+        enableStart(startButton, true);
+
+        // Notify listeners now that we're ready/updated
+        readyListeners.forEach(cb => { try { cb(); } catch {} });
+        dispatchUpdated();
+      });
+    }
+
+    return true;
+  }
+
+  function onReady(cb) {
+    if (typeof cb === 'function') {
+      readyListeners.add(cb);
+      if (state.ready) {
+        try { cb(); } catch {}
       }
     }
   }
-  return () => readyListeners.delete(listener);
-}
 
-function requireReady() {
-  if (calibrationState.ready) {
-    return Promise.resolve(calibrationState.reference);
+  function clear() {
+    try {
+      localStorage.removeItem(state._storageKey || 'visual-calibration');
+    } catch {}
+    state.ready = false;
+    state.mmPerPixel = null;
+    state.viewingDistanceMm = null;
+    state.dvaPerPixel = null;
+    dispatchCleared();
   }
-  return new Promise(resolve => {
-    const off = onReady(() => {
-      off();
-      resolve(calibrationState.reference);
-    });
-  });
-}
 
-const CalibrationAPI = {
-  init,
-  getReference,
-  getState,
-  requireReady,
-  onReady
-};
+  function getReference() {
+    if (!state.ready) return null;
+    return {
+      mmPerPixel: state.mmPerPixel,
+      viewingDistanceMm: state.viewingDistanceMm,
+      dvaPerPixel: state.dvaPerPixel
+    };
+  }
 
-if (typeof window !== 'undefined') {
-  window.Calibration = CalibrationAPI;
-}
+  function getState() {
+    // Return live reference (the HTML keeps a reference to this object)
+    return state;
+  }
 
-export { init, getReference, getState, requireReady, onReady };
-export default CalibrationAPI;
+  // Expose globally for pages that call Calibration.*
+  const Calibration = { init, getState, getReference, onReady, clear };
+  window.Calibration = Calibration;
+
+  // Also export (module semantic)
+  export { init, getState, getReference, onReady, clear };
+})();
+</script>
