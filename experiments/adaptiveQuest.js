@@ -22,8 +22,7 @@ function inRange(x,[lo,hi]){ return x>=lo && x<hi; }
 function linspace(a,b,n){ const s=(b-a)/(n-1); return Array.from({length:n},(_,i)=>a+i*s); }
 
 // --- per-dimension stimulus & parameter grids ---
-const thetaDeltaGrid  = linspace( 4, 72, 35);   // degrees of polar angle
-const radiusDeltaGrid = linspace( 6, 60, 28);   // pixels of radius change
+const magnitudeGridDva = linspace(0.05, 2.50, 40); // dva magnitude of offset vector
 const betaGrid        = [2,3,4,5];              // slope
 const lambdaGrid      = [0.01,0.02];            // lapse
 const guessRate       = 0.00;                    // go/nogo, γ≈0
@@ -42,8 +41,8 @@ function alphaPriorOnGrid(alphaGrid, soaIdx, eccIdx, angIdx, base, kSOA=0.20, kE
   return pdf.map(p=>p/Z);
 }
 
-// Engines indexed by [dim][soa][ecc][ang] where dim ∈ {"theta","radius"}
-const engines = { theta: [], radius: [] };
+// Engines indexed by [soa][ecc][ang]
+let engines = [];
 
 function makeEngineForCell(alphaGrid){
   // jsQuestPlus constructor signature in your codebase:
@@ -62,38 +61,15 @@ function makeEngineForCell(alphaGrid){
 }
 
 function initAdaptiveQuest() {
-  // Build theta engines (degrees) with smaller base threshold
-  const thetaAlphaGrid = thetaDeltaGrid.slice();
-  const newThetaEngine = makeEngineForCell(thetaAlphaGrid);
+  const magnitudeAlphaGrid = magnitudeGridDva.slice();
+  const newEngine = makeEngineForCell(magnitudeAlphaGrid);
 
-  engines.theta = SOA_BINS.map((_, i) =>
+  engines = SOA_BINS.map((_, i) =>
     ECC_BINS.map((_, j) =>
       ANG_GROUPS.map((_, k) => {
-        const e = newThetaEngine();
-        e._alphaGrid = thetaAlphaGrid;
-        e._priorAlpha = alphaPriorOnGrid(thetaAlphaGrid, i, j, k, /*base*/8); // deg
-        e._priorBeta  = Array(betaGrid.length).fill(1/betaGrid.length);
-        e._priorLam   = Array(lambdaGrid.length).fill(1/lambdaGrid.length);
-        e._setPrior = function(){
-          // jsQuestPlus in this repo doesn’t expose a direct prior setter;
-          // but it uses uniform priors implicitly; we bias via getEstimates/targeting; if you
-          // expose a way to set priors, call it here. Otherwise, keep as uniform and rely on targeting.
-        };
-        return e;
-      })
-    )
-  );
-
-  // Build radius engines (pixels) with a slightly higher base threshold
-  const radiusAlphaGrid = radiusDeltaGrid.slice();
-  const newRadiusEngine = makeEngineForCell(radiusAlphaGrid);
-
-  engines.radius = SOA_BINS.map((_, i) =>
-    ECC_BINS.map((_, j) =>
-      ANG_GROUPS.map((_, k) => {
-        const e = newRadiusEngine();
-        e._alphaGrid = radiusAlphaGrid;
-        e._priorAlpha = alphaPriorOnGrid(radiusAlphaGrid, i, j, k, /*base*/10); // px
+        const e = newEngine();
+        e._alphaGrid = magnitudeAlphaGrid;
+        e._priorAlpha = alphaPriorOnGrid(magnitudeAlphaGrid, i, j, k, /*base*/0.6); // dva
         e._priorBeta  = Array(betaGrid.length).fill(1/betaGrid.length);
         e._priorLam   = Array(lambdaGrid.length).fill(1/lambdaGrid.length);
         e._setPrior = function(){};
@@ -111,22 +87,21 @@ function contextToIndices({ soaMs, eccPx, thetaRad }){
 }
 
 // Choose Δ targeted near current 70% correct for that context
-function suggestDeltaForContext({ changeType, soaMs, eccPx, thetaRad }, target=0.70){
+function suggestDeltaForContext({ soaMs, eccPx, thetaRad }, target=0.70){
   const { soaIdx, eccIdx, angIdx } = contextToIndices({soaMs, eccPx, thetaRad});
   if (soaIdx<0 || eccIdx<0 || angIdx<0) {
     // Fallback if out of bins
-    return changeType === 'theta' ? 12 : 12;
+    return 0.6;
   }
-  const eng = engines[changeType][soaIdx][eccIdx][angIdx];
+  const eng = engines[soaIdx][eccIdx][angIdx];
 
   // Start from engine's current proposal
   let chosen = eng.getStimParams();
   try {
     const est = eng.getEstimates('mode');         // [alpha, beta, guess, lapse]
     if (Array.isArray(est) && est.length >= 4) {
-      const grid = changeType === 'theta' ? thetaDeltaGrid : radiusDeltaGrid;
       let best = chosen, bestDiff = Infinity;
-      for (const v of grid) {
+      for (const v of magnitudeGridDva) {
         const p = pWeibull(v, est[0], est[1], est[2], est[3]);
         const d = Math.abs(p - target);
         if (d < bestDiff) { bestDiff = d; best = v; }
@@ -137,10 +112,10 @@ function suggestDeltaForContext({ changeType, soaMs, eccPx, thetaRad }, target=0
   return chosen;
 }
 
-function updateQuestWithOutcome({ changeType, soaMs, eccPx, thetaRad }, delta, responded){
+function updateQuestWithOutcome({ soaMs, eccPx, thetaRad }, delta, responded){
   const { soaIdx, eccIdx, angIdx } = contextToIndices({soaMs, eccPx, thetaRad});
   if (soaIdx<0 || eccIdx<0 || angIdx<0) return;
-  const eng = engines[changeType][soaIdx][eccIdx][angIdx];
+  const eng = engines[soaIdx][eccIdx][angIdx];
   try {
     eng.update(delta, responded ? 1 : 0);
   } catch(e) {
@@ -151,14 +126,12 @@ function updateQuestWithOutcome({ changeType, soaMs, eccPx, thetaRad }, delta, r
 // Optional: expose state export
 function exportPosteriors(){
   const out = [];
-  for (const dim of ['theta','radius']) {
-    engines[dim].forEach((rows,i)=>rows.forEach((cols,j)=>cols.forEach((e,k)=>{
-      try {
-        const est = e.getEstimates('mean');
-        out.push({ dim, i, j, k, alpha: est?.[0], beta: est?.[1] });
-      } catch {}
-    })));
-  }
+  engines.forEach((rows,i)=>rows.forEach((cols,j)=>cols.forEach((e,k)=>{
+    try {
+      const est = e.getEstimates('mean');
+      out.push({ dim: 'vector', i, j, k, alpha: est?.[0], beta: est?.[1] });
+    } catch {}
+  })));
   return out;
 }
 

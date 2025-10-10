@@ -500,6 +500,7 @@
     function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
     function setStatus(msg, state='info') { if (!statusEl) return; statusEl.textContent = msg; statusEl.dataset.state = state; }
     const degToRad = deg => (deg * Math.PI) / 180;
+    const radToDeg = rad => (rad * 180) / Math.PI;
     const wrapAngle = t => ((t % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
     function polarToCartesian(cx, cy, r, th) { return { x: cx + r*Math.cos(th), y: cy + r*Math.sin(th) }; }
 
@@ -532,7 +533,7 @@
              After a random blank interval (100–1500&nbsp;ms) the dot reappears for comparison.
           </p>
           <p>On most trials the dot is identical (<strong>no-go</strong>). About one third of the time
-             it shifts slightly in angle or radius (<strong>go</strong> trials). Each flash lasts
+             it reappears with a small random offset (<strong>go</strong> trials). Each flash lasts
              about ${FIRST_STIM_DURATION}&nbsp;ms and shares the same ${DOT_DIAMETER}&nbsp;px diameter${dotInfo}.
              Targets are sampled uniformly within a ${MAX_TARGET_ECCENTRICITY_DVA.toFixed(1)}° radius when calibrated.
           </p>
@@ -601,15 +602,17 @@
             isNoGo, isGo: !isNoGo,
             isi: jsPsych.randomization.randomInt(100, 1500),
             changeType: 'none',
-            questStimValue: null, questContext: null,
-            deltaTheta: 0, deltaRadius: 0, deltaDiameter: 0,
+            questStimValue: null, questRequestedValue: null, questContext: null,
+            questRequestedMagnitudePx: null, questPresentedMagnitudePx: null,
+            deltaVectorAngle: null, deltaVectorAngleDeg: null,
+            deltaVectorMagnitudePx: 0, deltaVectorMagnitudeDva: null,
+            deltaVectorDX: 0, deltaVectorDY: 0,
             holdStartedAt: lastHoldStartTime,
             visualReference: reference || null,
             mmPerPixel: reference?.mmPerPixel ?? null,
             viewingDistanceMm: reference?.viewingDistanceMm ?? null,
             baseRadiusDva: null, secondRadiusDva: null,
             baseDiameterDva: null, secondDiameterDva: null,
-            deltaRadiusDva: null, deltaDiameterDva: null,
             dotColor: null, maxRadiusPx: null, maxRadiusDva: null
           };
 
@@ -636,33 +639,104 @@
           trialState.maxRadiusPx = radiusLimit;
 
           const baseDiameter = DOT_DIAMETER;
-          let secondTheta = baseTheta, secondRadius = baseRadius, secondDiameter = DOT_DIAMETER;
+          const firstCoords = polarToCartesian(stageCenter, stageCenter, baseRadius, baseTheta);
+          let secondTheta = baseTheta;
+          let secondRadius = baseRadius;
+          let secondDiameter = DOT_DIAMETER;
+          let secondX = firstCoords.x;
+          let secondY = firstCoords.y;
 
           if (trialState.isGo) {
-            const selected = jsPsych.randomization.sampleWithoutReplacement(['theta', 'radius'], 1)[0];
-            trialState.changeType = selected;
+            trialState.changeType = 'vector';
 
-            const eccDva = reference && typeof VisualAngle !== 'undefined'
+            const eccDva = referenceReady && reference && typeof VisualAngle !== 'undefined'
               ? VisualAngle.pixelsToDVA(baseRadius, reference) : null;
 
-            const ctx = { changeType: selected, soaMs: trialState.isi, eccPx: baseRadius, eccDva, thetaRad: baseTheta };
+            const ctx = { soaMs: trialState.isi, eccPx: baseRadius, eccDva, thetaRad: baseTheta };
             const stim = suggestDeltaForContext(ctx);
-            trialState.questStimValue = stim;
+            const magnitudeDva = Number.isFinite(stim) && stim > 0 ? stim : 0;
+            trialState.questRequestedValue = magnitudeDva;
+            trialState.questStimValue = magnitudeDva;
             trialState.questContext = ctx;
 
-            if (selected === 'theta') {
-              trialState.deltaTheta = stim;
-              const dir = jsPsych.randomization.sampleWithoutReplacement([-1, 1], 1)[0];
-              secondTheta = wrapAngle(baseTheta + dir * degToRad(stim));
-            } else {
-              trialState.deltaRadius = stim;
-              const dir = jsPsych.randomization.sampleWithoutReplacement([-1, 1], 1)[0];
-              secondRadius = clamp(baseRadius + dir * stim, 0, radiusLimit);
+            let magnitudePx = referenceReady && magnitudeDva > 0
+              ? VisualAngle.dvaToPixels(magnitudeDva, reference)
+              : (MAX_TARGET_ECCENTRICITY_DVA > 0 ? (magnitudeDva / MAX_TARGET_ECCENTRICITY_DVA) * radiusLimit : magnitudeDva);
+            if (!Number.isFinite(magnitudePx) || magnitudePx < 0) magnitudePx = 0;
+            trialState.questRequestedMagnitudePx = magnitudePx;
+
+            const fromCenterX = firstCoords.x - stageCenter;
+            const fromCenterY = firstCoords.y - stageCenter;
+            let angle = Math.random() * (2 * Math.PI);
+            let dx = 0;
+            let dy = 0;
+            let finalMagnitudePx = magnitudePx;
+            let success = false;
+
+            if (magnitudePx > 0) {
+              const maxAttempts = 48;
+              for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                angle = Math.random() * (2 * Math.PI);
+                dx = magnitudePx * Math.cos(angle);
+                dy = magnitudePx * Math.sin(angle);
+                const candidateRadius = Math.hypot(fromCenterX + dx, fromCenterY + dy);
+                if (candidateRadius <= radiusLimit) {
+                  secondRadius = candidateRadius;
+                  success = true;
+                  break;
+                }
+              }
+
+              if (!success) {
+                const baseDx = magnitudePx * Math.cos(angle);
+                const baseDy = magnitudePx * Math.sin(angle);
+                const a = baseDx * baseDx + baseDy * baseDy;
+                const b = 2 * (fromCenterX * baseDx + fromCenterY * baseDy);
+                const c = fromCenterX * fromCenterX + fromCenterY * fromCenterY - radiusLimit * radiusLimit;
+                let t = 0;
+                const disc = b * b - 4 * a * c;
+                if (a > 0 && disc >= 0) {
+                  const sqrtDisc = Math.sqrt(disc);
+                  const t1 = (-b + sqrtDisc) / (2 * a);
+                  const t2 = (-b - sqrtDisc) / (2 * a);
+                  const valid = [t1, t2].filter(v => v >= 0);
+                  if (valid.length) {
+                    t = Math.min(...valid, 1);
+                  }
+                }
+                t = Math.max(0, Math.min(1, t));
+                finalMagnitudePx = magnitudePx * t;
+                dx = finalMagnitudePx * Math.cos(angle);
+                dy = finalMagnitudePx * Math.sin(angle);
+                secondRadius = Math.hypot(fromCenterX + dx, fromCenterY + dy);
+              }
             }
+
+            secondX = firstCoords.x + dx;
+            secondY = firstCoords.y + dy;
+            trialState.deltaVectorAngle = angle;
+            trialState.deltaVectorAngleDeg = radToDeg(angle);
+            trialState.deltaVectorMagnitudePx = finalMagnitudePx;
+            trialState.deltaVectorDX = dx;
+            trialState.deltaVectorDY = dy;
+            trialState.deltaVectorMagnitudeDva = null;
+            trialState.questPresentedMagnitudePx = finalMagnitudePx;
+          } else {
+            trialState.deltaVectorAngle = null;
+            trialState.deltaVectorAngleDeg = null;
+            trialState.deltaVectorMagnitudePx = 0;
+            trialState.deltaVectorMagnitudeDva = 0;
+            trialState.deltaVectorDX = 0;
+            trialState.deltaVectorDY = 0;
+            trialState.questRequestedValue = null;
+            trialState.questStimValue = null;
+            trialState.questRequestedMagnitudePx = null;
+            trialState.questPresentedMagnitudePx = null;
           }
 
-          const firstCoords = polarToCartesian(stageCenter, stageCenter, baseRadius, baseTheta);
-          const secondCoords = polarToCartesian(stageCenter, stageCenter, secondRadius, secondTheta);
+          secondRadius = Math.hypot(secondX - stageCenter, secondY - stageCenter);
+          secondTheta = wrapAngle(Math.atan2(secondY - stageCenter, secondX - stageCenter));
+          const secondCoords = { x: secondX, y: secondY };
 
           Object.assign(trialState, {
             baseTheta, baseRadius, baseDiameter,
@@ -671,19 +745,42 @@
             secondX: secondCoords.x, secondY: secondCoords.y
           });
 
+          let deliveredMagnitudeDva = Number.isFinite(trialState.deltaVectorMagnitudeDva) ? trialState.deltaVectorMagnitudeDva : null;
           if (reference && typeof VisualAngle !== 'undefined') {
             try {
               trialState.baseRadiusDva   = VisualAngle.pixelsToDVA(baseRadius, reference);
               trialState.secondRadiusDva = VisualAngle.pixelsToDVA(secondRadius, reference);
               trialState.baseDiameterDva = VisualAngle.pixelsToDVA(baseDiameter, reference);
               trialState.secondDiameterDva = VisualAngle.pixelsToDVA(secondDiameter, reference);
-              trialState.deltaRadiusDva  = VisualAngle.pixelsToDVA(Math.abs(trialState.deltaRadius), reference);
-              trialState.deltaDiameterDva= VisualAngle.pixelsToDVA(Math.abs(trialState.deltaDiameter), reference);
+              if (Number.isFinite(trialState.deltaVectorMagnitudePx)) {
+                deliveredMagnitudeDva = VisualAngle.pixelsToDVA(Math.abs(trialState.deltaVectorMagnitudePx), reference);
+                trialState.deltaVectorMagnitudeDva = deliveredMagnitudeDva;
+              } else {
+                trialState.deltaVectorMagnitudeDva = null;
+                deliveredMagnitudeDva = null;
+              }
               trialState.maxRadiusDva    = VisualAngle.pixelsToDVA(trialState.maxRadiusPx, reference);
             } catch (e) {
               trialState.baseRadiusDva = trialState.secondRadiusDva = trialState.baseDiameterDva = trialState.secondDiameterDva = null;
-              trialState.deltaRadiusDva = trialState.deltaDiameterDva = trialState.maxRadiusDva = null;
+              trialState.deltaVectorMagnitudeDva = null;
+              trialState.maxRadiusDva = null;
+              deliveredMagnitudeDva = null;
             }
+          }
+          if (!Number.isFinite(deliveredMagnitudeDva) && Number.isFinite(trialState.questRequestedValue)) {
+            const requestedPx = trialState.questRequestedMagnitudePx;
+            const presentedPx = trialState.deltaVectorMagnitudePx;
+            if (Number.isFinite(requestedPx) && Number.isFinite(presentedPx) && requestedPx > 0) {
+              deliveredMagnitudeDva = trialState.questRequestedValue * (presentedPx / requestedPx);
+            } else {
+              deliveredMagnitudeDva = trialState.questRequestedValue;
+            }
+            trialState.deltaVectorMagnitudeDva = deliveredMagnitudeDva;
+          }
+          if (trialState.isGo) {
+            trialState.questStimValue = Number.isFinite(deliveredMagnitudeDva)
+              ? deliveredMagnitudeDva
+              : trialState.questRequestedValue;
           }
           if (trialState.questContext) {
             trialState.questContext.eccDva = trialState.baseRadiusDva;
@@ -776,15 +873,19 @@
           const ctrl = (typeof NoGoCtrl !== 'undefined') ? NoGoCtrl : null;
           if (ctrl && typeof ctrl.onTrialEnd === 'function') ctrl.onTrialEnd({ isNoGo: trialState.isNoGo === true, responded });
 
-          Object.assign(data, {
-            rt, response_source: source,
-            is_go: trialState.isGo, is_no_go: trialState.isNoGo,
-            change_type: trialState.changeType,
-            delta_theta: trialState.deltaTheta, delta_radius: trialState.deltaRadius, delta_diameter: trialState.deltaDiameter,
-            delta_radius_dva: trialState.deltaRadiusDva, delta_diameter_dva: trialState.deltaDiameterDva,
-            first_theta: trialState.baseTheta, first_radius: trialState.baseRadius, first_diameter: trialState.baseDiameter,
-            first_radius_dva: trialState.baseRadiusDva, first_diameter_dva: trialState.baseDiameterDva,
-            second_theta: trialState.secondTheta, second_radius: trialState.secondRadius, second_diameter: trialState.secondDiameter,
+            Object.assign(data, {
+              rt, response_source: source,
+              is_go: trialState.isGo, is_no_go: trialState.isNoGo,
+              change_type: trialState.changeType,
+              delta_vector_angle_rad: trialState.deltaVectorAngle,
+              delta_vector_angle_deg: trialState.deltaVectorAngleDeg,
+              delta_vector_magnitude_px: trialState.deltaVectorMagnitudePx,
+              delta_vector_magnitude_dva: trialState.deltaVectorMagnitudeDva,
+              delta_vector_dx: trialState.deltaVectorDX,
+              delta_vector_dy: trialState.deltaVectorDY,
+              first_theta: trialState.baseTheta, first_radius: trialState.baseRadius, first_diameter: trialState.baseDiameter,
+              first_radius_dva: trialState.baseRadiusDva, first_diameter_dva: trialState.baseDiameterDva,
+              second_theta: trialState.secondTheta, second_radius: trialState.secondRadius, second_diameter: trialState.secondDiameter,
             second_radius_dva: trialState.secondRadiusDva, second_diameter_dva: trialState.secondDiameterDva,
             second_onset: typeof trialState.secondStimOnset === 'number' ? trialState.secondStimOnset : null,
             dot_color: trialState.dotColor?.fill ?? null,
@@ -798,6 +899,9 @@
             go_success: trialState.isGo ? responded : null,
             correct: trialState.isGo ? responded : !responded,
             quest_value: trialState.questStimValue,
+            quest_requested_value: trialState.questRequestedValue,
+            quest_requested_magnitude_px: trialState.questRequestedMagnitudePx,
+            quest_presented_magnitude_px: trialState.questPresentedMagnitudePx,
             calibration_mm_per_pixel: trialState.mmPerPixel ?? (calibrationState.ready ? calibrationState.mmPerPixel : null),
             calibration_viewing_distance_mm: trialState.viewingDistanceMm ?? (calibrationState.ready ? calibrationState.viewingDistanceMm : null),
             calibration_dva_per_pixel: calibrationState.ready ? calibrationState.dvaPerPixel : null,
