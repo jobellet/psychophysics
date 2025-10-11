@@ -23,6 +23,7 @@ function linspace(a,b,n){ const s=(b-a)/(n-1); return Array.from({length:n},(_,i
 
 // --- per-dimension stimulus & parameter grids ---
 const magnitudeGridDva = linspace(0.05, 2.50, 40); // dva magnitude of offset vector
+const MIN_DELTA_DVA    = 0.1;                      // lower bound for suggested offsets
 const betaGrid        = [2,3,4,5];              // slope
 const lambdaGrid      = [0.01,0.02];            // lapse
 const guessRate       = 0.00;                    // go/nogo, γ≈0
@@ -102,6 +103,7 @@ function suggestDeltaForContext({ soaMs, eccPx, thetaRad }, target=0.70){
     if (Array.isArray(est) && est.length >= 4) {
       let best = chosen, bestDiff = Infinity;
       for (const v of magnitudeGridDva) {
+        if (v < MIN_DELTA_DVA) continue;
         const p = pWeibull(v, est[0], est[1], est[2], est[3]);
         const d = Math.abs(p - target);
         if (d < bestDiff) { bestDiff = d; best = v; }
@@ -109,7 +111,7 @@ function suggestDeltaForContext({ soaMs, eccPx, thetaRad }, target=0.70){
       chosen = best;
     }
   } catch(e){}
-  return chosen;
+  return Math.max(chosen, MIN_DELTA_DVA);
 }
 
 function updateQuestWithOutcome({ soaMs, eccPx, thetaRad }, delta, responded){
