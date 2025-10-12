@@ -2,15 +2,26 @@ export const TARGET_DIAMETER_DVA = 0.12;
 export const FIXATION_DIAMETER_DVA = 0.12;
 export const FLASH_DURATION_MS = 59;
 export const NO_RESPONSE_TIMEOUT_MS = 1500;
+export const POST_TRIAL_DELAY_MIN_MS = 750;
+export const POST_TRIAL_DELAY_MAX_MS = 1250;
 export const FIXATION_RELEASE_DELAY_MIN_MS = 0;
 export const FIXATION_RELEASE_DELAY_MAX_MS = 1400;
 export const TARGET_ONSET_DELAY_MIN_MS = 300;
 export const TARGET_ONSET_DELAY_MAX_MS = 500;
 export const POST_FIXATION_OFFSET_HOLD_MS = 2000;
 
+function wait(ms) {
+  return new Promise(resolve => window.setTimeout(resolve, ms));
+}
+
 function randomFixationReleaseDelay() {
   const range = FIXATION_RELEASE_DELAY_MAX_MS - FIXATION_RELEASE_DELAY_MIN_MS;
   return FIXATION_RELEASE_DELAY_MIN_MS + Math.random() * range;
+}
+
+function randomNextTrialDelay() {
+  const range = POST_TRIAL_DELAY_MAX_MS - POST_TRIAL_DELAY_MIN_MS;
+  return POST_TRIAL_DELAY_MIN_MS + Math.random() * range;
 }
 
 function randomTargetOnsetDelay() {
@@ -180,6 +191,7 @@ export function run({ reference, trialCount = 1000 } = {}) {
   let activeCleanup = null;
 
   const snappedFlashDuration = snapFlashDuration(FLASH_DURATION_MS);
+  let nextTrialEarliestStart = performance.now();
 
   function cleanupTrialTimers(timerHandles) {
     if (!timerHandles) return;
@@ -244,7 +256,10 @@ export function run({ reference, trialCount = 1000 } = {}) {
     let responseWindowOpen = false;
     let lastReleaseDelayMs = null;
     let releaseOpenedAt = null;
+    let firstReleaseOpenedAt = null;
+    let fixationOffsetAt = null;
     let prematureResponses = 0;
+    const nextTrialDelayMs = randomNextTrialDelay();
     const timerHandles = {
       initialFlashTimeout: null,
       flashTimeout: null,
@@ -263,6 +278,12 @@ export function run({ reference, trialCount = 1000 } = {}) {
       stage.removeEventListener('pointerdown', handlePointer);
       responseWindowOpen = false;
       releaseOpenedAt = null;
+      firstReleaseOpenedAt = null;
+      const readyAt = fixationOffsetAt !== null
+        ? fixationOffsetAt + nextTrialDelayMs
+        : performance.now() + nextTrialDelayMs;
+      nextTrialEarliestStart = Math.max(nextTrialEarliestStart, readyAt);
+      fixationOffsetAt = null;
       showFixation();
       resolveTrial(result);
     }
@@ -271,8 +292,9 @@ export function run({ reference, trialCount = 1000 } = {}) {
       if (!awaitingResponse) return;
       const responseTimestamp = performance.now();
       const rt = firstOnset !== null ? responseTimestamp - firstOnset : null;
-      const rtFromRelease = releaseOpenedAt !== null
-        ? Math.min(responseTimestamp - releaseOpenedAt, POST_FIXATION_OFFSET_HOLD_MS)
+      const referenceRelease = firstReleaseOpenedAt !== null ? firstReleaseOpenedAt : releaseOpenedAt;
+      const rtFromRelease = referenceRelease !== null
+        ? Math.min(responseTimestamp - referenceRelease, POST_FIXATION_OFFSET_HOLD_MS)
         : null;
 
       const result = {
@@ -297,6 +319,7 @@ export function run({ reference, trialCount = 1000 } = {}) {
         response_x_px: null,
         response_y_px: null,
         target_onset_delay_ms: firstOnset !== null ? firstOnset - fixationOnset : null,
+        post_offset_hold_target_ms: nextTrialDelayMs,
         mm_per_pixel: reference.mmPerPixel,
         viewing_distance_mm: reference.viewingDistanceMm,
         dva_per_pixel: dvaPerPixel,
@@ -325,10 +348,6 @@ export function run({ reference, trialCount = 1000 } = {}) {
         window.clearTimeout(timerHandles.releaseTimeout);
         timerHandles.releaseTimeout = null;
       }
-      if (timerHandles.responseTimeout) {
-        window.clearTimeout(timerHandles.responseTimeout);
-        timerHandles.responseTimeout = null;
-      }
       responseWindowOpen = false;
       releaseOpenedAt = null;
       showFixation();
@@ -346,11 +365,17 @@ export function run({ reference, trialCount = 1000 } = {}) {
         timerHandles.releaseTimeout = window.setTimeout(() => {
           responseWindowOpen = true;
           releaseOpenedAt = performance.now();
+          if (firstReleaseOpenedAt === null) {
+            firstReleaseOpenedAt = releaseOpenedAt;
+          }
+          fixationOffsetAt = releaseOpenedAt;
           concealFixation();
-          timerHandles.responseTimeout = window.setTimeout(() => {
-            timerHandles.responseTimeout = null;
-            handleNoResponse();
-          }, POST_FIXATION_OFFSET_HOLD_MS);
+          if (!timerHandles.responseTimeout) {
+            timerHandles.responseTimeout = window.setTimeout(() => {
+              timerHandles.responseTimeout = null;
+              handleNoResponse();
+            }, POST_FIXATION_OFFSET_HOLD_MS);
+          }
         }, releaseDelay);
       }, snappedFlashDuration);
 
@@ -429,6 +454,7 @@ export function run({ reference, trialCount = 1000 } = {}) {
         response_x_px: responseXPx,
         response_y_px: responseYPx,
         target_onset_delay_ms: firstOnset !== null ? firstOnset - fixationOnset : null,
+        post_offset_hold_target_ms: nextTrialDelayMs,
         mm_per_pixel: reference.mmPerPixel,
         viewing_distance_mm: reference.viewingDistanceMm,
         dva_per_pixel: dvaPerPixel,
@@ -467,6 +493,11 @@ export function run({ reference, trialCount = 1000 } = {}) {
       }
 
       for (let i = 0; i < trialCount; i += 1) {
+        if (stopRequested) break;
+        const now = performance.now();
+        if (nextTrialEarliestStart > now) {
+          await wait(nextTrialEarliestStart - now);
+        }
         if (stopRequested) break;
         updateHud(i, trialCount);
         const trialResult = await runTrial(i);
