@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Perceptual Localization (Delayed)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../jspsych/css/jspsych.css" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+        --bg: radial-gradient(circle at top, #0f172a 0%, #111827 60%, #020617 100%);
+        --card-bg: rgba(15, 23, 42, 0.9);
+        --accent: #38bdf8;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: clamp(16px, 4vw, 48px);
+        box-sizing: border-box;
+        gap: clamp(24px, 5vw, 40px);
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-weight: 600;
+        margin: 0;
+      }
+
+      p {
+        margin: 0;
+        line-height: 1.5;
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      .card {
+        width: min(92vw, 840px);
+        background: rgba(15, 23, 42, 0.75);
+        border-radius: clamp(24px, 4vw, 36px);
+        box-shadow: 0 30px 70px rgba(2, 6, 23, 0.55);
+        padding: clamp(24px, 6vw, 52px);
+        display: flex;
+        flex-direction: column;
+        gap: clamp(16px, 4vw, 28px);
+      }
+
+      .card section {
+        display: flex;
+        flex-direction: column;
+        gap: clamp(12px, 3vw, 20px);
+      }
+
+      #pre-experiment {
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at top, rgba(15, 23, 42, 0.96) 0%, rgba(2, 6, 23, 0.94) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(24px, 6vw, 72px);
+        overflow-y: auto;
+        z-index: 20;
+        transition: opacity 220ms ease;
+      }
+
+      #pre-experiment.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .calibration-section {
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: clamp(18px, 3.5vw, 28px);
+        padding: clamp(16px, 4vw, 28px);
+        background: rgba(15, 23, 42, 0.55);
+        display: flex;
+        flex-direction: column;
+        gap: clamp(12px, 3vw, 20px);
+      }
+
+      .calibration-display {
+        position: relative;
+        width: 100%;
+        min-height: clamp(160px, 45vw, 260px);
+        border-radius: clamp(16px, 4vw, 24px);
+        background: rgba(15, 23, 42, 0.72);
+        border: 1px dashed rgba(148, 163, 184, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        touch-action: none;
+      }
+
+      .calibration-instruction {
+        position: absolute;
+        top: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: clamp(0.75rem, 2.4vw, 0.9rem);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: rgba(148, 163, 184, 0.88);
+        pointer-events: none;
+      }
+
+      .calibration-shape {
+        position: relative;
+        border: 2px solid rgba(56, 189, 248, 0.85);
+        background: rgba(56, 189, 248, 0.12);
+        box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.35);
+        border-radius: clamp(8px, 2vw, 12px);
+        transition: width 0.12s ease, height 0.12s ease, border-radius 0.12s ease;
+      }
+
+      .calibration-shape.circle {
+        border-radius: 9999px;
+      }
+
+      .calibration-slider,
+      .calibration-controls {
+        display: flex;
+        flex-direction: column;
+        gap: clamp(8px, 2vw, 16px);
+      }
+
+      .calibration-controls {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .calibration-controls label {
+        font-size: clamp(0.95rem, 2.6vw, 1rem);
+        color: rgba(226, 232, 240, 0.92);
+      }
+
+      .calibration-controls select,
+      .calibration-controls input[type='number'] {
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: rgba(15, 23, 42, 0.75);
+        color: #f8fafc;
+        font-size: clamp(0.95rem, 2.6vw, 1rem);
+      }
+
+      .small-print {
+        font-size: clamp(0.85rem, 2.4vw, 0.95rem);
+        color: rgba(148, 163, 184, 0.9);
+      }
+
+      .calibration-target {
+        font-size: clamp(0.85rem, 2.4vw, 0.95rem);
+        color: rgba(148, 163, 184, 0.92);
+      }
+
+      .calibration-status {
+        font-size: clamp(0.85rem, 2.3vw, 0.95rem);
+        color: rgba(148, 163, 184, 0.88);
+        margin: 0;
+      }
+
+      .calibration-status[data-state='error'] {
+        color: #fca5a5;
+      }
+
+      .calibration-status[data-state='success'] {
+        color: #bbf7d0;
+      }
+
+      .calibration-status[data-state='warning'] {
+        color: #fbbf24;
+      }
+
+      #experiment-stage {
+        position: relative;
+        width: min(68vw, 68vh);
+        height: min(68vw, 68vh);
+        max-width: 620px;
+        max-height: 620px;
+        min-width: 260px;
+        min-height: 260px;
+        border-radius: 24px;
+        background: radial-gradient(circle at center, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.92) 100%);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        touch-action: none;
+        user-select: none;
+        overflow: hidden;
+      }
+
+      #experiment-stage::after {
+        content: '';
+        position: absolute;
+        inset: clamp(18px, 4vw, 28px);
+        border: 1px dashed rgba(148, 163, 184, 0.18);
+        border-radius: 20px;
+        pointer-events: none;
+      }
+
+      .fixation,
+      .flash-target {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        border-radius: 9999px;
+        pointer-events: none;
+      }
+
+      .fixation {
+        background: #f8fafc;
+        box-shadow: 0 0 8px rgba(248, 250, 252, 0.6);
+        opacity: 1;
+        transition: opacity 140ms ease;
+      }
+
+      .fixation.hidden {
+        opacity: 0;
+      }
+
+      .flash-target {
+        background: #38bdf8;
+        box-shadow: 0 0 18px rgba(56, 189, 248, 0.7);
+        opacity: 0;
+        transition: opacity 30ms ease;
+      }
+
+      .flash-target.visible {
+        opacity: 1;
+      }
+
+      .hud {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+
+      .hud span {
+        font-size: clamp(0.9rem, 2.4vw, 1rem);
+        color: rgba(226, 232, 240, 0.88);
+      }
+
+      .jspsych-btn,
+      .control-button {
+        background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+        color: #0f172a;
+        border: none;
+        border-radius: 9999px;
+        padding: 12px 24px;
+        font-size: clamp(1rem, 2.8vw, 1.1rem);
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+      }
+
+      .jspsych-btn[disabled],
+      .control-button[disabled] {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      #stop-session {
+        background: linear-gradient(135deg, #f97316, #f43f5e);
+        color: #0b1120;
+      }
+
+      #download-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+        text-align: center;
+      }
+
+      #download-panel[hidden] {
+        display: none;
+      }
+
+      #download-panel button {
+        width: min(260px, 72vw);
+      }
+
+      @media (max-width: 640px) {
+        .card {
+          padding: clamp(20px, 5vw, 32px);
+        }
+
+        #experiment-stage {
+          width: min(82vw, 82vh);
+          height: min(82vw, 82vh);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="pre-experiment">
+      <div class="card">
+        <section>
+          <h1>Perceptual Localization (Delayed)</h1>
+          <p>
+            Maintain fixation on the center point. A brief flash will appear within a 5° radius disk (with a
+            0.3° central veto). Wait for the fixation point to disappear (0–1.4 s after the flash) before tapping or
+            clicking at the perceived flash location. Responding early plays a warning tone, and if you do not respond
+            within 1.5 s the flash will reappear at the same spot.
+          </p>
+        </section>
+
+        <section id="calibration-section" class="calibration-section">
+          <h2>Calibrate your display</h2>
+          <p class="small-print">
+            Resize the shape to match a real object, then enter your viewing distance. This calibration will be used
+            to convert between degrees and pixels.
+          </p>
+          <div class="calibration-controls">
+            <label for="calibration-object">Reference object</label>
+            <select id="calibration-object" disabled></select>
+            <div class="calibration-target" id="calibration-target-info"></div>
+          </div>
+          <div class="calibration-display" id="calibration-display">
+            <div class="calibration-instruction">Pinch to zoom or use the slider</div>
+            <div class="calibration-shape" id="calibration-shape"></div>
+          </div>
+          <div class="calibration-slider">
+            <input type="range" id="calibration-slider" min="40" max="400" value="200" />
+            <span id="calibration-size-readout"></span>
+          </div>
+          <div class="calibration-controls">
+            <label for="viewing-distance">Viewing distance</label>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <input type="number" id="viewing-distance" min="10" max="200" step="0.5" placeholder="40" />
+              <span style="color:rgba(148,163,184,0.9); font-size:0.95em;">cm</span>
+            </div>
+          </div>
+          <button id="calibration-confirm" class="jspsych-btn secondary" type="button">Save calibration</button>
+          <p id="calibration-status" class="calibration-status" data-state="info">
+            Calibration required before the experiment can begin.
+          </p>
+        </section>
+
+        <div style="display:flex; justify-content:center;">
+          <button id="start-experiment" class="jspsych-btn" disabled>Calibrate to start</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="hud">
+      <span id="hud-trial">Waiting to start…</span>
+      <span id="hud-calibration"></span>
+    </div>
+
+    <div id="experiment-stage">
+      <div class="fixation" id="fixation"></div>
+      <div class="flash-target" id="flash-target"></div>
+    </div>
+
+    <button id="stop-session" class="control-button" disabled>Stop &amp; Download</button>
+
+    <div id="download-panel" hidden>
+      <p id="download-count">No data collected yet.</p>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+        <button id="download-csv" class="control-button" disabled>Download CSV</button>
+        <button id="download-json" class="control-button" disabled>Download JSON</button>
+      </div>
+    </div>
+
+    <script src="../jspsych/dist/jspsych.js"></script>
+    <script src="../jspsych/plugins/html-keyboard-response.js"></script>
+    <script src="../jspsych/plugins/html-button-response.js"></script>
+    <script src="../jspsych/plugins/call-function.js"></script>
+    <script src="../shared-resources/visual-angle.js"></script>
+    <script type="module" src="../shared-resources/calibration.js"></script>
+    <script type="module" src="./perceptual-localization-delayed.js"></script>
+    <script type="module">
+      import { run } from './perceptual-localization-delayed.js';
+      import { init as initCalibration, requireReady, getState, onReady, getReference } from '../shared-resources/calibration.js';
+
+      const preExperimentOverlay = document.getElementById('pre-experiment');
+      const startButton = document.getElementById('start-experiment');
+      const stopButton = document.getElementById('stop-session');
+      const downloadPanel = document.getElementById('download-panel');
+      const downloadCsvButton = document.getElementById('download-csv');
+      const downloadJsonButton = document.getElementById('download-json');
+      const calibrationStatusEl = document.getElementById('calibration-status');
+      const hudTrial = document.getElementById('hud-trial');
+      const hudCalibration = document.getElementById('hud-calibration');
+
+      function showCalibrationStatus(message, state = 'info') {
+        if (!calibrationStatusEl) return;
+        calibrationStatusEl.textContent = message;
+        calibrationStatusEl.dataset.state = state;
+      }
+
+      function updateCalibrationSummary() {
+        const reference = getReference();
+        if (!hudCalibration) return;
+        if (!reference) {
+          hudCalibration.textContent = '';
+          return;
+        }
+        const distanceCm = reference.viewingDistanceMm / 10;
+        const pxPerDeg = VisualAngle.dvaToPixels(1, reference);
+        hudCalibration.textContent = `Calibration ready · ${distanceCm.toFixed(1)} cm · 1° ≈ ${pxPerDeg.toFixed(1)} px`;
+      }
+
+      initCalibration({
+        defaultObjectId: 'credit-card',
+        startButton,
+        referenceDataUrl: '../shared-resources/reference-data/object-dimensions.xml',
+        elements: {
+          section: document.getElementById('calibration-section'),
+          objectSelect: document.getElementById('calibration-object'),
+          display: document.getElementById('calibration-display'),
+          shape: document.getElementById('calibration-shape'),
+          slider: document.getElementById('calibration-slider'),
+          readout: document.getElementById('calibration-size-readout'),
+          status: calibrationStatusEl,
+          confirm: document.getElementById('calibration-confirm'),
+          viewingDistance: document.getElementById('viewing-distance'),
+          target: document.getElementById('calibration-target-info')
+        }
+      }).catch(error => {
+        console.error('Calibration initialisation failed', error);
+        showCalibrationStatus('Calibration could not be initialised. Please reload the page.', 'error');
+      });
+
+      const calibrationState = getState();
+      onReady(() => {
+        updateCalibrationSummary();
+        if (startButton) {
+          startButton.disabled = false;
+          startButton.textContent = 'Start experiment';
+        }
+      });
+      window.addEventListener('visual-calibration-cleared', () => {
+        updateCalibrationSummary();
+        if (startButton) startButton.disabled = true;
+        if (startButton) startButton.textContent = 'Calibrate to start';
+      });
+
+      let controller = null;
+
+      async function startExperiment() {
+        if (!calibrationState.ready) {
+          showCalibrationStatus('Please complete and save the calibration before starting.', 'error');
+          return;
+        }
+        startButton.disabled = true;
+        stopButton.disabled = false;
+        downloadPanel.hidden = true;
+        downloadCsvButton.disabled = true;
+        downloadJsonButton.disabled = true;
+        hudTrial.textContent = 'Preparing trial…';
+        preExperimentOverlay.classList.add('hidden');
+
+        const reference = await requireReady();
+        controller = run({ reference });
+
+        downloadCsvButton.onclick = () => controller?.downloadCsv();
+        downloadJsonButton.onclick = () => controller?.downloadJson();
+
+        controller.finished.then(() => {
+          stopButton.disabled = true;
+          downloadCsvButton.disabled = controller.getData().length === 0;
+          downloadJsonButton.disabled = controller.getData().length === 0;
+        });
+      }
+
+      startButton.addEventListener('click', () => {
+        startExperiment();
+      });
+
+      stopButton.addEventListener('click', () => {
+        if (!controller) return;
+        stopButton.disabled = true;
+        controller.stop(true);
+      });
+
+      updateCalibrationSummary();
+    </script>
+  </body>
+</html>
