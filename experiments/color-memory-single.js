@@ -1,3 +1,9 @@
+import {
+  init as initCalibration,
+  getReference as getCalibrationReference,
+  onReady as onCalibrationReady
+} from '../shared-resources/calibration.js';
+
 // Color Memory (Single Patch) – trial flow:
 // fixation → random(300–500 ms) → patch 60 ms → delay random(0–1400 ms) → color wheel until response → next trial in 750 ms
 
@@ -14,12 +20,18 @@ const ERROR_TONE_MS = 110;
 
 // === Utilities ===
 function $(id) { const el = document.getElementById(id); if (!el) throw new Error(`Missing #${id}`); return el; }
+const introOverlay = $("intro-overlay");
+const introStartBtn = $("intro-start");
+const calibrationOverlay = $("calibration-overlay");
+const calibrationContinueBtn = $("calibration-continue");
+const experimentApp = $("experiment-app");
 const stage = $("stage");
 const fixationEl = $("fixation");
 const patchEl = $("patch");
 const wheelEl = $("wheel");
 const hudTrials = $("hudTrials");
 const hudCal = $("hudCal");
+const calibrationSummary = $("calibration-summary");
 const inputTrials = $("trials");
 const inputFixDeg = $("fixDeg");
 const inputPatchDeg = $("patchDeg");
@@ -27,6 +39,7 @@ const startBtn = $("start");
 const stopBtn = $("stop");
 const dlCsvBtn = $("dlCsv");
 const dlJsonBtn = $("dlJson");
+const openCalibrationBtn = $("open-calibration");
 
 let errorAudioContext = null;
 async function playErrorTone() {
@@ -81,14 +94,69 @@ function downloadBlob(filename, content, mime) {
 }
 
 // === Calibration integration ===
-Calibration.mount($("#calibration"), {
-  defaultObjectId: 'credit-card',
-  storageKey: 'visual-calibration',
-  referenceDataUrl: '../shared-resources/reference-data/object-dimensions.xml'
+async function setupCalibration() {
+  try {
+    await initCalibration({
+      defaultObjectId: 'credit-card',
+      storageKey: 'visual-calibration',
+      startButton: calibrationContinueBtn,
+      referenceDataUrl: '../shared-resources/reference-data/object-dimensions.xml',
+      elements: {
+        section: document.getElementById('calibration-section'),
+        objectSelect: document.getElementById('calibration-object'),
+        display: document.getElementById('calibration-display'),
+        shape: document.getElementById('calibration-shape'),
+        slider: document.getElementById('calibration-slider'),
+        readout: document.getElementById('calibration-size-readout'),
+        status: document.getElementById('calibration-status'),
+        confirm: document.getElementById('calibration-confirm'),
+        viewingDistance: document.getElementById('viewing-distance'),
+        target: document.getElementById('calibration-target-info')
+      }
+    });
+  } catch (error) {
+    console.error('Calibration initialization failed', error);
+    const statusEl = document.getElementById('calibration-status');
+    if (statusEl) {
+      statusEl.textContent = 'Calibration could not be initialised. Please reload the page.';
+      statusEl.dataset.state = 'error';
+    }
+  }
+}
+setupCalibration();
+
+introStartBtn.addEventListener('click', () => {
+  openCalibrationScreen();
+});
+
+calibrationContinueBtn.addEventListener('click', () => {
+  closeCalibrationScreen();
+  updateHud();
+  updateFixationPreview();
+});
+
+openCalibrationBtn.addEventListener('click', () => {
+  if (!stopBtn.disabled) {
+    stopBtn.click();
+  }
+  openCalibrationScreen();
+});
+
+onCalibrationReady(() => {
+  updateHud();
+  updateFixationPreview();
+});
+
+window.addEventListener('visual-calibration-cleared', () => {
+  updateHud();
+  updateFixationPreview();
+  if (calibrationOverlay.hidden !== false) {
+    openCalibrationScreen();
+  }
 });
 
 function getReference() {
-  const ref = Calibration.getReference();
+  const ref = getCalibrationReference();
   if (!ref || !ref.mmPerPixel || !ref.viewingDistanceMm) return null;
   return ref;
 }
@@ -102,6 +170,37 @@ function setCirclePx(el, diameterPx) {
 function show(el){ el.hidden = false; }
 function hide(el){ el.hidden = true; }
 
+function setAriaHidden(el, hiddenState) {
+  if (!el) return;
+  if (hiddenState) el.setAttribute('aria-hidden', 'true');
+  else el.removeAttribute('aria-hidden');
+}
+
+function openCalibrationScreen() {
+  hide(introOverlay);
+  setAriaHidden(introOverlay, true);
+  show(calibrationOverlay);
+  setAriaHidden(calibrationOverlay, false);
+  setAriaHidden(experimentApp, true);
+  const focusTarget = document.getElementById('calibration-object');
+  if (focusTarget) {
+    setTimeout(() => focusTarget.focus(), 120);
+  }
+}
+
+function closeCalibrationScreen() {
+  hide(calibrationOverlay);
+  setAriaHidden(calibrationOverlay, true);
+  show(experimentApp);
+  setAriaHidden(experimentApp, false);
+  setTimeout(() => { try { startBtn.focus(); } catch {} }, 160);
+}
+
+function updateFixationPreview() {
+  const ref = getReference() ?? { mmPerPixel: 0.25, viewingDistanceMm: 500 };
+  placeFixation(ref, Number(inputFixDeg.value));
+}
+
 // === Trial engine ===
 const trials = [];
 let stopRequested = false;
@@ -113,8 +212,14 @@ function updateHud() {
   if (ref) {
     const pxPer1deg = VisualAngle.dvaToPixels(1, ref);
     hudCal.textContent = `Dist ${format(ref.viewingDistanceMm/10,1)} cm · 1°≈${format(pxPer1deg,1)} px · 1px≈${format(ref.mmPerPixel,3)} mm`;
+    if (calibrationSummary) {
+      calibrationSummary.textContent = `Viewing distance ${format(ref.viewingDistanceMm/10,1)} cm · 1°≈${format(pxPer1deg,1)} px · 1 px≈${format(ref.mmPerPixel,3)} mm`;
+    }
   } else {
     hudCal.textContent = "Not calibrated";
+    if (calibrationSummary) {
+      calibrationSummary.textContent = "Calibrate your screen before running trials.";
+    }
   }
   dlCsvBtn.disabled = trials.length === 0;
   dlJsonBtn.disabled = trials.length === 0;
@@ -320,7 +425,11 @@ function toCSV(rows) {
 
 // === Wire up UI ===
 startBtn.addEventListener("click", async () => {
-  if (!getReference()) { alert("Please calibrate first."); return; }
+  if (!getReference()) {
+    alert("Please calibrate first.");
+    openCalibrationScreen();
+    return;
+  }
   trials.length = 0; updateHud();
   await runLoop();
 });
@@ -342,7 +451,10 @@ dlJsonBtn.addEventListener("click", () => {
 });
 
 // Initial state
+setAriaHidden(introOverlay, false);
 updateHud();
-placeFixation(Calibration.getReference() ?? { mmPerPixel: 0.25, viewingDistanceMm: 500 }, Number(inputFixDeg.value));
+updateFixationPreview();
+inputFixDeg.addEventListener("input", updateFixationPreview);
+inputFixDeg.addEventListener("change", updateFixationPreview);
 // Ensure the wheel responds to pointer events on iPad
 stage.addEventListener("touchstart", () => {}, { passive: true });
