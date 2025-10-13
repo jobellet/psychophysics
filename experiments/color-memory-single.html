@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Color Memory (Single Patch)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../jspsych/css/jspsych.css" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0b1220;
+        --fg: #e2e8f0;
+        --muted: #94a3b8;
+        --accent: #60a5fa;
+        --card: rgba(15, 23, 42, 0.55);
+        --border: 1px solid rgba(148, 163, 184, 0.25);
+        font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      }
+      html, body { height: 100%; margin: 0; background: var(--bg); color: var(--fg); }
+      a { color: var(--accent); }
+      .page { min-height: 100%; display: flex; flex-direction: column; align-items: center; gap: clamp(24px, 5vw, 40px); padding: clamp(16px, 4vw, 48px); }
+      .card {
+        width: min(92vw, 880px);
+        border: var(--border);
+        border-radius: clamp(18px, 3.5vw, 28px);
+        background: var(--card);
+        box-shadow: 0 12px 36px rgba(0,0,0,0.25);
+        padding: clamp(16px, 4vw, 28px);
+      }
+      .card h1, .card h2 { margin: 0; }
+      .row { display: grid; gap: clamp(12px, 3vw, 20px); }
+      @media (min-width: 900px) { .row { grid-template-columns: 1fr 1fr; } }
+      .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+      .controls label { font-size: 14px; color: var(--muted); }
+      .controls input[type="number"] { width: 100px; }
+      .btn {
+        appearance: none; border: var(--border);
+        background: rgba(2, 132, 199, 0.15); color: var(--fg);
+        padding: 10px 14px; border-radius: 12px; cursor: pointer; font-weight: 600;
+      }
+      .btn.secondary { background: transparent; }
+      .btn:disabled { opacity: .5; cursor: not-allowed; }
+      .stage-wrap {
+        position: relative; width: min(92vw, 880px); aspect-ratio: 1 / 0.72;
+        border: var(--border); border-radius: clamp(18px, 3.5vw, 28px);
+        overflow: hidden; background: radial-gradient(40% 40% at 50% 35%, rgba(255,255,255,.06), transparent 60%);
+        user-select: none; -webkit-user-select: none; touch-action: none; cursor: crosshair;
+      }
+      .hud {
+        position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; gap: 6px;
+        padding: 10px; font-size: 12px; color: var(--muted);
+      }
+      .hud .line { display: flex; gap: 10px; align-items: center; }
+      .fixation, .patch {
+        position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+        border-radius: 9999px; pointer-events: none;
+      }
+      .fixation { background: #e5e7eb; box-shadow: 0 0 0 2px #111827 inset; }
+      .patch     { box-shadow: 0 0 0 2px rgba(0,0,0,0.2) inset; }
+      .wheel {
+        position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+        width: 85vmin; height: 85vmin; max-width: 820px; max-height: 820px;
+        border-radius: 50%; pointer-events: auto; display: none;
+        /* A smooth HSL color wheel */
+        background: conic-gradient(from 0deg, 
+          hsl(0 100% 50%), hsl(60 100% 50%), hsl(120 100% 50%), hsl(180 100% 50%),
+          hsl(240 100% 50%), hsl(300 100% 50%), hsl(360 100% 50%)
+        );
+      }
+      .wheel::before { /* make it a ring */
+        content: ""; position: absolute; inset: 10%;
+        background: rgba(0,0,0,0.35); border-radius: 50%;
+      }
+      .hint {
+        font-size: 13px; color: var(--muted);
+      }
+      .dl { display: flex; gap: 10px; flex-wrap: wrap; }
+      .muted { color: var(--muted); }
+    </style>
+    <script src="../shared-resources/visual-angle.js"></script>
+    <script src="../shared-resources/calibration.js"></script>
+  </head>
+  <body>
+    <div class="page">
+      <div class="card">
+        <h1>Color Memory (Single Patch)</h1>
+        <p class="muted">One central color flash (60 ms), delay, then report on a randomly rotated color wheel. Next trial starts automatically after 750 ms.</p>
+      </div>
+
+      <div class="row">
+        <div class="card">
+          <h2>Calibration</h2>
+          <div id="calibration" class="calibration-section"></div>
+          <p class="hint">Use a known object (e.g., credit card, €1 coin) to calibrate pixels → mm and set viewing distance.</p>
+        </div>
+
+        <div class="card">
+          <h2>Run</h2>
+          <div class="controls">
+            <label>Trials: <input id="trials" type="number" min="1" max="100000" value="100" /></label>
+            <label>Fixation (deg): <input id="fixDeg" type="number" step="0.01" value="0.12" /></label>
+            <label>Patch (deg): <input id="patchDeg" type="number" step="0.1" value="2.0" /></label>
+            <button id="start" class="btn">Start</button>
+            <button id="stop" class="btn secondary" disabled>Stop</button>
+          </div>
+          <p class="hint">Wheel stays up until a tap/click <em>on the ring</em>. If you click outside, a soft error tone plays.</p>
+        </div>
+      </div>
+
+      <div class="stage-wrap" id="stage" aria-label="experiment stage">
+        <div class="hud">
+          <div class="line"><strong>Trials</strong> <span id="hudTrials" class="muted">0</span></div>
+          <div class="line"><strong>DVA</strong> <span id="hudCal" class="muted">Not calibrated</span></div>
+        </div>
+        <div id="fixation" class="fixation" hidden></div>
+        <div id="patch" class="patch" hidden></div>
+        <div id="wheel" class="wheel" aria-label="color wheel"></div>
+      </div>
+
+      <div class="card">
+        <h2>Data</h2>
+        <div class="dl">
+          <button id="dlCsv" class="btn" disabled>Download CSV</button>
+          <button id="dlJson" class="btn secondary" disabled>Download JSON</button>
+        </div>
+        <p class="hint">CSV/JSON enable when at least one trial is complete.</p>
+      </div>
+    </div>
+
+    <script type="module" src="./color-memory-single.js"></script>
+  </body>
+</html>
