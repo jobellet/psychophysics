@@ -20,7 +20,33 @@
         font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       }
       html, body { height: 100%; margin: 0; background: var(--bg); color: var(--fg); }
+      body { font-family: inherit; }
       a { color: var(--accent); }
+      .overlay {
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at top, rgba(15,23,42,.96) 0%, rgba(2,6,23,.94) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(24px, 6vw, 72px);
+        z-index: 20;
+        backdrop-filter: blur(6px);
+      }
+      .overlay[hidden] { display: none; }
+      .overlay-card {
+        width: min(92vw, 720px);
+        border: var(--border);
+        border-radius: clamp(24px, 5vw, 32px);
+        background: rgba(15, 23, 42, 0.88);
+        box-shadow: 0 28px 60px rgba(2, 6, 23, 0.55);
+        padding: clamp(24px, 6vw, 48px);
+        display: flex;
+        flex-direction: column;
+        gap: clamp(16px, 4vw, 24px);
+      }
+      .overlay-card h1, .overlay-card h2 { margin: 0; }
+      .calibration-card { gap: clamp(20px, 4vw, 28px); }
       .page { min-height: 100%; display: flex; flex-direction: column; align-items: center; gap: clamp(24px, 5vw, 40px); padding: clamp(16px, 4vw, 48px); }
       .card {
         width: min(92vw, 880px);
@@ -31,8 +57,6 @@
         padding: clamp(16px, 4vw, 28px);
       }
       .card h1, .card h2 { margin: 0; }
-      .row { display: grid; gap: clamp(12px, 3vw, 20px); }
-      @media (min-width: 900px) { .row { grid-template-columns: 1fr 1fr; } }
       .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
       .controls label { font-size: 14px; color: var(--muted); }
       .controls input[type="number"] { width: 100px; }
@@ -41,8 +65,114 @@
         background: rgba(2, 132, 199, 0.15); color: var(--fg);
         padding: 10px 14px; border-radius: 12px; cursor: pointer; font-weight: 600;
       }
+      .btn.primary {
+        border: none;
+        background: linear-gradient(135deg, #38bdf8, #2563eb);
+        color: #f8fafc;
+        box-shadow: inset 0 -2px 0 rgba(8, 47, 73, 0.35);
+      }
       .btn.secondary { background: transparent; }
+      .btn.small { padding: 6px 10px; font-size: 13px; }
       .btn:disabled { opacity: .5; cursor: not-allowed; }
+      .calibration-section {
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        border-radius: clamp(18px, 3.5vw, 26px);
+        padding: clamp(16px, 4vw, 24px);
+        background: rgba(15, 23, 42, 0.6);
+        display: flex;
+        flex-direction: column;
+        gap: clamp(12px, 3vw, 20px);
+      }
+      .calibration-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: clamp(12px, 3vw, 16px);
+        align-items: center;
+        justify-content: space-between;
+      }
+      .calibration-controls label {
+        font-size: 0.95rem;
+        color: var(--fg);
+      }
+      #calibration-object {
+        flex: 1 1 220px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: rgba(15, 23, 42, 0.75);
+        color: var(--fg);
+        font-size: 1rem;
+      }
+      .calibration-target {
+        flex: 1 1 100%;
+        font-size: 0.95rem;
+        color: rgba(148, 163, 184, 0.85);
+      }
+      .viewing-distance-input {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      #viewing-distance {
+        width: clamp(90px, 24vw, 120px);
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: rgba(15, 23, 42, 0.75);
+        color: var(--fg);
+        font-size: 1rem;
+        -moz-appearance: textfield;
+      }
+      #viewing-distance::-webkit-outer-spin-button,
+      #viewing-distance::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+      .viewing-distance-input span { color: var(--muted); font-size: 0.95rem; }
+      .calibration-display {
+        position: relative;
+        width: 100%;
+        min-height: clamp(160px, 45vw, 260px);
+        border-radius: clamp(16px, 4vw, 24px);
+        background: rgba(15, 23, 42, 0.72);
+        border: 1px dashed rgba(148, 163, 184, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        touch-action: none;
+      }
+      .calibration-instruction {
+        position: absolute;
+        top: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(148, 163, 184, 0.85);
+        pointer-events: none;
+      }
+      .calibration-shape {
+        position: relative;
+        border: 2px solid rgba(96, 165, 250, 0.85);
+        background: rgba(96, 165, 250, 0.12);
+        box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.35);
+        border-radius: clamp(8px, 2vw, 12px);
+        transition: width 0.12s ease, height 0.12s ease, border-radius 0.12s ease;
+      }
+      .calibration-shape.circle { border-radius: 9999px; }
+      .calibration-slider { display: flex; flex-direction: column; gap: 6px; }
+      .calibration-slider input[type="range"] { width: 100%; }
+      .calibration-slider span {
+        font-size: 0.9rem;
+        color: rgba(148, 163, 184, 0.9);
+        align-self: flex-end;
+      }
+      .calibration-status {
+        margin: 0;
+        font-size: 0.95rem;
+        color: rgba(148, 163, 184, 0.88);
+      }
+      .calibration-status[data-state="error"] { color: #fca5a5; }
+      .calibration-status[data-state="success"] { color: #a7f3d0; }
       .stage-wrap {
         position: relative; width: min(92vw, 880px); aspect-ratio: 1 / 0.72;
         border: var(--border); border-radius: clamp(18px, 3.5vw, 28px);
@@ -80,34 +210,74 @@
       .dl { display: flex; gap: 10px; flex-wrap: wrap; }
       .muted { color: var(--muted); }
     </style>
-    <script src="../shared-resources/visual-angle.js"></script>
-    <script src="../shared-resources/calibration.js"></script>
   </head>
   <body>
-    <div class="page">
-      <div class="card">
+    <div id="intro-overlay" class="overlay">
+      <div class="overlay-card">
         <h1>Color Memory (Single Patch)</h1>
-        <p class="muted">One central color flash (60 ms), delay, then report on a randomly rotated color wheel. Next trial starts automatically after 750 ms.</p>
+        <p class="muted">
+          Get ready to remember the hue of a brief central flash. After each delay you'll match the color using an on-screen wheel.
+        </p>
+        <button id="intro-start" class="btn primary">Start experiment</button>
       </div>
+    </div>
 
-      <div class="row">
-        <div class="card">
-          <h2>Calibration</h2>
-          <div id="calibration" class="calibration-section"></div>
-          <p class="hint">Use a known object (e.g., credit card, €1 coin) to calibrate pixels → mm and set viewing distance.</p>
-        </div>
+    <div id="calibration-overlay" class="overlay" hidden aria-hidden="true">
+      <div class="overlay-card calibration-card">
+        <h2>Calibrate your screen</h2>
+        <p class="muted">
+          Use a familiar object to match the on-screen shape. This converts pixels to millimetres and degrees of visual angle.
+        </p>
 
-        <div class="card">
-          <h2>Run</h2>
-          <div class="controls">
-            <label>Trials: <input id="trials" type="number" min="1" max="100000" value="100" /></label>
-            <label>Fixation (deg): <input id="fixDeg" type="number" step="0.01" value="0.12" /></label>
-            <label>Patch (deg): <input id="patchDeg" type="number" step="0.1" value="2.0" /></label>
-            <button id="start" class="btn">Start</button>
-            <button id="stop" class="btn secondary" disabled>Stop</button>
+        <div id="calibration-section" class="calibration-section">
+          <div class="calibration-controls">
+            <label for="calibration-object">Reference object</label>
+            <select id="calibration-object" disabled>
+              <option value="">Loading reference objects…</option>
+            </select>
+            <div class="calibration-target" id="calibration-target-info"></div>
           </div>
-          <p class="hint">Wheel stays up until a tap/click <em>on the ring</em>. If you click outside, a soft error tone plays.</p>
+
+          <div class="calibration-display" id="calibration-display">
+            <div class="calibration-instruction">Pinch to zoom or use the slider</div>
+            <div class="calibration-shape" id="calibration-shape"></div>
+          </div>
+
+          <div class="calibration-slider">
+            <input type="range" id="calibration-slider" min="40" max="400" value="200" />
+            <span id="calibration-size-readout"></span>
+          </div>
+
+          <div class="calibration-controls">
+            <label for="viewing-distance">Viewing distance</label>
+            <div class="viewing-distance-input">
+              <input type="number" id="viewing-distance" inputmode="decimal" min="10" max="200" step="0.5" placeholder="40" />
+              <span>cm</span>
+            </div>
+          </div>
+
+          <button id="calibration-confirm" class="btn secondary" type="button">Save calibration</button>
+          <p id="calibration-status" class="calibration-status" data-state="info">Calibration required before continuing.</p>
         </div>
+
+        <button id="calibration-continue" class="btn primary" type="button" disabled>Calibrate to continue</button>
+        <p class="hint">You can return to this screen at any time from the experiment controls.</p>
+      </div>
+    </div>
+
+    <div id="experiment-app" class="page" hidden>
+      <div class="card">
+        <h2>Run the task</h2>
+        <div class="controls">
+          <label>Trials: <input id="trials" type="number" min="1" max="100000" value="100" /></label>
+          <label>Fixation (deg): <input id="fixDeg" type="number" step="0.01" value="0.12" /></label>
+          <label>Patch (deg): <input id="patchDeg" type="number" step="0.1" value="2.0" /></label>
+          <button id="start" class="btn">Start</button>
+          <button id="stop" class="btn secondary" disabled>Stop</button>
+        </div>
+        <p id="calibration-summary" class="hint">Calibrate your screen before running trials.</p>
+        <button id="open-calibration" class="btn secondary small" type="button">Adjust calibration</button>
+        <p class="hint">Wheel stays up until a tap/click <em>on the ring</em>. If you click outside, a soft error tone plays.</p>
       </div>
 
       <div class="stage-wrap" id="stage" aria-label="experiment stage">
@@ -130,6 +300,8 @@
       </div>
     </div>
 
+    <script src="../shared-resources/visual-angle.js"></script>
+    <script type="module" src="../shared-resources/calibration.js"></script>
     <script type="module" src="./color-memory-single.js"></script>
   </body>
 </html>
