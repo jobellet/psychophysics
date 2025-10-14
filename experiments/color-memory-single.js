@@ -5,7 +5,7 @@ import {
 } from '../shared-resources/calibration.js';
 
 // Color Memory (Single Patch) – trial flow:
-// fixation → random(300–500 ms) → patch 60 ms → delay random(0–1400 ms) → color wheel until response → next trial in 750 ms
+// fixation → random(300–500 ms) → patch 60 ms → delay random(0–1400 ms) → color wheel until response → next trial in 1000 ms
 
 // === Tunables / defaults (also user-editable via UI) ===
 const FLASH_DURATION_MS = 60;
@@ -13,7 +13,7 @@ const TARGET_ONSET_MIN_MS = 300;
 const TARGET_ONSET_MAX_MS = 500;
 const DELAY_AFTER_PATCH_MIN_MS = 0;
 const DELAY_AFTER_PATCH_MAX_MS = 1400;
-const NEXT_TRIAL_DELAY_AFTER_RESPONSE_MS = 750;
+const NEXT_TRIAL_DELAY_AFTER_RESPONSE_MS = 1000;
 const WHEEL_RING_INNER_FRACTION = 0.70; // inner radius relative to wheel radius (0–1)
 const ERROR_TONE_FREQ = 420;
 const ERROR_TONE_MS = 110;
