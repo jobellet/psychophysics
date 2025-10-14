@@ -31,6 +31,12 @@ function snapFlashDuration(durationMs) {
   return Math.round(frames * frameDuration);
 }
 
+function clamp(value, min, max) {
+  if (value < min) return min;
+  if (value > max) return max;
+  return value;
+}
+
 export function sampleAnnulusPointDeg(rMinDeg, rMaxDeg) {
   const u = Math.random();
   const r = Math.sqrt(u * (rMaxDeg * rMaxDeg - rMinDeg * rMinDeg) + rMinDeg * rMinDeg);
@@ -159,10 +165,36 @@ export function run({ reference, trialCount = 1000 } = {}) {
   }
 
   async function runTrial(trialIndex) {
-    const targetSample = sampleAnnulusPointDeg(0.3, 5.0);
-    const targetXPx = VisualAngle.dvaToPixels(targetSample.xDeg, reference);
-    const targetYPx = VisualAngle.dvaToPixels(targetSample.yDeg, reference);
-    const targetThetaDeg = (targetSample.thetaRad * 180) / Math.PI;
+    const stageRect = stage.getBoundingClientRect();
+    const stageWidth = stageRect.width;
+    const stageHeight = stageRect.height;
+    const stageHalfWidth = stageWidth / 2;
+    const stageHalfHeight = stageHeight / 2;
+    const targetRadiusPx = targetDiameterPx / 2;
+
+    const maxOffsetXPx = Math.max(stageHalfWidth - targetRadiusPx, 0);
+    const maxOffsetYPx = Math.max(stageHalfHeight - targetRadiusPx, 0);
+    const maxOffsetPx = Math.min(maxOffsetXPx, maxOffsetYPx);
+    const stageMaxRadiusDeg = VisualAngle.pixelsToDVA(maxOffsetPx, reference);
+
+    let rMaxDeg = Math.min(5.0, stageMaxRadiusDeg);
+    let rMinDeg = Math.min(0.3, rMaxDeg);
+    if (rMaxDeg <= 0) {
+      rMaxDeg = 0;
+      rMinDeg = 0;
+    }
+
+    const targetSample = sampleAnnulusPointDeg(rMinDeg, rMaxDeg);
+    const intendedXPx = VisualAngle.dvaToPixels(targetSample.xDeg, reference);
+    const intendedYPx = VisualAngle.dvaToPixels(targetSample.yDeg, reference);
+
+    const targetXPx = clamp(intendedXPx, -maxOffsetXPx, maxOffsetXPx);
+    const targetYPx = clamp(intendedYPx, -maxOffsetYPx, maxOffsetYPx);
+
+    const targetXDeg = VisualAngle.pixelsToDVA(targetXPx, reference);
+    const targetYDeg = VisualAngle.pixelsToDVA(targetYPx, reference);
+    const targetThetaDeg = (Math.atan2(targetYDeg, targetXDeg) * 180) / Math.PI;
+    const targetRadiusDeg = Math.sqrt(targetXDeg * targetXDeg + targetYDeg * targetYDeg);
 
     target.style.transform = `translate(-50%, -50%) translate(${targetXPx}px, ${-targetYPx}px)`;
 
@@ -194,10 +226,6 @@ export function run({ reference, trialCount = 1000 } = {}) {
       }, NO_RESPONSE_TIMEOUT_MS);
     }
 
-    const stageRect = stage.getBoundingClientRect();
-    const stageWidth = stageRect.width;
-    const stageHeight = stageRect.height;
-
     let resolveTrial;
     const trialPromise = new Promise(resolve => {
       resolveTrial = resolve;
@@ -227,9 +255,9 @@ export function run({ reference, trialCount = 1000 } = {}) {
       const result = {
         trial_index: trialIndex,
         timestamp_iso: new Date().toISOString(),
-        target_x_deg: targetSample.xDeg,
-        target_y_deg: targetSample.yDeg,
-        target_r_deg: targetSample.rDeg,
+        target_x_deg: targetXDeg,
+        target_y_deg: targetYDeg,
+        target_r_deg: targetRadiusDeg,
         target_theta_deg: targetThetaDeg,
         target_x_px: targetXPx,
         target_y_px: targetYPx,
