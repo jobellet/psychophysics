@@ -77,6 +77,18 @@ function buildCsv(data) {
   return [header, ...rows].join('\n');
 }
 
+function formatTimestampForFilename(date = new Date()) {
+  const pad = value => String(value).padStart(2, '0');
+  return [
+    date.getFullYear(),
+    pad(date.getMonth() + 1),
+    pad(date.getDate()),
+    pad(date.getHours()),
+    pad(date.getMinutes()),
+    pad(date.getSeconds())
+  ].join('');
+}
+
 function downloadBlob(filename, content, mimeType) {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
@@ -545,6 +557,7 @@ export function run({ reference, trialCount = 1000 } = {}) {
 
   function downloadCsv() {
     if (!trials.length) return;
+    const timestampPrefix = `${formatTimestampForFilename()}_`;
     const headerLines = [
       `# Perceptual Localization (Delayed)`,
       `# Timestamp: ${new Date().toISOString()}`,
@@ -554,11 +567,12 @@ export function run({ reference, trialCount = 1000 } = {}) {
     ];
     const csv = buildCsv(trials);
     const content = `${headerLines.join('\n')}\n${csv}`;
-    downloadBlob('perceptual-localization-delayed.csv', content, 'text/csv');
+    downloadBlob(`${timestampPrefix}perceptual-localization-delayed.csv`, content, 'text/csv');
   }
 
   function downloadJson() {
     if (!trials.length) return;
+    const timestampPrefix = `${formatTimestampForFilename()}_`;
     const payload = {
       task: 'perceptual-localization-delayed',
       generated_at: new Date().toISOString(),
@@ -569,7 +583,11 @@ export function run({ reference, trialCount = 1000 } = {}) {
       },
       trials
     };
-    downloadBlob('perceptual-localization-delayed.json', JSON.stringify(payload, null, 2), 'application/json');
+    downloadBlob(
+      `${timestampPrefix}perceptual-localization-delayed.json`,
+      JSON.stringify(payload, null, 2),
+      'application/json'
+    );
   }
 
   return {
