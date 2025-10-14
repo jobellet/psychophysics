@@ -245,6 +245,8 @@ function parseCalibrationObjects(selectEl) {
     .filter(Boolean);
 }
 
+const NON_VALUE_STRINGS = new Set(['n/a', 'na', 'none', '-', '—', '']);
+
 function decodeCellValue(cell) {
   if (!cell) return null;
   const textP = cell.getElementsByTagNameNS(TEXT_NS, 'p')[0];
@@ -253,6 +255,10 @@ function decodeCellValue(cell) {
   if (!text) return null;
   if (/^[-+]?\d+(?:\.\d+)?$/.test(text)) {
     return parseFloat(text);
+  }
+  const normalized = text.toLowerCase();
+  if (NON_VALUE_STRINGS.has(normalized)) {
+    return null;
   }
   return text;
 }
@@ -268,32 +274,96 @@ function extractEntriesFromSheet(xmlText) {
   rows.forEach(row => {
     const cells = Array.from(row.getElementsByTagNameNS(TABLE_NS, 'table-cell'));
     const values = cells.map(decodeCellValue);
-    if (values.length < 2) return;
-    const [type, name, ...rest] = values;
-    if (!type || typeof type !== 'string') return;
-    if (type === 'category') {
-      if (typeof name === 'string' && name.trim()) {
-        entries.push({ type: 'category', label: name.trim() });
+    if (values.length === 0) return;
+
+    const [first, second, third, fourth, fifth] = values;
+
+    // Handle legacy sheets where the first column explicitly encodes the entry type.
+    if (typeof first === 'string') {
+      const normalizedFirst = first.trim().toLowerCase();
+      if (normalizedFirst === 'type') {
+        // Header row for legacy format.
+        return;
       }
+      if (normalizedFirst === 'category') {
+        if (typeof second === 'string' && second.trim()) {
+          entries.push({ type: 'category', label: second.trim() });
+        }
+        return;
+      }
+      if (normalizedFirst === 'object') {
+        const name = typeof second === 'string' ? second.trim() : 'Object';
+        const shape = typeof third === 'string' ? third.trim() : null;
+        const lengthMm = Number.isFinite(fourth) ? fourth : null;
+        const widthMm = Number.isFinite(fifth) ? fifth : null;
+        const radiusMm = Number.isFinite(values[5]) ? values[5] : null;
+        const legacyIdsRaw = typeof values[6] === 'string' ? values[6] : null;
+        const legacyIds = legacyIdsRaw
+          ? legacyIdsRaw
+              .split(',')
+              .map(value => value.trim())
+              .filter(Boolean)
+          : [];
+
+        entries.push({
+          type: 'object',
+          name,
+          shape,
+          lengthMm,
+          widthMm,
+          radiusMm,
+          legacyIds
+        });
+        return;
+      }
+    }
+
+    const name = typeof first === 'string' ? first.trim() : '';
+    if (!name) {
       return;
     }
-    if (type !== 'object') return;
 
-    const [shape, lengthMm, widthMm, radiusMm, legacyIdsRaw] = rest;
-    const legacyIds = typeof legacyIdsRaw === 'string'
+    const normalizedName = name.toLowerCase();
+    if (['object', 'type', 'name'].includes(normalizedName)) {
+      // Header row for the new format.
+      return;
+    }
+
+    const lengthMm = Number.isFinite(second) ? second : null;
+    const widthMm = Number.isFinite(third) ? third : null;
+    const radiusMm = Number.isFinite(fourth) ? fourth : null;
+    const legacyIdsRaw = typeof fifth === 'string' ? fifth : null;
+    const legacyIds = legacyIdsRaw
       ? legacyIdsRaw
           .split(',')
           .map(value => value.trim())
           .filter(Boolean)
       : [];
 
+    const hasDimensions = Number.isFinite(lengthMm) || Number.isFinite(widthMm) || Number.isFinite(radiusMm);
+
+    if (!hasDimensions) {
+      entries.push({ type: 'category', label: name });
+      return;
+    }
+
+    let shape = null;
+    const preferredCircle =
+      Number.isFinite(radiusMm) ||
+      (Number.isFinite(lengthMm) &&
+        Number.isFinite(widthMm) &&
+        Math.abs(lengthMm - widthMm) <= Math.max(0.5, (widthMm || lengthMm) * 0.05));
+    if (preferredCircle) {
+      shape = 'circle';
+    }
+
     entries.push({
       type: 'object',
-      name: typeof name === 'string' ? name.trim() : 'Object',
-      shape: typeof shape === 'string' ? shape.trim() : null,
-      lengthMm: Number.isFinite(lengthMm) ? lengthMm : null,
-      widthMm: Number.isFinite(widthMm) ? widthMm : null,
-      radiusMm: Number.isFinite(radiusMm) ? radiusMm : null,
+      name,
+      shape,
+      lengthMm,
+      widthMm,
+      radiusMm,
       legacyIds
     });
   });
