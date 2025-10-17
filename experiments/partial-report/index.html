@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Partial Report (Sperling)</title>
+    <link rel="stylesheet" href="../jspsych/css/jspsych.css" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div class="splash">
+        <h1>Partial Report Task</h1>
+        <p>
+          This experiment shows a brief grid of letters followed by blue-square cues that indicate which
+          letters to report. Type all letters from the cued locations in any order, then press Enter to submit.
+        </p>
+        <button id="start-button" type="button">Load experiment</button>
+      </div>
+      <div id="jspsych-root" hidden></div>
+    </div>
+
+    <script src="../jspsych/dist/jspsych.js"></script>
+    <script src="../jspsych/plugins/html-button-response.js"></script>
+    <script src="../jspsych/plugins/html-keyboard-response.js"></script>
+    <script src="../jspsych/plugins/call-function.js"></script>
+    <script src="task.js"></script>
+  </body>
+</html>
