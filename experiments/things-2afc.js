@@ -192,6 +192,18 @@ function buildTimeline(trials) {
     };
 
     node.on_load = () => {
+      const syncProgressBar = () => {
+        const progressInner = document.querySelector('#jspsych-progressbar-inner');
+        if (progressInner) {
+          const progress = totalTrials === 0 ? 0 : completedTrials / totalTrials;
+          jsPsych.setProgressBar(progress);
+        } else {
+          requestAnimationFrame(syncProgressBar);
+        }
+      };
+
+      syncProgressBar();
+
       const leftButton = document.querySelector('#jspsych-html-button-response-button-0 button');
       const rightButton = document.querySelector('#jspsych-html-button-response-button-1 button');
       node._responseSource = 'unknown';
@@ -329,7 +341,6 @@ startButton.addEventListener('click', () => {
   startButton.disabled = true;
   stopButton.disabled = false;
   experimentRunning = true;
-  jsPsych.setProgressBar(0);
   jsPsych.run(timeline);
 });
 
