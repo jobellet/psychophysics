@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Things Image Matching (2AFC)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../jspsych/css/jspsych.css" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --page-bg: radial-gradient(circle at top, #0f172a 0%, #020617 100%);
+        --panel-bg: rgba(15, 23, 42, 0.82);
+        --panel-border: 1px solid rgba(148, 163, 184, 0.28);
+        --accent: #60a5fa;
+        --accent-muted: rgba(96, 165, 250, 0.15);
+        --text-primary: #e2e8f0;
+        --text-secondary: rgba(203, 213, 225, 0.88);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: clamp(18px, 4vw, 32px);
+        padding: clamp(16px, 4vw, 48px);
+        background: var(--page-bg);
+        color: var(--text-primary);
+      }
+
+      a { color: var(--accent); }
+
+      .card {
+        width: min(960px, 95vw);
+        border: var(--panel-border);
+        border-radius: clamp(18px, 3vw, 28px);
+        background: var(--panel-bg);
+        padding: clamp(20px, 4vw, 36px);
+        box-shadow: 0 22px 50px rgba(2, 6, 23, 0.5);
+        display: flex;
+        flex-direction: column;
+        gap: clamp(14px, 3vw, 24px);
+      }
+
+      .card h1 {
+        margin: 0;
+        font-size: clamp(1.6rem, 4vw, 2.2rem);
+      }
+
+      .card p {
+        margin: 0;
+        color: var(--text-secondary);
+        line-height: 1.55;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+      }
+
+      button {
+        appearance: none;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: rgba(30, 41, 59, 0.65);
+        color: inherit;
+        font: inherit;
+        padding: 10px 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 160ms ease, transform 160ms ease, border-color 160ms ease;
+      }
+
+      button.primary {
+        background: linear-gradient(135deg, #38bdf8, #2563eb);
+        color: #f8fafc;
+        border: none;
+        box-shadow: inset 0 -2px 0 rgba(8, 47, 73, 0.35);
+      }
+
+      button:hover:not(:disabled) {
+        background: rgba(51, 65, 85, 0.85);
+        transform: translateY(-1px);
+      }
+
+      button.primary:hover:not(:disabled) {
+        background: linear-gradient(135deg, #60a5fa, #2563eb);
+      }
+
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .status-bar {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 0.95rem;
+        color: rgba(226, 232, 240, 0.82);
+      }
+
+      .status-bar strong {
+        color: var(--text-primary);
+      }
+
+      .hidden { display: none !important; }
+
+      #jspsych-target {
+        width: min(960px, 95vw);
+        min-height: clamp(280px, 55vh, 640px);
+        border-radius: clamp(18px, 3vw, 28px);
+        border: var(--panel-border);
+        background: rgba(15, 23, 42, 0.72);
+        box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.12);
+        padding: clamp(18px, 4vw, 32px);
+        display: none;
+      }
+
+      #jspsych-target.active { display: block; }
+
+      .afc-trial {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: clamp(18px, 4vw, 28px);
+        width: 100%;
+      }
+
+      .afc-instructions {
+        font-size: clamp(1rem, 2.2vw, 1.25rem);
+        text-align: center;
+        color: var(--text-secondary);
+      }
+
+      .afc-stage {
+        position: relative;
+        width: 100%;
+        max-width: 720px;
+        aspect-ratio: 3 / 2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+      }
+
+      .afc-reference {
+        position: relative;
+        z-index: 2;
+        padding: clamp(10px, 2vw, 16px);
+        border-radius: clamp(16px, 3vw, 24px);
+        background: rgba(15, 23, 42, 0.85);
+        box-shadow: 0 18px 42px rgba(2, 6, 23, 0.45);
+      }
+
+      .afc-reference img {
+        display: block;
+        max-width: clamp(120px, 22vw, 220px);
+        max-height: clamp(120px, 22vw, 220px);
+        border-radius: clamp(12px, 2vw, 18px);
+      }
+
+      #jspsych-html-button-response-btngroup {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: clamp(6px, 2vw, 20px);
+        pointer-events: none;
+      }
+
+      .jspsych-html-button-response-button {
+        pointer-events: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+      }
+
+      .afc-choice {
+        background: rgba(15, 23, 42, 0.88);
+        border-radius: clamp(16px, 2.8vw, 22px);
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        padding: clamp(10px, 2vw, 16px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 16px 36px rgba(2, 6, 23, 0.45);
+      }
+
+      .afc-choice img {
+        width: clamp(120px, 22vw, 220px);
+        height: clamp(120px, 22vw, 220px);
+        object-fit: cover;
+        border-radius: clamp(12px, 2vw, 18px);
+        pointer-events: none;
+      }
+
+      .afc-choice:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+      }
+
+      .afc-help {
+        font-size: 0.95rem;
+        text-align: center;
+        color: rgba(148, 163, 184, 0.9);
+        margin-top: clamp(10px, 2vw, 18px);
+      }
+
+      .completion-message {
+        color: #a7f3d0;
+        font-weight: 600;
+      }
+
+      .error-message {
+        color: #fca5a5;
+        font-weight: 600;
+      }
+
+      @media (max-width: 720px) {
+        .afc-stage { aspect-ratio: unset; min-height: 320px; }
+        #jspsych-html-button-response-btngroup { flex-direction: row; gap: 12px; }
+        .afc-reference img, .afc-choice img { width: clamp(110px, 35vw, 180px); height: clamp(110px, 35vw, 180px); }
+      }
+    </style>
+  </head>
+  <body>
+    <section class="card" id="intro-card">
+      <h1>Things Image Matching (2AFC)</h1>
+      <p>
+        On each trial you will see a reference image in the centre and two images on the sides.
+        Choose the side that shows the version of the object that matches the reference image.
+        Use the left and right arrow keys on a keyboard or tap the image directly on touch devices.
+      </p>
+      <p>
+        Every neutral reference image is presented twice: once paired with its prototypical variant and once with its outlier variant.
+        Trials are precomputed and the experiment will end after all trials have been completed, but you may stop at any time and download your data.
+      </p>
+      <div class="controls">
+        <button class="primary" id="start-button" disabled>Preparing stimuli…</button>
+        <button id="stop-button" disabled>Stop</button>
+        <button id="download-csv" disabled>Download CSV</button>
+        <button id="download-json" disabled>Download JSON</button>
+      </div>
+      <div class="status-bar">
+        <span id="stimulus-status">Loading stimulus manifest…</span>
+        <span id="progress-status">Trials prepared: 0</span>
+        <span id="message-area"></span>
+      </div>
+    </section>
+
+    <div id="jspsych-target"></div>
+
+    <script src="../jspsych/dist/jspsych.js"></script>
+    <script src="../jspsych/plugins/html-button-response.js"></script>
+    <script type="module" src="things-2afc.js"></script>
+  </body>
+</html>
