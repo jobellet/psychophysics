@@ -25,6 +25,11 @@ let completedTrials = 0;
 let totalTrials = 0;
 const keyboardListeners = new WeakMap();
 
+const PRELOAD_INITIAL_BLOCK = 12;
+const PRELOAD_LOOKAHEAD = 6;
+let preloadCursor = 0;
+let preloadQueue = Promise.resolve();
+
 function formatTimestamp() {
   const now = new Date();
   const pad = (n) => `${n}`.padStart(2, '0');
@@ -141,14 +146,60 @@ function buildTrials(manifest) {
   return { trials: shuffleInPlace(trials), skipped };
 }
 
-async function preloadImages(trials) {
+function collectTrialImages(trial) {
+  return [trial.referencePath, trial.leftImagePath, trial.rightImagePath];
+}
+
+async function preloadImageBlock(trials, startIndex, endIndex) {
   const images = new Set();
-  for (const trial of trials) {
-    images.add(trial.referencePath);
-    images.add(trial.leftImagePath);
-    images.add(trial.rightImagePath);
+  for (let i = startIndex; i < endIndex; i++) {
+    const trial = trials[i];
+    if (!trial) continue;
+    for (const path of collectTrialImages(trial)) {
+      images.add(path);
+    }
   }
+  if (images.size === 0) return;
   await jsPsych.pluginAPI.preloadImages(Array.from(images));
+}
+
+async function preloadInitialTrials(trials) {
+  await preloadImageBlock(trials, 0, Math.min(trials.length, PRELOAD_INITIAL_BLOCK));
+}
+
+function schedulePreloadAhead(trials, currentIndex) {
+  const targetExclusive = Math.min(trials.length, currentIndex + 1 + PRELOAD_LOOKAHEAD);
+  if (targetExclusive <= preloadCursor) {
+    return;
+  }
+  const startIndex = preloadCursor;
+  const endIndex = targetExclusive;
+  preloadCursor = endIndex;
+  const images = new Set();
+  for (let i = startIndex; i < endIndex; i++) {
+    const trial = trials[i];
+    if (!trial) continue;
+    for (const path of collectTrialImages(trial)) {
+      images.add(path);
+    }
+  }
+  if (images.size === 0) {
+    return;
+  }
+  const paths = Array.from(images);
+  preloadQueue = preloadQueue
+    .then(() => jsPsych.pluginAPI.preloadImages(paths))
+    .catch((error) => {
+      console.error('Image preload failed', error);
+    });
+}
+
+async function resetPreloadForTimeline(trials) {
+  preloadQueue = Promise.resolve();
+  preloadCursor = 0;
+  const initialEnd = Math.min(trials.length, PRELOAD_INITIAL_BLOCK);
+  await preloadImageBlock(trials, 0, initialEnd);
+  preloadCursor = initialEnd;
 }
 
 function renderStimulus(referencePath) {
@@ -163,10 +214,8 @@ function renderStimulus(referencePath) {
 }
 
 function buildTimeline(trials) {
-  let index = 0;
-  return trials.map((trial) => {
-    index += 1;
-
+  return trials.map((trial, trialIndex) => {
+    const trialNumber = trialIndex + 1;
     const node = {
       type: jsPsychHtmlButtonResponse,
       stimulus: renderStimulus(trial.referencePath),
@@ -180,7 +229,7 @@ function buildTimeline(trials) {
       prompt: '<div class="afc-help">Use ← / → keys or tap an image to respond.</div>',
       data: {
         task: 'things-2afc',
-        trial_number: index,
+        trial_number: trialNumber,
         trial_condition: trial.condition,
         reference_image: trial.neutralFilename,
         target_image: trial.targetFilename,
@@ -192,6 +241,7 @@ function buildTimeline(trials) {
     };
 
     node.on_load = () => {
+      schedulePreloadAhead(trials, trialIndex);
       const leftButton = document.querySelector('#jspsych-html-button-response-button-0 button');
       const rightButton = document.querySelector('#jspsych-html-button-response-button-1 button');
       node._responseSource = 'unknown';
@@ -297,8 +347,9 @@ async function prepare() {
     allTrials = trials;
     totalTrials = trials.length;
     progressStatus.textContent = `Trials prepared: ${totalTrials}`;
-    stimulusStatus.textContent = 'Preloading images…';
-    await preloadImages(trials);
+    stimulusStatus.textContent = `Preloading first ${Math.min(PRELOAD_INITIAL_BLOCK, trials.length)} trial${trials.length === 1 ? '' : 's'}…`;
+    preloadQueue = Promise.resolve();
+    await preloadInitialTrials(trials);
     stimulusStatus.textContent = 'Stimuli ready. Press Start to begin.';
     startButton.disabled = false;
     startButton.textContent = 'Start experiment';
@@ -314,7 +365,7 @@ async function prepare() {
   }
 }
 
-startButton.addEventListener('click', () => {
+startButton.addEventListener('click', async () => {
   if (allTrials.length === 0) {
     setStatus('Stimuli are not ready yet.', 'error');
     return;
@@ -323,10 +374,21 @@ startButton.addEventListener('click', () => {
   completedTrials = 0;
   updateProgress();
   const trialOrder = jsPsych.randomization.shuffle(allTrials.slice());
+  startButton.disabled = true;
+  stopButton.disabled = true;
+  setStatus(`Preloading first ${Math.min(PRELOAD_INITIAL_BLOCK, trialOrder.length)} trial${trialOrder.length === 1 ? '' : 's'}…`);
+  try {
+    await resetPreloadForTimeline(trialOrder);
+  } catch (error) {
+    console.error(error);
+    setStatus('Failed to preload the next trials. Please try again.', 'error');
+    startButton.disabled = false;
+    stopButton.disabled = true;
+    return;
+  }
   const timeline = buildTimeline(trialOrder);
   setStatus('');
   jspsychContainer.classList.add('active');
-  startButton.disabled = true;
   stopButton.disabled = false;
   experimentRunning = true;
   jsPsych.setProgressBar(0);
