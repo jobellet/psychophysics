@@ -141,6 +141,34 @@ function buildTrials(manifest) {
   return { trials: shuffleInPlace(trials), skipped };
 }
 
+const decodedImageCache = new Map();
+
+async function ensureImageDecoded(src) {
+  if (decodedImageCache.has(src)) {
+    return decodedImageCache.get(src);
+  }
+
+  const decoded = await new Promise((resolve, reject) => {
+    const img = new Image();
+    img.src = src;
+    img.decoding = 'sync';
+    img.onload = async () => {
+      try {
+        if (typeof img.decode === 'function') {
+          await img.decode();
+        }
+      } catch (error) {
+        console.warn('Image decode warning for', src, error);
+      }
+      resolve(img);
+    };
+    img.onerror = () => reject(new Error(`Failed to decode image: ${src}`));
+  });
+
+  decodedImageCache.set(src, decoded);
+  return decoded;
+}
+
 async function preloadImages(trials) {
   const images = new Set();
   for (const trial of trials) {
@@ -148,7 +176,9 @@ async function preloadImages(trials) {
     images.add(trial.leftImagePath);
     images.add(trial.rightImagePath);
   }
-  await jsPsych.pluginAPI.preloadImages(Array.from(images));
+  const imageList = Array.from(images);
+  await jsPsych.pluginAPI.preloadImages(imageList);
+  await Promise.all(imageList.map((src) => ensureImageDecoded(src).catch((error) => console.error(error))));
 }
 
 function renderStimulus(referencePath) {
@@ -156,7 +186,16 @@ function renderStimulus(referencePath) {
     <div class="afc-trial">
       <div class="afc-instructions">Select the image that matches the centre reference.</div>
       <div class="afc-stage">
-        <div class="afc-reference"><img src="${referencePath}" alt="Reference image" /></div>
+        <div class="afc-stage-row">
+          <div class="afc-slot" data-slot="left"></div>
+          <div class="afc-slot afc-slot--reference">
+            <div class="afc-reference-frame">
+              <img src="${referencePath}" alt="Reference image" />
+            </div>
+            <div class="afc-reference-label" aria-hidden="true">Reference</div>
+          </div>
+          <div class="afc-slot" data-slot="right"></div>
+        </div>
       </div>
     </div>
   `;
@@ -172,8 +211,8 @@ function buildTimeline(trials) {
       stimulus: renderStimulus(trial.referencePath),
       choices: ['', ''],
       button_html: [
-        `<button class="afc-choice" data-choice="left" aria-label="Left choice"><img src="${trial.leftImagePath}" alt="Left option" /></button>`,
-        `<button class="afc-choice" data-choice="right" aria-label="Right choice"><img src="${trial.rightImagePath}" alt="Right option" /></button>`
+        `<button type="button" class="afc-choice" data-choice="left" aria-label="Left choice"><img src="${trial.leftImagePath}" alt="Left option" /></button>`,
+        `<button type="button" class="afc-choice" data-choice="right" aria-label="Right choice"><img src="${trial.rightImagePath}" alt="Right option" /></button>`
       ],
       margin_vertical: '0px',
       margin_horizontal: '0px',
@@ -203,6 +242,31 @@ function buildTimeline(trials) {
       };
 
       syncProgressBar();
+
+      const group = document.getElementById('jspsych-html-button-response-btngroup');
+      const stageRow = document.querySelector('.afc-stage-row');
+      if (group && stageRow) {
+        group.classList.add('afc-choice-group');
+        const [leftWrapper, rightWrapper] = group.querySelectorAll('.jspsych-html-button-response-button');
+        const leftSlot = stageRow.querySelector('.afc-slot[data-slot="left"]');
+        const rightSlot = stageRow.querySelector('.afc-slot[data-slot="right"]');
+        if (leftWrapper && leftSlot) {
+          leftSlot.appendChild(leftWrapper);
+        }
+        if (rightWrapper && rightSlot) {
+          rightSlot.appendChild(rightWrapper);
+        }
+      }
+
+      const activeImages = document.querySelectorAll('.afc-stage img');
+      activeImages.forEach((img) => {
+        const src = img.getAttribute('src');
+        if (!src) return;
+        const cached = decodedImageCache.get(src);
+        if (cached) {
+          img.src = cached.src;
+        }
+      });
 
       const leftButton = document.querySelector('#jspsych-html-button-response-button-0 button');
       const rightButton = document.querySelector('#jspsych-html-button-response-button-1 button');

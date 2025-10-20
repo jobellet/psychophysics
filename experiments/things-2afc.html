@@ -19,6 +19,9 @@
         --accent-muted: rgba(96, 165, 250, 0.15);
         --text-primary: #e2e8f0;
         --text-secondary: rgba(203, 213, 225, 0.88);
+        --layout-padding: clamp(16px, 4vw, 48px);
+        --card-width: min(960px, 100vw - (var(--layout-padding) * 2));
+        --afc-gap: clamp(12px, 2.4vw, 32px);
       }
 
       * { box-sizing: border-box; }
@@ -30,7 +33,7 @@
         flex-direction: column;
         align-items: center;
         gap: clamp(18px, 4vw, 32px);
-        padding: clamp(16px, 4vw, 48px);
+        padding: var(--layout-padding);
         background: var(--page-bg);
         color: var(--text-primary);
       }
@@ -38,7 +41,7 @@
       a { color: var(--accent); }
 
       .card {
-        width: min(960px, 95vw);
+        width: var(--card-width);
         border: var(--panel-border);
         border-radius: clamp(18px, 3vw, 28px);
         background: var(--panel-bg);
@@ -117,14 +120,15 @@
       .hidden { display: none !important; }
 
       #jspsych-target {
-        width: min(960px, 95vw);
-        min-height: clamp(280px, 55vh, 640px);
+        width: min(1280px, 100vw - (var(--layout-padding) * 2));
+        min-height: clamp(280px, 58vh, 720px);
         border-radius: clamp(18px, 3vw, 28px);
         border: var(--panel-border);
         background: rgba(15, 23, 42, 0.72);
         box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.12);
         padding: clamp(18px, 4vw, 32px);
         display: none;
+        margin: 0 auto;
       }
 
       #jspsych-target.active { display: block; }
@@ -144,67 +148,89 @@
       }
 
       .afc-stage {
-        position: relative;
         width: 100%;
-        max-width: 720px;
-        aspect-ratio: 3 / 2;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto;
       }
 
-      .afc-reference {
-        position: relative;
-        z-index: 2;
-        padding: clamp(10px, 2vw, 16px);
-        border-radius: clamp(16px, 3vw, 24px);
-        background: rgba(15, 23, 42, 0.85);
+      .afc-stage-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--afc-gap);
+        width: 100%;
+        max-width: min(1200px, 100%);
+      }
+
+      .afc-slot {
+        flex: 0 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .afc-slot--reference {
+        gap: clamp(8px, 1.6vw, 16px);
+      }
+
+      .afc-reference-frame {
+        padding: clamp(8px, 1.8vw, 16px);
+        border-radius: clamp(14px, 2.6vw, 22px);
+        background: rgba(15, 23, 42, 0.9);
         box-shadow: 0 18px 42px rgba(2, 6, 23, 0.45);
       }
 
-      .afc-reference img {
+      .afc-reference-frame img {
         display: block;
-        max-width: clamp(120px, 22vw, 220px);
-        max-height: clamp(120px, 22vw, 220px);
+        width: min(28vh, clamp(90px, 24vw, 320px));
+        height: min(28vh, clamp(90px, 24vw, 320px));
+        object-fit: cover;
         border-radius: clamp(12px, 2vw, 18px);
       }
 
-      #jspsych-html-button-response-btngroup {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: clamp(6px, 2vw, 20px);
-        pointer-events: none;
+      .afc-reference-label {
+        font-size: clamp(0.85rem, 1.8vw, 1rem);
+        color: rgba(226, 232, 240, 0.72);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      #jspsych-html-button-response-btngroup,
+      .afc-choice-group {
+        display: contents;
       }
 
       .jspsych-html-button-response-button {
-        pointer-events: auto;
         display: flex;
         align-items: center;
         justify-content: center;
-        flex: 0 0 auto;
       }
 
       .afc-choice {
-        background: rgba(15, 23, 42, 0.88);
+        background: rgba(15, 23, 42, 0.9);
         border-radius: clamp(16px, 2.8vw, 22px);
         border: 1px solid rgba(148, 163, 184, 0.28);
-        padding: clamp(10px, 2vw, 16px);
+        padding: clamp(8px, 1.6vw, 16px);
         display: flex;
         align-items: center;
         justify-content: center;
         box-shadow: 0 16px 36px rgba(2, 6, 23, 0.45);
+        transition: transform 120ms ease, box-shadow 120ms ease;
       }
 
       .afc-choice img {
-        width: clamp(120px, 22vw, 220px);
-        height: clamp(120px, 22vw, 220px);
+        width: min(28vh, clamp(90px, 24vw, 320px));
+        height: min(28vh, clamp(90px, 24vw, 320px));
         object-fit: cover;
         border-radius: clamp(12px, 2vw, 18px);
         pointer-events: none;
+      }
+
+      .afc-choice:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 20px 40px rgba(2, 6, 23, 0.55);
       }
 
       .afc-choice:focus-visible {
@@ -229,10 +255,39 @@
         font-weight: 600;
       }
 
+      @media (max-width: 960px) {
+        #jspsych-target {
+          width: min(100vw - (clamp(12px, 3vw, 24px) * 2), 960px);
+          padding: clamp(16px, 5vw, 28px);
+        }
+      }
+
       @media (max-width: 720px) {
-        .afc-stage { aspect-ratio: unset; min-height: 320px; }
-        #jspsych-html-button-response-btngroup { flex-direction: row; gap: 12px; }
-        .afc-reference img, .afc-choice img { width: clamp(110px, 35vw, 180px); height: clamp(110px, 35vw, 180px); }
+        body {
+          padding: clamp(12px, 4vw, 28px);
+        }
+        :root {
+          --card-width: min(960px, 100vw - (clamp(12px, 4vw, 28px) * 2));
+        }
+        .afc-stage-row {
+          gap: clamp(10px, 3vw, 18px);
+        }
+        .afc-reference-frame img,
+        .afc-choice img {
+          width: min(26vh, clamp(80px, 30vw, 220px));
+          height: min(26vh, clamp(80px, 30vw, 220px));
+        }
+      }
+
+      @media (max-width: 520px) {
+        .afc-stage-row {
+          gap: clamp(8px, 3vw, 14px);
+        }
+        .afc-reference-frame img,
+        .afc-choice img {
+          width: clamp(72px, 28vw, 160px);
+          height: clamp(72px, 28vw, 160px);
+        }
       }
     </style>
   </head>
