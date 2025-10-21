@@ -300,7 +300,7 @@ function buildTimeline(trials) {
         node._choicesAvailable = true;
         node._choiceRevealTime = performance.now();
       };
-      node._choiceRevealTimeout = jsPsych.pluginAPI.setTimeout(revealChoices, 500);
+      node._choiceRevealTimeout = window.setTimeout(revealChoices, 500);
 
       const listener = jsPsych.pluginAPI.getKeyboardResponse({
         callback_function: (info) => {
@@ -330,7 +330,8 @@ function buildTimeline(trials) {
         keyboardListeners.delete(node);
       }
       if (node._choiceRevealTimeout) {
-        jsPsych.pluginAPI.clearTimeout(node._choiceRevealTimeout);
+        window.clearTimeout(node._choiceRevealTimeout);
+        node._choiceRevealTimeout = null;
       }
 
       const responseIndex = typeof data.response === 'number' ? data.response : null;
