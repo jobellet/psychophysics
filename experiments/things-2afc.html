@@ -150,29 +150,38 @@
       .afc-stage {
         width: 100%;
         display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .afc-stage-row {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: var(--afc-gap);
-        width: 100%;
-        max-width: min(1200px, 100%);
-      }
-
-      .afc-slot {
-        flex: 0 0 auto;
-        display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        gap: clamp(18px, 4vw, 32px);
       }
 
-      .afc-slot--reference {
+      .afc-reference-phase {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         gap: clamp(8px, 1.6vw, 16px);
+      }
+
+      .afc-phase--hidden {
+        display: none !important;
+      }
+
+      .afc-choice-phase {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(16px, 4vw, 28px);
+      }
+
+      .afc-choice-phase.is-active {
+        display: flex;
+      }
+
+      .afc-choice-slot {
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .afc-reference-frame {
@@ -269,9 +278,6 @@
         :root {
           --card-width: min(960px, 100vw - (clamp(12px, 4vw, 28px) * 2));
         }
-        .afc-stage-row {
-          gap: clamp(10px, 3vw, 18px);
-        }
         .afc-reference-frame img,
         .afc-choice img {
           width: min(26vh, clamp(80px, 30vw, 220px));
@@ -280,9 +286,6 @@
       }
 
       @media (max-width: 520px) {
-        .afc-stage-row {
-          gap: clamp(8px, 3vw, 14px);
-        }
         .afc-reference-frame img,
         .afc-choice img {
           width: clamp(72px, 28vw, 160px);
@@ -295,9 +298,9 @@
     <section class="card" id="intro-card">
       <h1>Things Image Matching (2AFC)</h1>
       <p>
-        On each trial you will see a reference image in the centre and two images on the sides.
-        Choose the side that shows the version of the object that matches the reference image.
-        Use the left and right arrow keys on a keyboard or tap the image directly on touch devices.
+        On each trial you will briefly see a reference image in the centre.
+        When it disappears, two candidate images will appear near the centre.
+        Choose the option that matches the reference image using the left and right arrow keys or by tapping directly on touch devices.
       </p>
       <p>
         Every neutral reference image is presented twice: once paired with its prototypical variant and once with its outlier variant.

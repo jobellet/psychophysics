@@ -184,17 +184,17 @@ async function preloadImages(trials) {
 function renderStimulus(referencePath) {
   return `
     <div class="afc-trial">
-      <div class="afc-instructions">Select the image that matches the centre reference.</div>
+      <div class="afc-instructions">Memorize the reference image. When it disappears, choose the matching image.</div>
       <div class="afc-stage">
-        <div class="afc-stage-row">
-          <div class="afc-slot" data-slot="left"></div>
-          <div class="afc-slot afc-slot--reference">
-            <div class="afc-reference-frame">
-              <img src="${referencePath}" alt="Reference image" />
-            </div>
-            <div class="afc-reference-label" aria-hidden="true">Reference</div>
+        <div class="afc-reference-phase" data-phase="reference">
+          <div class="afc-reference-frame">
+            <img src="${referencePath}" alt="Reference image" />
           </div>
-          <div class="afc-slot" data-slot="right"></div>
+          <div class="afc-reference-label" aria-hidden="true">Reference</div>
+        </div>
+        <div class="afc-choice-phase" data-phase="choices">
+          <div class="afc-choice-slot" data-slot="left"></div>
+          <div class="afc-choice-slot" data-slot="right"></div>
         </div>
       </div>
     </div>
@@ -244,12 +244,13 @@ function buildTimeline(trials) {
       syncProgressBar();
 
       const group = document.getElementById('jspsych-html-button-response-btngroup');
-      const stageRow = document.querySelector('.afc-stage-row');
-      if (group && stageRow) {
+      const choicePhase = document.querySelector('.afc-choice-phase');
+      const referencePhase = document.querySelector('.afc-reference-phase');
+      if (group && choicePhase) {
         group.classList.add('afc-choice-group');
         const [leftWrapper, rightWrapper] = group.querySelectorAll('.jspsych-html-button-response-button');
-        const leftSlot = stageRow.querySelector('.afc-slot[data-slot="left"]');
-        const rightSlot = stageRow.querySelector('.afc-slot[data-slot="right"]');
+        const leftSlot = choicePhase.querySelector('.afc-choice-slot[data-slot="left"]');
+        const rightSlot = choicePhase.querySelector('.afc-choice-slot[data-slot="right"]');
         if (leftWrapper && leftSlot) {
           leftSlot.appendChild(leftWrapper);
         }
@@ -271,14 +272,41 @@ function buildTimeline(trials) {
       const leftButton = document.querySelector('#jspsych-html-button-response-button-0 button');
       const rightButton = document.querySelector('#jspsych-html-button-response-button-1 button');
       node._responseSource = 'unknown';
+      const allButtons = [leftButton, rightButton].filter(Boolean);
+      allButtons.forEach((btn) => {
+        btn.disabled = true;
+      });
       if (leftButton) {
         leftButton.addEventListener('pointerdown', () => { node._responseSource = 'pointer'; }, { once: true });
       }
       if (rightButton) {
         rightButton.addEventListener('pointerdown', () => { node._responseSource = 'pointer'; }, { once: true });
       }
+
+      node._choicesAvailable = false;
+      node._trialStart = performance.now();
+      const revealChoices = () => {
+        if (referencePhase) {
+          referencePhase.classList.add('afc-phase--hidden');
+        }
+        if (choicePhase) {
+          choicePhase.classList.add('is-active');
+        }
+        allButtons.forEach((btn) => {
+          if (btn) {
+            btn.disabled = false;
+          }
+        });
+        node._choicesAvailable = true;
+        node._choiceRevealTime = performance.now();
+      };
+      node._choiceRevealTimeout = jsPsych.pluginAPI.setTimeout(revealChoices, 500);
+
       const listener = jsPsych.pluginAPI.getKeyboardResponse({
         callback_function: (info) => {
+          if (!node._choicesAvailable) {
+            return;
+          }
           if (info.key === 'arrowleft' && leftButton) {
             node._responseSource = 'keyboard';
             leftButton.click();
@@ -301,6 +329,9 @@ function buildTimeline(trials) {
         jsPsych.pluginAPI.cancelKeyboardResponse(listener);
         keyboardListeners.delete(node);
       }
+      if (node._choiceRevealTimeout) {
+        jsPsych.pluginAPI.clearTimeout(node._choiceRevealTimeout);
+      }
 
       const responseIndex = typeof data.response === 'number' ? data.response : null;
       const selection = responseIndex === 0 ? 'left' : responseIndex === 1 ? 'right' : null;
@@ -312,6 +343,12 @@ function buildTimeline(trials) {
       data.distractor_path = trial.distractorPath;
       data.response_key = selection;
       data.response_source = node._responseSource || 'unknown';
+      if (typeof data.rt === 'number' && typeof node._choiceRevealTime === 'number' && typeof node._trialStart === 'number') {
+        const revealOffset = Math.max(0, node._choiceRevealTime - node._trialStart);
+        const adjusted = Math.max(0, data.rt - revealOffset);
+        data.rt = adjusted;
+        data.choice_delay = revealOffset;
+      }
 
       completedTrials += 1;
       jsPsych.setProgressBar(completedTrials / totalTrials);
