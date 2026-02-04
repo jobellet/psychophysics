@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Rotating Snake Illusion Experiment</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -21,6 +21,7 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      touch-action: none; /* Prevent pull-to-refresh on mobile */
     }
 
     #jspsych-target {
@@ -51,25 +52,79 @@
       transform: translate(-50%, -50%);
       z-index: 10;
       box-shadow: 0 0 4px rgba(0,0,0,0.5);
-      transition: left 0.1s linear; /* Smooth transition or jump? User said "move randomly", let's make it jumpy but visible */
+      transition: left 0.1s linear;
+    }
+
+    /* Settings Button */
+    #settings-btn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: white;
+      border: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      font-size: 24px;
+      z-index: 50;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     /* Controls overlay */
-    #controls {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(255, 255, 255, 0.9);
-      padding: 16px 24px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      z-index: 20;
-      display: flex;
-      gap: 24px;
+    #controls-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      display: none; /* Hidden by default */
       align-items: center;
-      font-size: 14px;
-      font-weight: 600;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+
+    #controls-overlay.visible {
+      display: flex;
+    }
+
+    #controls-card {
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 400px;
+      max-height: 85vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .card-header h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0 8px;
     }
 
     .control-group {
@@ -78,20 +133,49 @@
       gap: 8px;
     }
 
+    label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #334155;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    label span.value-display {
+      font-weight: 400;
+      color: #64748b;
+    }
+
     input[type=range] {
-      width: 150px;
+      width: 100%;
       cursor: pointer;
+      height: 24px; /* Larger touch target */
+    }
+
+    select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      font-size: 16px;
+      background: white;
     }
 
     button.exit-btn {
-      margin-left: 12px;
-      padding: 8px 16px;
+      margin-top: 16px;
+      padding: 12px;
       background: #ef4444;
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       font-weight: 600;
+      font-size: 16px;
       cursor: pointer;
+      width: 100%;
+    }
+
+    button.exit-btn:hover {
+      background: #dc2626;
     }
   </style>
 </head>
@@ -105,7 +189,6 @@
     const jsPsych = initJsPsych({
       display_element: 'jspsych-target',
       on_finish: function() {
-        // Redirect back to index or show data
          window.location.href = "../index.html";
       }
     });
@@ -114,23 +197,18 @@
     let animationId;
     let fixationTimeoutId;
 
-    const colors = {
-      black: '#000000',
-      dark: '#555555',
-      white: '#FFFFFF',
-      light: '#AAAAAA'
+    const palettes = {
+      grayscale: ['#000000', '#555555', '#FFFFFF', '#AAAAAA'], // Black, Dark, White, Light
+      blueYellow: ['#000000', '#0000FF', '#FFFFFF', '#FFFF00'], // Black, Blue, White, Yellow
+      redGreen: ['#000000', '#008000', '#FFFFFF', '#FF0000']   // Black, Green, White, Red
     };
 
-    function drawSnake(ctx, x, y, radius, direction) {
-      const rings = 4;
+    function drawSnake(ctx, x, y, radius, direction, rings, palette) {
       const ringWidth = radius / rings;
 
       for (let r = 0; r < rings; r++) {
         const currentRadius = radius - (r * ringWidth);
-        const sectorCount = 12 + (r * 4); // More sectors for outer rings? Or fewer? Let's keep it simple.
-        // Actually, illusion works best with many small sectors.
-        // Let's use a fixed number of sectors per ring or proportional to circumference.
-        const sectors = Math.floor(currentRadius * 0.5);
+        const sectors = Math.floor(currentRadius * 0.5); // Density heuristic
         const angleStep = (2 * Math.PI) / sectors;
 
         for (let i = 0; i < sectors; i++) {
@@ -142,40 +220,26 @@
           ctx.arc(x, y, currentRadius - ringWidth, endAngle, startAngle, true);
           ctx.closePath();
 
-          // Order: Black -> Dark -> White -> Light
-          // If direction is true (CW illusion):
-          //   Sequence should be B -> L -> W -> D (Counter-clockwise placement creates CW motion?)
-          //   The motion is from Black to Dark to White to Light? No, Black->Dark->White->Light.
-          //   Motion is in direction of Black -> Dark.
-
-          // Let's implement sequence: Black, Dark, White, Light.
-          // If we want CW motion, we paint sectors in order B, D, W, L going CW.
-          // Wait, each sector needs 4 sub-parts? Or adjacent sectors have these colors?
-          // Typically, one "unit" is a block of 4 colors.
-
-          // Simplified: Each sector IS one color. The sequence of sectors creates the illusion.
-          // So we need groups of 4 sectors.
-
+          // 0:Black, 1:Dark/Color, 2:White, 3:Light/Color
+          // Direction determines the shift
           const colorIndex = direction ? i % 4 : (4 - (i % 4)) % 4;
 
-          if (colorIndex === 0) ctx.fillStyle = colors.black;
-          else if (colorIndex === 1) ctx.fillStyle = colors.dark;
-          else if (colorIndex === 2) ctx.fillStyle = colors.white;
-          else ctx.fillStyle = colors.light;
-
+          ctx.fillStyle = palette[colorIndex];
           ctx.fill();
         }
       }
     }
 
-    function drawIllusion(ctx, width, height, scale) {
+    function drawIllusion(ctx, width, height, scale, spacingFactor, rings, paletteKey) {
       // Background color
       ctx.fillStyle = '#888';
       ctx.fillRect(0, 0, width, height);
 
-      const spacing = scale * 2.2; // Space between centers
+      const spacing = scale * spacingFactor;
       const cols = Math.ceil(width / spacing) + 1;
       const rows = Math.ceil(height / spacing) + 1;
+
+      const palette = palettes[paletteKey] || palettes.grayscale;
 
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
@@ -185,7 +249,7 @@
           // Checkerboard pattern for rotation direction
           const direction = (row + col) % 2 === 0;
 
-          drawSnake(ctx, x, y, scale, direction);
+          drawSnake(ctx, x, y, scale, direction, rings, palette);
         }
       }
     }
@@ -199,7 +263,6 @@
 
       fixationEl.style.left = `${newX}px`;
 
-      // Random time interval: interval +/- 50%
       const nextDelay = interval * (0.5 + Math.random());
 
       fixationTimeoutId = setTimeout(() => {
@@ -213,16 +276,47 @@
       stimulus: `
         <canvas id="illusion-canvas"></canvas>
         <div id="fixation-spot"></div>
-        <div id="controls">
-          <div class="control-group">
-            <label for="scale-slider">Illusion Size</label>
-            <input type="range" id="scale-slider" min="20" max="100" value="50">
+
+        <button id="settings-btn" onclick="document.getElementById('controls-overlay').classList.add('visible')">⚙️</button>
+
+        <div id="controls-overlay">
+          <div id="controls-card">
+            <div class="card-header">
+              <h2>Settings</h2>
+              <button class="close-btn" onclick="document.getElementById('controls-overlay').classList.remove('visible')">&times;</button>
+            </div>
+
+            <div class="control-group">
+              <label for="color-select">Color Theme</label>
+              <select id="color-select">
+                <option value="grayscale">Grayscale</option>
+                <option value="blueYellow">Blue / Yellow</option>
+                <option value="redGreen">Red / Green</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <label for="scale-slider">Size <span id="scale-val" class="value-display">50</span></label>
+              <input type="range" id="scale-slider" min="20" max="100" value="50">
+            </div>
+
+            <div class="control-group">
+              <label for="rings-slider">Rings <span id="rings-val" class="value-display">4</span></label>
+              <input type="range" id="rings-slider" min="2" max="10" value="4">
+            </div>
+
+            <div class="control-group">
+              <label for="spacing-slider">Spacing <span id="spacing-val" class="value-display">2.2</span></label>
+              <input type="range" id="spacing-slider" min="1.5" max="3.5" step="0.1" value="2.2">
+            </div>
+
+            <div class="control-group">
+              <label for="interval-slider">Move Interval (ms) <span id="interval-val" class="value-display">1000</span></label>
+              <input type="range" id="interval-slider" min="200" max="3000" value="1000" step="100">
+            </div>
+
+            <button class="exit-btn" onclick="jsPsych.finishTrial()">Exit Experiment</button>
           </div>
-          <div class="control-group">
-            <label for="interval-slider">Move Interval (ms)</label>
-            <input type="range" id="interval-slider" min="200" max="3000" value="1000" step="100">
-          </div>
-          <button class="exit-btn" onclick="jsPsych.finishTrial()">Exit</button>
         </div>
       `,
       choices: "NO_KEYS",
@@ -230,40 +324,61 @@
         const canvas = document.getElementById('illusion-canvas');
         const ctx = canvas.getContext('2d');
         const fixationEl = document.getElementById('fixation-spot');
+
+        // Controls
         const scaleSlider = document.getElementById('scale-slider');
+        const ringsSlider = document.getElementById('rings-slider');
+        const spacingSlider = document.getElementById('spacing-slider');
+        const colorSelect = document.getElementById('color-select');
         const intervalSlider = document.getElementById('interval-slider');
 
-        // Resize canvas to full screen
-        function resize() {
-          canvas.width = window.innerWidth;
-          canvas.height = window.innerHeight;
-          drawIllusion(ctx, canvas.width, canvas.height, parseInt(scaleSlider.value));
-        }
-        window.addEventListener('resize', resize);
-        resize();
+        // Value displays
+        const scaleVal = document.getElementById('scale-val');
+        const ringsVal = document.getElementById('rings-val');
+        const spacingVal = document.getElementById('spacing-val');
+        const intervalVal = document.getElementById('interval-val');
 
-        // Slider listeners
-        scaleSlider.addEventListener('input', () => {
-          drawIllusion(ctx, canvas.width, canvas.height, parseInt(scaleSlider.value));
+        function redraw() {
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          canvas.width = w;
+          canvas.height = h;
+
+          const scale = parseInt(scaleSlider.value);
+          const rings = parseInt(ringsSlider.value);
+          const spacing = parseFloat(spacingSlider.value);
+          const palette = colorSelect.value;
+
+          drawIllusion(ctx, w, h, scale, spacing, rings, palette);
+        }
+
+        window.addEventListener('resize', redraw);
+
+        // Input listeners
+        [scaleSlider, ringsSlider, spacingSlider].forEach(el => {
+          el.addEventListener('input', () => {
+             // Update display values
+             if(el === scaleSlider) scaleVal.innerText = el.value;
+             if(el === ringsSlider) ringsVal.innerText = el.value;
+             if(el === spacingSlider) spacingVal.innerText = el.value;
+
+             redraw();
+          });
         });
 
-        // Start fixation loop
+        colorSelect.addEventListener('change', redraw);
+
+        // Interval listener
         let currentInterval = parseInt(intervalSlider.value);
         intervalSlider.addEventListener('input', () => {
           currentInterval = parseInt(intervalSlider.value);
+          intervalVal.innerText = currentInterval;
         });
 
-        function loopFixation() {
-          const width = window.innerWidth;
-          // Constrain to middle 80% to avoid edges
-          const minX = width * 0.1;
-          const maxX = width * 0.9;
+        // Initial draw
+        redraw();
 
-          updateFixation(fixationEl, currentInterval, minX, maxX);
-        }
-
-        // We need to pass the current interval dynamically
-        // So we wrap the timeout logic in a way that reads the slider
+        // Fixation loop
         function runFixation() {
            const width = window.innerWidth;
            const minX = width * 0.1;
@@ -272,7 +387,7 @@
            const newX = minX + Math.random() * (maxX - minX);
            fixationEl.style.left = `${newX}px`;
 
-           const delay = parseInt(intervalSlider.value) * (0.5 + Math.random());
+           const delay = currentInterval * (0.5 + Math.random());
            fixationTimeoutId = setTimeout(runFixation, delay);
         }
 
@@ -280,7 +395,6 @@
       },
       on_finish: function() {
         if (fixationTimeoutId) clearTimeout(fixationTimeoutId);
-        // Clean up listeners if necessary, though page will likely change
       }
     };
 
