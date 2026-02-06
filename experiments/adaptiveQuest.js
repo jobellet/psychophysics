@@ -2,7 +2,7 @@
 
 // --- BINS (edit these to taste; you can also make them quantiles) ---
 const SOA_BINS   = [ [100,200], [200,350], [350,550], [550,900] ];       // ms
-const ECC_BINS   = [ [  0, 80], [ 80,140], [140,200], [200,300] ];       // px (first_radius)
+const ECC_BINS   = [ [  0, 80], [ 80,140], [140,200], [200,300], [300, 500], [500, 1000], [1000, 2000] ];       // px (first_radius)
 const ANG_GROUPS = [
   {name:"cardinal-E", test:(th)=>angGroup(th)==="E"},
   {name:"cardinal-N", test:(th)=>angGroup(th)==="N"},
