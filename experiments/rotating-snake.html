@@ -68,10 +68,164 @@
         cursor: pointer;
         font-weight: 600;
     }
+
+    /* Settings Panel Styles */
+    #settings-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 300px; /* Adjust width as needed */
+      height: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      z-index: 2000;
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+
+    .setting-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .setting-group label {
+      font-weight: 600;
+      font-size: 0.9em;
+      margin-bottom: 2px;
+    }
+
+    .setting-input-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .setting-input-row input[type="range"] {
+      flex-grow: 1;
+    }
+
+    .setting-input-row input[type="number"] {
+      width: 60px;
+    }
+
+    .color-row {
+      display: flex;
+      gap: 5px;
+    }
+
+    .color-input {
+      width: 100%;
+      height: 30px;
+      border: 1px solid #ccc;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    #start-exp-btn {
+      margin-top: auto; /* Push to bottom */
+      padding: 15px;
+      background: #22c55e;
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 1.1em;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: background 0.2s;
+    }
+
+    #start-exp-btn:hover {
+      background: #16a34a;
+    }
+
+    #test-rotation-btn {
+      padding: 8px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    #test-rotation-btn:hover {
+      background: #2563eb;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.2em;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 10px;
+    }
   </style>
 </head>
 <body>
   <div id="jspsych-target"></div>
+
+  <div id="settings-overlay">
+    <h2>Settings</h2>
+
+    <div class="setting-group">
+      <label for="param-radius">Wheel Radius (px)</label>
+      <div class="setting-input-row">
+        <input type="range" id="param-radius-slider" min="20" max="300" step="5" value="50">
+        <input type="number" id="param-radius" min="20" max="300" step="1" value="50">
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label for="param-rings">Number of Rings</label>
+      <div class="setting-input-row">
+        <input type="range" id="param-rings-slider" min="1" max="20" step="1" value="4">
+        <input type="number" id="param-rings" min="1" max="20" step="1" value="4">
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label>Palette Colors</label>
+      <div class="color-row">
+        <input type="color" class="color-input" id="param-color-0" value="#000000" title="Color 1 (Black)">
+        <input type="color" class="color-input" id="param-color-1" value="#555555" title="Color 2 (Dark)">
+        <input type="color" class="color-input" id="param-color-2" value="#FFFFFF" title="Color 3 (White)">
+        <input type="color" class="color-input" id="param-color-3" value="#AAAAAA" title="Color 4 (Light)">
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label for="param-location-interval">Location Change Interval (ms)</label>
+      <div class="setting-input-row">
+        <input type="number" id="param-location-interval" min="1000" max="60000" step="1000" value="10000">
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label for="param-rotation-rate">Rotation Event Rate (Hz)</label>
+      <div class="setting-input-row">
+        <input type="number" id="param-rotation-rate" min="0.1" max="5.0" step="0.1" value="0.5">
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label for="param-rotation-duration">Rotation Duration (ms)</label>
+      <div class="setting-input-row">
+        <input type="number" id="param-rotation-duration" min="10" max="1000" step="10" value="100">
+      </div>
+    </div>
+
+    <div class="setting-group">
+        <button id="test-rotation-btn">Test Rotation Animation</button>
+    </div>
+
+    <button id="start-exp-btn">Start Experiment</button>
+  </div>
 
   <script src="../jspsych/dist/jspsych.js"></script>
   <script src="../jspsych/plugins/html-keyboard-response.js"></script>
@@ -79,31 +233,14 @@
   <script src="adaptiveQuest.js"></script>
 
   <script>
-    const jsPsych = initJsPsych({
-      display_element: 'jspsych-target',
-      on_finish: function() {
-         // Download data
-         if (window.rotatingSnakeLog) {
-             const headers = ["timestamp","elapsed","type","wheel_x","wheel_y","fixation_x","fixation_y","magnitude_deg","ecc_px","theta_rad","rt","quest_value","input_type"];
-             const csvContent = "data:text/csv;charset=utf-8,"
-                 + headers.join(",") + "\n"
-                 + window.rotatingSnakeLog.map(e => {
-                     return headers.map(h => e[h] !== undefined ? e[h] : "").join(",");
-                 }).join("\n");
-
-             const encodedUri = encodeURI(csvContent);
-             const link = document.createElement("a");
-             link.setAttribute("href", encodedUri);
-             link.setAttribute("download", "rotating_snake_data_" + new Date().toISOString() + ".csv");
-             document.body.appendChild(link);
-             link.click();
-         }
-         window.location.href = "../index.html";
-      }
-    });
-
-    const palettes = {
-      grayscale: ['#000000', '#555555', '#FFFFFF', '#AAAAAA'], // Black, Dark, White, Light
+    // --- Global Parameters ---
+    const experimentParams = {
+      radius: 50,
+      rings: 4,
+      palette: ['#000000', '#555555', '#FFFFFF', '#AAAAAA'],
+      locationChangeInterval: 10000,
+      rotationEventRate: 0.5,
+      rotationDuration: 100
     };
 
     // --- Drawing Logic ---
@@ -132,218 +269,353 @@
       }
     }
 
-    // --- Main Trial ---
-    const illusionTrial = {
-      type: jsPsychHtmlKeyboardResponse,
-      stimulus: `
-        <canvas id="illusion-canvas"></canvas>
-        <div id="fixation-spot"></div>
-        <button id="finish-btn" onclick="jsPsych.finishTrial()">Finish & Download</button>
-      `,
-      choices: "NO_KEYS",
-      on_load: function() {
-        // Initialize QUEST
-        if (typeof initAdaptiveQuest === 'function') {
-            initAdaptiveQuest();
-        } else {
-            console.error("initAdaptiveQuest not found!");
+    // --- Settings UI Logic ---
+    let previewAnimationFrameId;
+    let previewRotation = 0;
+    let previewRotationTarget = 0;
+    let previewRotationInProgress = false;
+    let previewRotationStartTime = 0;
+
+    function initSettings() {
+        const inputs = {
+            radius: document.getElementById('param-radius'),
+            radiusSlider: document.getElementById('param-radius-slider'),
+            rings: document.getElementById('param-rings'),
+            ringsSlider: document.getElementById('param-rings-slider'),
+            locInterval: document.getElementById('param-location-interval'),
+            rotRate: document.getElementById('param-rotation-rate'),
+            rotDuration: document.getElementById('param-rotation-duration'),
+            colors: [
+                document.getElementById('param-color-0'),
+                document.getElementById('param-color-1'),
+                document.getElementById('param-color-2'),
+                document.getElementById('param-color-3')
+            ]
+        };
+
+        function updateParams() {
+            experimentParams.radius = parseInt(inputs.radius.value);
+            experimentParams.rings = parseInt(inputs.rings.value);
+            experimentParams.locationChangeInterval = parseInt(inputs.locInterval.value);
+            experimentParams.rotationEventRate = parseFloat(inputs.rotRate.value);
+            experimentParams.rotationDuration = parseInt(inputs.rotDuration.value);
+            experimentParams.palette = inputs.colors.map(c => c.value);
+
+            // Sync sliders and numbers
+            inputs.radiusSlider.value = inputs.radius.value;
+            inputs.ringsSlider.value = inputs.rings.value;
         }
 
+        // Listeners
+        inputs.radius.addEventListener('input', () => { inputs.radiusSlider.value = inputs.radius.value; updateParams(); });
+        inputs.radiusSlider.addEventListener('input', () => { inputs.radius.value = inputs.radiusSlider.value; updateParams(); });
+
+        inputs.rings.addEventListener('input', () => { inputs.ringsSlider.value = inputs.rings.value; updateParams(); });
+        inputs.ringsSlider.addEventListener('input', () => { inputs.rings.value = inputs.ringsSlider.value; updateParams(); });
+
+        inputs.locInterval.addEventListener('change', updateParams);
+        inputs.rotRate.addEventListener('change', updateParams);
+        inputs.rotDuration.addEventListener('change', updateParams);
+
+        inputs.colors.forEach(c => c.addEventListener('input', updateParams));
+
+        // Preview Setup
+        const target = document.getElementById('jspsych-target');
+        // Clear target and setup preview canvas
+        target.innerHTML = `<canvas id="illusion-canvas"></canvas>`;
         const canvas = document.getElementById('illusion-canvas');
         const ctx = canvas.getContext('2d');
-        const fixationEl = document.getElementById('fixation-spot');
 
-        // Experiment Parameters
-        const WHEEL_RADIUS = 50;
-        const RINGS = 4;
-        const PALETTE = palettes.grayscale;
-        const LOCATION_CHANGE_INTERVAL = 10000; // 10s (0.1 Hz)
-        const ROTATION_EVENT_RATE = 0.5; // 0.5 Hz
-        const ROTATION_DURATION = 100; // 100 ms
-
-        // State
-        let wheelX = window.innerWidth / 2 + 200; // Initial pos
-        let wheelY = window.innerHeight / 2;
-        let wheelRotation = 0;
-        let lastLocationChange = performance.now();
-        let rotationInProgress = false;
-        let rotationStartTime = 0;
-        let currentRotationMagnitude = 0; // The angle to rotate by
-
-        // QUEST / Response State
-        let waitingForResponse = false;
-        let currentQuestContext = null;
-        let currentQuestValue = null;
-
-        // Logging
-        window.rotatingSnakeLog = [];
-
-        function logEvent(type, data={}) {
-            window.rotatingSnakeLog.push({
-                timestamp: new Date().toISOString(),
-                elapsed: performance.now(),
-                type: type,
-                wheel_x: wheelX,
-                wheel_y: wheelY,
-                fixation_x: parseFloat(fixationEl.style.left || 0),
-                fixation_y: parseFloat(fixationEl.style.top || 0),
-                ...data
-            });
-        }
-
-        // Fixation Logic
-        let fixationTimeoutId;
-        function runFixation() {
-           const width = window.innerWidth;
-           const minX = width * 0.1;
-           const maxX = width * 0.9;
-
-           const newX = minX + Math.random() * (maxX - minX);
-           fixationEl.style.left = `${newX}px`;
-
-           logEvent('fixation_move', { new_x: newX });
-
-           // Update every 0.5 - 1.5s (average 1s)
-           const delay = 1000 * (0.5 + Math.random());
-           fixationTimeoutId = setTimeout(runFixation, delay);
-        }
-        runFixation();
-
-        // Main Loop
-        let lastFrameTime = performance.now();
-
-        function loop(timestamp) {
-            const dt = (timestamp - lastFrameTime) / 1000; // seconds
-            lastFrameTime = timestamp;
-
+        function previewLoop(timestamp) {
             const width = window.innerWidth;
             const height = window.innerHeight;
             canvas.width = width;
             canvas.height = height;
 
-            // 1. Wheel Location Change (0.1 Hz)
-            if (timestamp - lastLocationChange > LOCATION_CHANGE_INTERVAL) {
-                // Move wheel
-                const margin = WHEEL_RADIUS * 2;
-                wheelX = margin + Math.random() * (width - 2*margin);
-                wheelY = margin + Math.random() * (height - 2*margin);
-                lastLocationChange = timestamp;
-                logEvent('wheel_move', { x: wheelX, y: wheelY });
-            }
+            const centerX = width / 2 + 150; // Offset slightly to right because of settings panel
+            const centerY = height / 2;
 
-            // 2. Rotation Event Generation (Poisson)
-            if (!rotationInProgress && !waitingForResponse) {
-                if (Math.random() < ROTATION_EVENT_RATE * dt) {
-                    // Trigger rotation
-                    rotationInProgress = true;
-                    rotationStartTime = timestamp;
-                    waitingForResponse = true;
-
-                    // Calculate Context for QUEST
-                    const fixRect = fixationEl.getBoundingClientRect();
-                    const fixX = fixRect.left + fixRect.width/2;
-                    const fixY = fixRect.top + fixRect.height/2;
-
-                    const dx = wheelX - fixX;
-                    const dy = wheelY - fixY;
-                    const eccPx = Math.sqrt(dx*dx + dy*dy);
-                    const thetaRad = Math.atan2(dy, dx);
-
-                    // Context
-                    // Use a dummy SOA (e.g. 250ms) as we don't have one
-                    const ctx = { soaMs: 250, eccPx: eccPx, thetaRad: thetaRad };
-                    currentQuestContext = ctx;
-
-                    // Get Stimulus (Angle in degrees)
-                    const suggestedVal = suggestDeltaForContext(ctx, 0.75);
-                    currentQuestValue = suggestedVal;
-                    currentRotationMagnitude = suggestedVal * (Math.PI / 180); // Convert to radians
-
-                    logEvent('rotation_start', {
-                        magnitude_deg: currentQuestValue,
-                        ecc_px: eccPx,
-                        theta_rad: thetaRad
-                    });
-                }
-            }
-
-            // 3. Rotation Animation logic
+            // Handle Preview Rotation Animation
             let displayRotation = 0;
-            if (rotationInProgress) {
-                const elapsed = timestamp - rotationStartTime;
-                if (elapsed < ROTATION_DURATION) {
-                    const progress = elapsed / ROTATION_DURATION;
-                    // Rotate BY the magnitude
-                    displayRotation = progress * currentRotationMagnitude;
+            if (previewRotationInProgress) {
+                const elapsed = timestamp - previewRotationStartTime;
+                if (elapsed < experimentParams.rotationDuration) {
+                    const progress = elapsed / experimentParams.rotationDuration;
+                    displayRotation = progress * previewRotationTarget;
                 } else {
-                    rotationInProgress = false;
-                    wheelRotation += currentRotationMagnitude; // Commit the rotation
-                    wheelRotation = wheelRotation % (2*Math.PI);
+                    previewRotationInProgress = false;
+                    previewRotation += previewRotationTarget;
+                    previewRotation = previewRotation % (2*Math.PI);
                     displayRotation = 0;
                 }
             }
 
-            // 4. Response Window Timeout
-            if (waitingForResponse) {
-                const timeSinceOnset = timestamp - rotationStartTime;
-                if (timeSinceOnset > 1000) {
-                    // Timeout - MISS
-                    waitingForResponse = false;
-                    updateQuestWithOutcome(currentQuestContext, currentQuestValue, 0);
-                    logEvent('response_miss', { quest_value: currentQuestValue });
-                }
-            }
-
             // Draw
-            drawSnake(ctx, wheelX, wheelY, WHEEL_RADIUS, wheelRotation + displayRotation, RINGS, PALETTE);
+            drawSnake(ctx, centerX, centerY, experimentParams.radius, previewRotation + displayRotation, experimentParams.rings, experimentParams.palette);
 
-            requestAnimationFrame(loop);
+            previewAnimationFrameId = requestAnimationFrame(previewLoop);
         }
 
-        requestAnimationFrame(loop);
+        previewAnimationFrameId = requestAnimationFrame(previewLoop);
 
-        // Input Handling
-        const handleResponse = (e) => {
-             const now = performance.now();
-             const type = e.type;
+        // Test Rotation Button
+        document.getElementById('test-rotation-btn').addEventListener('click', () => {
+            if (!previewRotationInProgress) {
+                previewRotationInProgress = true;
+                previewRotationStartTime = performance.now();
+                // Use a default magnitude for preview, e.g., 5 degrees
+                previewRotationTarget = (5 * Math.PI) / 180;
+            }
+        });
 
-             // Simple debouncing/filtering
-             if (e.repeat) return;
+        // Start Button
+        document.getElementById('start-exp-btn').addEventListener('click', () => {
+            cancelAnimationFrame(previewAnimationFrameId);
+            document.getElementById('settings-overlay').style.display = 'none';
+            document.getElementById('jspsych-target').innerHTML = ''; // Clear preview canvas
+            startExperiment();
+        });
+    }
 
-             logEvent('input', { input_type: type });
+    // Initialize Settings on Load
+    initSettings();
 
-             if (waitingForResponse) {
-                 const timeSinceOnset = now - rotationStartTime;
-                 if (timeSinceOnset >= 100 && timeSinceOnset <= 1000) {
-                     // HIT
-                     waitingForResponse = false;
-                     updateQuestWithOutcome(currentQuestContext, currentQuestValue, 1);
-                     logEvent('response_hit', {
-                         rt: timeSinceOnset,
-                         quest_value: currentQuestValue
-                     });
+    // Global jsPsych variable for access in inline event handlers
+    let jsPsych;
 
-                     // Visual feedback
-                     const f = document.getElementById('fixation-spot');
-                     f.style.backgroundColor = '#00ff00';
-                     setTimeout(() => f.style.backgroundColor = 'red', 200);
-                 } else if (timeSinceOnset < 100) {
-                     // Too fast
-                     logEvent('response_too_fast');
-                 }
-             } else {
-                 // False Alarm
-                 logEvent('response_false_alarm');
+    // --- Experiment Logic ---
+    function startExperiment() {
+        jsPsych = initJsPsych({
+          display_element: 'jspsych-target',
+          on_finish: function() {
+             // Download data
+             if (window.rotatingSnakeLog) {
+                 const headers = ["timestamp","elapsed","type","wheel_x","wheel_y","fixation_x","fixation_y","magnitude_deg","ecc_px","theta_rad","rt","quest_value","input_type"];
+                 const csvContent = "data:text/csv;charset=utf-8,"
+                     + headers.join(",") + "\n"
+                     + window.rotatingSnakeLog.map(e => {
+                         return headers.map(h => e[h] !== undefined ? e[h] : "").join(",");
+                     }).join("\n");
+
+                 const encodedUri = encodeURI(csvContent);
+                 const link = document.createElement("a");
+                 link.setAttribute("href", encodedUri);
+                 link.setAttribute("download", "rotating_snake_data_" + new Date().toISOString() + ".csv");
+                 document.body.appendChild(link);
+                 link.click();
              }
+             window.location.href = "../index.html";
+          }
+        });
+
+        // Use global experimentParams
+        const PARAMS = experimentParams;
+
+        // Main Trial
+        const illusionTrial = {
+          type: jsPsychHtmlKeyboardResponse,
+          stimulus: `
+            <canvas id="illusion-canvas"></canvas>
+            <div id="fixation-spot"></div>
+            <button id="finish-btn" onclick="jsPsych.finishTrial()">Finish & Download</button>
+          `,
+          choices: "NO_KEYS",
+          on_load: function() {
+            // Initialize QUEST
+            if (typeof initAdaptiveQuest === 'function') {
+                initAdaptiveQuest();
+            } else {
+                console.error("initAdaptiveQuest not found!");
+            }
+
+            const canvas = document.getElementById('illusion-canvas');
+            const ctx = canvas.getContext('2d');
+            const fixationEl = document.getElementById('fixation-spot');
+
+            // State
+            let wheelX = window.innerWidth / 2 + 200; // Initial pos
+            let wheelY = window.innerHeight / 2;
+            let wheelRotation = 0;
+            let lastLocationChange = performance.now();
+            let rotationInProgress = false;
+            let rotationStartTime = 0;
+            let currentRotationMagnitude = 0; // The angle to rotate by
+
+            // QUEST / Response State
+            let waitingForResponse = false;
+            let currentQuestContext = null;
+            let currentQuestValue = null;
+
+            // Logging
+            window.rotatingSnakeLog = [];
+
+            function logEvent(type, data={}) {
+                window.rotatingSnakeLog.push({
+                    timestamp: new Date().toISOString(),
+                    elapsed: performance.now(),
+                    type: type,
+                    wheel_x: wheelX,
+                    wheel_y: wheelY,
+                    fixation_x: parseFloat(fixationEl.style.left || 0),
+                    fixation_y: parseFloat(fixationEl.style.top || 0),
+                    ...data
+                });
+            }
+
+            // Fixation Logic
+            let fixationTimeoutId;
+            function runFixation() {
+               const width = window.innerWidth;
+               const minX = width * 0.1;
+               const maxX = width * 0.9;
+
+               const newX = minX + Math.random() * (maxX - minX);
+               fixationEl.style.left = `${newX}px`;
+
+               logEvent('fixation_move', { new_x: newX });
+
+               // Update every 0.5 - 1.5s (average 1s)
+               const delay = 1000 * (0.5 + Math.random());
+               fixationTimeoutId = setTimeout(runFixation, delay);
+            }
+            runFixation();
+
+            // Main Loop
+            let lastFrameTime = performance.now();
+
+            function loop(timestamp) {
+                const dt = (timestamp - lastFrameTime) / 1000; // seconds
+                lastFrameTime = timestamp;
+
+                const width = window.innerWidth;
+                const height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+
+                // 1. Wheel Location Change
+                if (timestamp - lastLocationChange > PARAMS.locationChangeInterval) {
+                    // Move wheel
+                    const margin = PARAMS.radius * 2;
+                    wheelX = margin + Math.random() * (width - 2*margin);
+                    wheelY = margin + Math.random() * (height - 2*margin);
+                    lastLocationChange = timestamp;
+                    logEvent('wheel_move', { x: wheelX, y: wheelY });
+                }
+
+                // 2. Rotation Event Generation (Poisson)
+                if (!rotationInProgress && !waitingForResponse) {
+                    if (Math.random() < PARAMS.rotationEventRate * dt) {
+                        // Trigger rotation
+                        rotationInProgress = true;
+                        rotationStartTime = timestamp;
+                        waitingForResponse = true;
+
+                        // Calculate Context for QUEST
+                        const fixRect = fixationEl.getBoundingClientRect();
+                        const fixX = fixRect.left + fixRect.width/2;
+                        const fixY = fixRect.top + fixRect.height/2;
+
+                        const dx = wheelX - fixX;
+                        const dy = wheelY - fixY;
+                        const eccPx = Math.sqrt(dx*dx + dy*dy);
+                        const thetaRad = Math.atan2(dy, dx);
+
+                        // Context
+                        // Use a dummy SOA (e.g. 250ms) as we don't have one
+                        const ctx = { soaMs: 250, eccPx: eccPx, thetaRad: thetaRad };
+                        currentQuestContext = ctx;
+
+                        // Get Stimulus (Angle in degrees)
+                        const suggestedVal = suggestDeltaForContext(ctx, 0.75);
+                        currentQuestValue = suggestedVal;
+                        currentRotationMagnitude = suggestedVal * (Math.PI / 180); // Convert to radians
+
+                        logEvent('rotation_start', {
+                            magnitude_deg: currentQuestValue,
+                            ecc_px: eccPx,
+                            theta_rad: thetaRad
+                        });
+                    }
+                }
+
+                // 3. Rotation Animation logic
+                let displayRotation = 0;
+                if (rotationInProgress) {
+                    const elapsed = timestamp - rotationStartTime;
+                    if (elapsed < PARAMS.rotationDuration) {
+                        const progress = elapsed / PARAMS.rotationDuration;
+                        // Rotate BY the magnitude
+                        displayRotation = progress * currentRotationMagnitude;
+                    } else {
+                        rotationInProgress = false;
+                        wheelRotation += currentRotationMagnitude; // Commit the rotation
+                        wheelRotation = wheelRotation % (2*Math.PI);
+                        displayRotation = 0;
+                    }
+                }
+
+                // 4. Response Window Timeout
+                if (waitingForResponse) {
+                    const timeSinceOnset = timestamp - rotationStartTime;
+                    if (timeSinceOnset > 1000) {
+                        // Timeout - MISS
+                        waitingForResponse = false;
+                        updateQuestWithOutcome(currentQuestContext, currentQuestValue, 0);
+                        logEvent('response_miss', { quest_value: currentQuestValue });
+                    }
+                }
+
+                // Draw using GLOBAL drawSnake
+                drawSnake(ctx, wheelX, wheelY, PARAMS.radius, wheelRotation + displayRotation, PARAMS.rings, PARAMS.palette);
+
+                requestAnimationFrame(loop);
+            }
+
+            requestAnimationFrame(loop);
+
+            // Input Handling
+            const handleResponse = (e) => {
+                 const now = performance.now();
+                 const type = e.type;
+
+                 // Simple debouncing/filtering
+                 if (e.repeat) return;
+
+                 logEvent('input', { input_type: type });
+
+                 if (waitingForResponse) {
+                     const timeSinceOnset = now - rotationStartTime;
+                     if (timeSinceOnset >= 100 && timeSinceOnset <= 1000) {
+                         // HIT
+                         waitingForResponse = false;
+                         updateQuestWithOutcome(currentQuestContext, currentQuestValue, 1);
+                         logEvent('response_hit', {
+                             rt: timeSinceOnset,
+                             quest_value: currentQuestValue
+                         });
+
+                         // Visual feedback
+                         const f = document.getElementById('fixation-spot');
+                         f.style.backgroundColor = '#00ff00';
+                         setTimeout(() => f.style.backgroundColor = 'red', 200);
+                     } else if (timeSinceOnset < 100) {
+                         // Too fast
+                         logEvent('response_too_fast');
+                     }
+                 } else {
+                     // False Alarm
+                     logEvent('response_false_alarm');
+                 }
+            };
+
+            window.addEventListener('keydown', handleResponse);
+            window.addEventListener('touchstart', handleResponse);
+            window.addEventListener('mousedown', handleResponse);
+          }
         };
 
-        window.addEventListener('keydown', handleResponse);
-        window.addEventListener('touchstart', handleResponse);
-        window.addEventListener('mousedown', handleResponse);
-      }
-    };
-
-    jsPsych.run([illusionTrial]);
+        jsPsych.run([illusionTrial]);
+    }
 
   </script>
 </body>
