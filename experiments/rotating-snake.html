@@ -206,6 +206,22 @@
       </div>
     </div>
 
+    <!-- Fixation Settings -->
+    <div class="setting-group">
+      <label for="param-fixation-interval">Fixation Jump Interval (ms)</label>
+      <div class="setting-input-row">
+        <input type="number" id="param-fixation-interval" min="100" max="5000" step="100" value="1000">
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label for="param-fixation-range">Fixation Jump Range (% width)</label>
+      <div class="setting-input-row">
+        <input type="range" id="param-fixation-range-slider" min="10" max="90" step="5" value="80">
+        <input type="number" id="param-fixation-range" min="10" max="90" step="1" value="80">
+      </div>
+    </div>
+
     <div class="setting-group">
       <label for="param-rotation-rate">Rotation Event Rate (Hz)</label>
       <div class="setting-input-row">
@@ -217,6 +233,13 @@
       <label for="param-rotation-duration">Rotation Duration (ms)</label>
       <div class="setting-input-row">
         <input type="number" id="param-rotation-duration" min="10" max="1000" step="10" value="100">
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label for="param-test-speed">Test Rotation Speed (deg/s)</label>
+      <div class="setting-input-row">
+        <input type="number" id="param-test-speed" min="1" max="720" step="1" value="45">
       </div>
     </div>
 
@@ -240,7 +263,10 @@
       palette: ['#000000', '#555555', '#FFFFFF', '#AAAAAA'],
       locationChangeInterval: 10000,
       rotationEventRate: 0.5,
-      rotationDuration: 100
+      rotationDuration: 100,
+      testRotationSpeed: 45, // deg/s
+      fixationJumpInterval: 1000,
+      fixationJumpRangePct: 80
     };
 
     // --- Drawing Logic ---
@@ -275,6 +301,8 @@
     let previewRotationTarget = 0;
     let previewRotationInProgress = false;
     let previewRotationStartTime = 0;
+    let previewFixationX = window.innerWidth / 2;
+    let previewFixationTimeoutId;
 
     function initSettings() {
         const inputs = {
@@ -283,8 +311,12 @@
             rings: document.getElementById('param-rings'),
             ringsSlider: document.getElementById('param-rings-slider'),
             locInterval: document.getElementById('param-location-interval'),
+            fixInterval: document.getElementById('param-fixation-interval'),
+            fixRange: document.getElementById('param-fixation-range'),
+            fixRangeSlider: document.getElementById('param-fixation-range-slider'),
             rotRate: document.getElementById('param-rotation-rate'),
             rotDuration: document.getElementById('param-rotation-duration'),
+            testSpeed: document.getElementById('param-test-speed'),
             colors: [
                 document.getElementById('param-color-0'),
                 document.getElementById('param-color-1'),
@@ -299,11 +331,15 @@
             experimentParams.locationChangeInterval = parseInt(inputs.locInterval.value);
             experimentParams.rotationEventRate = parseFloat(inputs.rotRate.value);
             experimentParams.rotationDuration = parseInt(inputs.rotDuration.value);
+            experimentParams.testRotationSpeed = parseInt(inputs.testSpeed.value);
+            experimentParams.fixationJumpInterval = parseInt(inputs.fixInterval.value);
+            experimentParams.fixationJumpRangePct = parseInt(inputs.fixRange.value);
             experimentParams.palette = inputs.colors.map(c => c.value);
 
             // Sync sliders and numbers
             inputs.radiusSlider.value = inputs.radius.value;
             inputs.ringsSlider.value = inputs.rings.value;
+            inputs.fixRangeSlider.value = inputs.fixRange.value;
         }
 
         // Listeners
@@ -313,18 +349,43 @@
         inputs.rings.addEventListener('input', () => { inputs.ringsSlider.value = inputs.rings.value; updateParams(); });
         inputs.ringsSlider.addEventListener('input', () => { inputs.rings.value = inputs.ringsSlider.value; updateParams(); });
 
+        inputs.fixRange.addEventListener('input', () => { inputs.fixRangeSlider.value = inputs.fixRange.value; updateParams(); });
+        inputs.fixRangeSlider.addEventListener('input', () => { inputs.fixRange.value = inputs.fixRangeSlider.value; updateParams(); });
+
         inputs.locInterval.addEventListener('change', updateParams);
+        inputs.fixInterval.addEventListener('change', updateParams);
         inputs.rotRate.addEventListener('change', updateParams);
         inputs.rotDuration.addEventListener('change', updateParams);
+        inputs.testSpeed.addEventListener('change', updateParams);
 
         inputs.colors.forEach(c => c.addEventListener('input', updateParams));
 
         // Preview Setup
         const target = document.getElementById('jspsych-target');
         // Clear target and setup preview canvas
-        target.innerHTML = `<canvas id="illusion-canvas"></canvas>`;
+        target.innerHTML = `<canvas id="illusion-canvas"></canvas><div id="fixation-spot"></div>`;
         const canvas = document.getElementById('illusion-canvas');
         const ctx = canvas.getContext('2d');
+        const fixationEl = document.getElementById('fixation-spot');
+
+        // Preview Fixation Logic
+        function runPreviewFixation() {
+            const width = window.innerWidth;
+            const pct = experimentParams.fixationJumpRangePct / 100;
+            const rangePx = width * pct;
+            const minX = (width - rangePx) / 2;
+            const maxX = minX + rangePx;
+
+            const newX = minX + Math.random() * (maxX - minX);
+            previewFixationX = newX;
+            fixationEl.style.left = `${newX}px`;
+
+            // Update based on interval (add some jitter +/- 50%)
+            const interval = experimentParams.fixationJumpInterval;
+            const delay = interval * (0.5 + Math.random());
+            previewFixationTimeoutId = setTimeout(runPreviewFixation, delay);
+        }
+        runPreviewFixation();
 
         function previewLoop(timestamp) {
             const width = window.innerWidth;
@@ -363,14 +424,20 @@
             if (!previewRotationInProgress) {
                 previewRotationInProgress = true;
                 previewRotationStartTime = performance.now();
-                // Use a default magnitude for preview, e.g., 5 degrees
-                previewRotationTarget = (5 * Math.PI) / 180;
+
+                // Calculate target angle based on SPEED (deg/s) and DURATION (ms)
+                // Angle (deg) = Speed (deg/s) * Duration (s)
+                const durationSec = experimentParams.rotationDuration / 1000;
+                const angleDeg = experimentParams.testRotationSpeed * durationSec;
+
+                previewRotationTarget = (angleDeg * Math.PI) / 180;
             }
         });
 
         // Start Button
         document.getElementById('start-exp-btn').addEventListener('click', () => {
             cancelAnimationFrame(previewAnimationFrameId);
+            clearTimeout(previewFixationTimeoutId);
             document.getElementById('settings-overlay').style.display = 'none';
             document.getElementById('jspsych-target').innerHTML = ''; // Clear preview canvas
             startExperiment();
@@ -466,16 +533,21 @@
             let fixationTimeoutId;
             function runFixation() {
                const width = window.innerWidth;
-               const minX = width * 0.1;
-               const maxX = width * 0.9;
+
+               // Use params for range
+               const pct = PARAMS.fixationJumpRangePct / 100;
+               const rangePx = width * pct;
+               const minX = (width - rangePx) / 2;
+               const maxX = minX + rangePx;
 
                const newX = minX + Math.random() * (maxX - minX);
                fixationEl.style.left = `${newX}px`;
 
                logEvent('fixation_move', { new_x: newX });
 
-               // Update every 0.5 - 1.5s (average 1s)
-               const delay = 1000 * (0.5 + Math.random());
+               // Update based on interval
+               const interval = PARAMS.fixationJumpInterval;
+               const delay = interval * (0.5 + Math.random());
                fixationTimeoutId = setTimeout(runFixation, delay);
             }
             runFixation();
