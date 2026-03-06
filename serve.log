@@ -1,47 +1,314 @@
-npm warn exec The following package was not found and will be installed: serve@14.2.5
+npm warn exec The following package was not found and will be installed: serve@14.2.6
  INFO  Accepting connections at http://localhost:3000
- HTTP  2/7/2026 4:40:44 AM ::1 HEAD /
- HTTP  2/7/2026 4:40:44 AM ::1 Returned 200 in 287 ms
- HTTP  2/7/2026 4:41:13 AM ::1 GET /experiments/rotating-snake.html
- HTTP  2/7/2026 4:41:13 AM ::1 Returned 301 in 2 ms
- HTTP  2/7/2026 4:41:13 AM ::1 GET /experiments/rotating-snake
- HTTP  2/7/2026 4:41:13 AM ::1 Returned 200 in 12 ms
- HTTP  2/7/2026 4:41:13 AM ::1 GET /jspsych/css/jspsych.css
- HTTP  2/7/2026 4:41:13 AM ::1 GET /jspsych/dist/jspsych.js
- HTTP  2/7/2026 4:41:13 AM ::1 GET /jspsych/plugins/html-keyboard-response.js
- HTTP  2/7/2026 4:41:13 AM ::1 GET /experiments/adaptiveQuest.js
- HTTP  2/7/2026 4:41:13 AM ::1 Returned 200 in 7 ms
- HTTP  2/7/2026 4:41:13 AM ::1 Returned 200 in 8 ms
- HTTP  2/7/2026 4:41:13 AM ::1 Returned 200 in 12 ms
- HTTP  2/7/2026 4:41:13 AM ::1 Returned 200 in 21 ms
- HTTP  2/7/2026 4:44:25 AM ::1 GET /experiments/rotating-snake.html
- HTTP  2/7/2026 4:44:25 AM ::1 Returned 301 in 6 ms
- HTTP  2/7/2026 4:44:25 AM ::1 GET /experiments/rotating-snake
- HTTP  2/7/2026 4:44:25 AM ::1 Returned 200 in 8 ms
- HTTP  2/7/2026 4:44:25 AM ::1 GET /jspsych/css/jspsych.css
- HTTP  2/7/2026 4:44:25 AM ::1 Returned 200 in 7 ms
- HTTP  2/7/2026 4:44:25 AM ::1 GET /jspsych/dist/jspsych.js
- HTTP  2/7/2026 4:44:25 AM ::1 GET /jspsych/plugins/html-keyboard-response.js
- HTTP  2/7/2026 4:44:25 AM ::1 Returned 200 in 3 ms
- HTTP  2/7/2026 4:44:25 AM ::1 GET /experiments/adaptiveQuest.js
- HTTP  2/7/2026 4:44:25 AM ::1 Returned 200 in 4 ms
- HTTP  2/7/2026 4:44:25 AM ::1 Returned 200 in 3 ms
- HTTP  2/7/2026 4:44:46 AM ::1 GET /experiments/rotating-snake.html
- HTTP  2/7/2026 4:44:46 AM ::1 Returned 301 in 1 ms
- HTTP  2/7/2026 4:44:46 AM ::1 GET /experiments/rotating-snake
- HTTP  2/7/2026 4:44:46 AM ::1 Returned 200 in 1 ms
- HTTP  2/7/2026 4:44:46 AM ::1 GET /jspsych/css/jspsych.css
- HTTP  2/7/2026 4:44:46 AM ::1 GET /jspsych/dist/jspsych.js
- HTTP  2/7/2026 4:44:46 AM ::1 GET /jspsych/plugins/html-keyboard-response.js
- HTTP  2/7/2026 4:44:46 AM ::1 GET /experiments/adaptiveQuest.js
- HTTP  2/7/2026 4:44:46 AM ::1 Returned 200 in 5 ms
- HTTP  2/7/2026 4:44:46 AM ::1 Returned 200 in 4 ms
- HTTP  2/7/2026 4:44:46 AM ::1 Returned 200 in 4 ms
- HTTP  2/7/2026 4:44:46 AM ::1 Returned 200 in 5 ms
-
- INFO  Gracefully shutting down. Please wait...
-npm notice
-npm notice New minor version of npm available! 11.7.0 -> 11.9.0
-npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.9.0
-npm notice To update run: npm install -g npm@11.9.0
-npm notice
+ HTTP  3/6/2026 6:19:55 AM ::1 HEAD /experiments/backward-masking.html
+ HTTP  3/6/2026 6:19:55 AM ::1 Returned 301 in 421 ms
+ HTTP  3/6/2026 6:20:03 AM ::1 HEAD /experiments/backward-masking.html
+ HTTP  3/6/2026 6:20:03 AM ::1 Returned 301 in 1 ms
+ HTTP  3/6/2026 6:20:03 AM ::1 HEAD /experiments/backward-masking
+ HTTP  3/6/2026 6:20:03 AM ::1 Returned 200 in 8 ms
+ HTTP  3/6/2026 6:20:53 AM ::1 GET /experiments/backward-masking.html
+ HTTP  3/6/2026 6:20:53 AM ::1 Returned 301 in 2 ms
+ HTTP  3/6/2026 6:20:54 AM ::1 GET /experiments/backward-masking
+ HTTP  3/6/2026 6:20:54 AM ::1 Returned 200 in 11 ms
+ HTTP  3/6/2026 6:20:54 AM ::1 GET /jspsych/css/jspsych.css
+ HTTP  3/6/2026 6:20:54 AM ::1 GET /jspsych/dist/jspsych.js
+ HTTP  3/6/2026 6:20:54 AM ::1 GET /jspsych/plugins/html-button-response.js
+ HTTP  3/6/2026 6:20:54 AM ::1 GET /experiments/backward-masking.js
+ HTTP  3/6/2026 6:20:54 AM ::1 Returned 200 in 8 ms
+ HTTP  3/6/2026 6:20:54 AM ::1 Returned 200 in 10 ms
+ HTTP  3/6/2026 6:20:54 AM ::1 Returned 200 in 14 ms
+ HTTP  3/6/2026 6:20:54 AM ::1 Returned 200 in 28 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/manifest.json
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/music_box_02s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 8 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/ink_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/memory_stick_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 3 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/burner_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 1 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/iguana_02s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/steak_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 2 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 2 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/birdcage_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/ski_lift_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/cd_player_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/collar_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/plum_02s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/hairspray_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 6 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 6 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 6 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 10 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/brace_02s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 10 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 10 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 8 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/pennant_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/seagull_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/iceskate_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/tumbleweed_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/sarcophagus_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/saffron_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 14 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 14 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 14 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 7 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 8 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 7 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/coral_02s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/fox_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/bathmat_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/toilet_paper_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/wheel_02s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/step_stool_02s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 12 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 10 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 9 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 8 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 9 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 8 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/arch_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/cashew_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/scalpel_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/lighter_01s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/anchor_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/paper_bag_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 7 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 7 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 7 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 6 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 8 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 7 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/cigarette_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/cinnamon_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/folder_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/boulder_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/syrup_01s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/file1_02s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 6 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 6 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/kiwi_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/crayfish_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/power_line_02s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/pine_tree_01s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/marmalade_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/steering_wheel_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 3 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 3 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/flask_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/skewer_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/ant_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/wooden_leg_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/kaleidoscope_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/coffeemaker_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 8 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 8 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 7 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 7 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 7 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 7 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/bin_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/patch_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/jalapeno_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/canister_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/corn_01s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/microphone_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 3 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/mask_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/keg_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/figurine_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/towel_rack_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/clove_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/spider_web_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/ballot_box_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/stuffing_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/hedge_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/buffet_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/duck_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/poster_01s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 3 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/bassoon_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/cooler_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/needle_02s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/pillbox_02s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/bank_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/holster_01s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 6 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/headlamp_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/shortbread_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/metal_detector_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/recorder_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/fire_alarm_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/water_bottle_02s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 3 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 3 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 3 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/coffee_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/apple_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/crepe_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/cummerbund_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/spring_roll_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/chalk_02s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 3 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 4 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 3 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/pin_02s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/baseball_glove_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/panda_02s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/shaker_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/bologna_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/red_carpet_01s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 6 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/backdrop_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/keyboard_01s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/garlic_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/chair_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/motorcycle_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/thumbtack_03s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 200 in 5 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/ink_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/burner_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/steak_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 304 in 2 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/ski_lift_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 304 in 0 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/collar_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/hairspray_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/pennant_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/iceskate_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/sarcophagus_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/coral_02s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 304 in 0 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/bathmat_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/wheel_02s.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/arch_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 304 in 0 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/scalpel_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/anchor_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 304 in 0 ms
+ HTTP  3/6/2026 6:20:55 AM ::1 GET /shared-resources/things_images/neutral_images/cigarette_01b.jpg
+ HTTP  3/6/2026 6:20:55 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/folder_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/syrup_01s.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/kiwi_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/power_line_02s.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/marmalade_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/flask_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/ant_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/kaleidoscope_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/bin_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/jalapeno_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/corn_01s.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 2 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/mask_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/figurine_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/clove_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/ballot_box_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/hedge_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/duck_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/bassoon_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/needle_02s.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/bank_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/shortbread_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/recorder_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/water_bottle_02s.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/apple_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/cummerbund_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/chalk_02s.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/baseball_glove_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/shaker_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/red_carpet_01s.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/keyboard_01s.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/chair_01b.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:56 AM ::1 GET /shared-resources/things_images/neutral_images/thumbtack_03s.jpg
+ HTTP  3/6/2026 6:20:56 AM ::1 Returned 304 in 1 ms
+ HTTP  3/6/2026 6:20:57 AM ::1 GET /shared-resources/things_images/neutral_images/clove_01b.jpg
+ HTTP  3/6/2026 6:20:57 AM ::1 Returned 304 in 1 ms
