@@ -53,6 +53,31 @@
       margin: 16px auto 0;
     }
 
+    .search-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: clamp(24px, 6vw, 48px);
+    }
+
+    #search-input {
+      width: 100%;
+      max-width: 480px;
+      padding: 12px 20px;
+      font-size: 1rem;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-radius: 999px;
+      outline: none;
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--fg);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      transition: box-shadow 200ms ease, border-color 200ms ease;
+    }
+
+    #search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    }
+
     .experiment-list {
       display: grid;
       gap: clamp(16px, 3vw, 32px);
@@ -141,6 +166,18 @@
         color: #0f172a;
       }
 
+      #search-input {
+        background: rgba(30, 41, 59, 0.85);
+        color: var(--fg);
+        border-color: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      #search-input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
+      }
+
       footer {
         color: rgba(226, 232, 240, 0.7);
       }
@@ -157,6 +194,10 @@
         Each experiment is optimised for desktop and mobile so you can participate wherever you are.
       </p>
     </header>
+
+    <div class="search-container">
+      <input type="text" id="search-input" placeholder="Search experiments..." aria-label="Search experiments">
+    </div>
     
     <ul class="experiment-list">
       <li class="experiment-card">
@@ -259,5 +300,27 @@
       More experiments are coming soon. Stay tuned!
     </footer>
   </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('search-input');
+      const experimentCards = document.querySelectorAll('.experiment-card');
+
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        const keywords = query.split(/\s+/).filter(kw => kw.length > 0);
+
+        experimentCards.forEach(card => {
+          const text = card.textContent.toLowerCase();
+          const matches = keywords.every(kw => text.includes(kw));
+
+          if (matches || keywords.length === 0) {
+            card.style.display = '';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>
