@@ -275,7 +275,8 @@ function buildTimeline(trials) {
         mask_image: trial.maskFilename,
         soa_frames: trial.soaFrames,
         target_position: trial.targetPosition
-      }
+      },
+      post_trial_gap: () => 800 + Math.floor(Math.random() * 2000)
     };
 
     node.on_load = () => {
@@ -368,6 +369,7 @@ function buildTimeline(trials) {
 
         node._showMaskTimeout = window.setTimeout(() => {
           maskImage.style.display = 'block';
+          node._maskOnsetTime = performance.now();
 
           node._hideMaskTimeout = window.setTimeout(() => {
             maskImage.style.display = 'none';
@@ -429,6 +431,9 @@ function buildTimeline(trials) {
       data.mask_path = trial.maskPath;
       data.response_key = selection;
       data.response_source = node._responseSource || 'unknown';
+      if (typeof node._maskOnsetTime === 'number' && typeof node._targetOnsetTime === 'number') {
+        data.real_soa_ms = node._maskOnsetTime - node._targetOnsetTime;
+      }
       if (typeof data.rt === 'number' && typeof node._choiceRevealTime === 'number' && typeof node._trialStart === 'number') {
         const revealOffset = Math.max(0, node._choiceRevealTime - node._trialStart);
         const adjusted = Math.max(0, data.rt - revealOffset);
