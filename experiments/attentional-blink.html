@@ -185,10 +185,7 @@
         lag = jsPsych.randomization.sampleWithoutReplacement(validLags, 1)[0];
         t2Position = t1Position + lag;
 
-        t2 = jsPsych.randomization.sampleWithoutReplacement(digits, 1)[0];
-        while (t2 === t1) {
-          t2 = jsPsych.randomization.sampleWithoutReplacement(digits, 1)[0];
-        }
+        t2 = jsPsych.randomization.sampleWithoutReplacement(digits.filter(d => d !== t1), 1)[0];
 
         sequence[t2Position] = t2;
       }
