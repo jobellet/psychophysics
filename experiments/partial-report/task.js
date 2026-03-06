@@ -22,7 +22,7 @@ class PartialReportTrial {
     description: 'Sperling-style partial report trial',
     parameters: {
       is_practice: {
-        type: jsPsych.plugins.parameterType.BOOL,
+        type: jsPsychModule.ParameterType.BOOL,
         default: false
       }
     }
@@ -296,7 +296,13 @@ class PartialReportTrial {
           const feedback = document.createElement('div');
           feedback.className = 'feedback';
           const lettersForFeedback = responseLetters.length > 0 ? responseLetters.join(' ') : '—';
-          feedback.innerHTML = `Correct ${hits}/${nCued}.<br />Targets: ${targetLetters.join(' ')}<br />You typed: ${lettersForFeedback}`;
+
+          feedback.appendChild(document.createTextNode(`Correct ${hits}/${nCued}.`));
+          feedback.appendChild(document.createElement('br'));
+          feedback.appendChild(document.createTextNode(`Targets: ${targetLetters.join(' ')}`));
+          feedback.appendChild(document.createElement('br'));
+          feedback.appendChild(document.createTextNode(`You typed: ${lettersForFeedback}`));
+
           responseArea.innerHTML = '';
           responseArea.appendChild(feedback);
           jsPsych.pluginAPI.setTimeout(() => {
