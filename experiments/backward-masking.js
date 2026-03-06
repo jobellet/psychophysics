@@ -159,6 +159,14 @@ async function buildTrials(manifest) {
 
     const maskPath = joinPath(NEUTRAL_DIR, maskFilename);
 
+    // Select second mask image (different from target and first mask)
+    let mask2Filename;
+    do {
+      mask2Filename = chooseRandom(neutralFiles);
+    } while (mask2Filename === targetFilename || mask2Filename === maskFilename);
+
+    const mask2Path = joinPath(NEUTRAL_DIR, mask2Filename);
+
     for (const frames of soaFrames) {
       const targetOnLeft = Math.random() < 0.5;
 
@@ -170,6 +178,8 @@ async function buildTrials(manifest) {
         targetPath,
         maskFilename,
         maskPath,
+        mask2Filename,
+        mask2Path,
         soaFrames: frames,
         targetPosition: targetOnLeft ? 'left' : 'right',
         leftImagePath,
@@ -214,13 +224,14 @@ async function preloadImages(trials) {
   for (const trial of trials) {
     images.add(trial.targetPath);
     images.add(trial.maskPath);
+    images.add(trial.mask2Path);
   }
   const imageList = Array.from(images);
   await jsPsych.pluginAPI.preloadImages(imageList);
   await Promise.all(imageList.map((src) => ensureImageDecoded(src).catch((error) => console.error(error))));
 }
 
-function renderStimulus(targetPath, maskDataUrl) {
+function renderStimulus(targetPath, maskDataUrl, mask2DataUrl) {
   return `
     <div class="afc-trial">
       <div class="afc-instructions">Watch carefully. When it stops flashing, choose the original image.</div>
@@ -229,6 +240,7 @@ function renderStimulus(targetPath, maskDataUrl) {
           <div class="afc-reference-frame" id="stimulus-frame" style="width: min(28vh, clamp(90px, 24vw, 320px)); height: min(28vh, clamp(90px, 24vw, 320px));">
             <img src="${targetPath}" alt="Target image" id="flash-image" style="display: none;" />
             <img src="${maskDataUrl}" alt="Mask image" id="mask-image" style="display: none;" />
+            <img src="${mask2DataUrl}" alt="Second mask image" id="mask2-image" style="display: none;" />
           </div>
         </div>
         <div class="afc-choice-phase" data-phase="choices">
@@ -247,7 +259,7 @@ function buildTimeline(trials) {
 
     const node = {
       type: jsPsychHtmlButtonResponse,
-      stimulus: renderStimulus(trial.targetPath, trial.maskDataUrl),
+      stimulus: renderStimulus(trial.targetPath, trial.maskDataUrl, trial.mask2DataUrl),
       choices: ['', ''],
       button_html: [
         `<button type="button" class="afc-choice" data-choice="left" aria-label="Left choice"><img src="${trial.leftImagePath}" alt="Left option" /></button>`,
@@ -295,7 +307,7 @@ function buildTimeline(trials) {
         }
       }
 
-      const activeImages = document.querySelectorAll('.afc-stage img:not(#mask-image):not(#flash-image)');
+      const activeImages = document.querySelectorAll('.afc-stage img:not(#mask-image):not(#mask2-image):not(#flash-image)');
       activeImages.forEach((img) => {
         const src = img.getAttribute('src');
         if (!src || src.startsWith('data:')) return;
@@ -329,6 +341,7 @@ function buildTimeline(trials) {
 
       const flashImage = document.getElementById('flash-image');
       const maskImage = document.getElementById('mask-image');
+      const mask2Image = document.getElementById('mask2-image');
 
       const revealChoices = () => {
         if (referencePhase) {
@@ -358,7 +371,16 @@ function buildTimeline(trials) {
 
           node._hideMaskTimeout = window.setTimeout(() => {
             maskImage.style.display = 'none';
-            revealChoices();
+
+            node._showMask2Timeout = window.setTimeout(() => {
+              mask2Image.style.display = 'block';
+
+              node._hideMask2Timeout = window.setTimeout(() => {
+                mask2Image.style.display = 'none';
+                revealChoices();
+              }, maskDurationMs);
+            }, 0); // Show second mask immediately after the first
+
           }, maskDurationMs);
 
         }, Math.max(0, soaMs - flashDurationMs));
@@ -395,6 +417,8 @@ function buildTimeline(trials) {
       if (node._hideTargetTimeout) window.clearTimeout(node._hideTargetTimeout);
       if (node._showMaskTimeout) window.clearTimeout(node._showMaskTimeout);
       if (node._hideMaskTimeout) window.clearTimeout(node._hideMaskTimeout);
+      if (node._showMask2Timeout) window.clearTimeout(node._showMask2Timeout);
+      if (node._hideMask2Timeout) window.clearTimeout(node._hideMask2Timeout);
 
       const responseIndex = typeof data.response === 'number' ? data.response : null;
       const selection = responseIndex === 0 ? 'left' : responseIndex === 1 ? 'right' : null;
@@ -483,6 +507,7 @@ async function prepare() {
     // Generate masks
     for (const trial of sampledTrials) {
       trial.maskDataUrl = await generateShuffledMask(trial.maskPath);
+      trial.mask2DataUrl = await generateShuffledMask(trial.mask2Path);
     }
     stimulusStatus.textContent = 'Stimuli ready. Press Start to begin.';
     startButton.disabled = false;
