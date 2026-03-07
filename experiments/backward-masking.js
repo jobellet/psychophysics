@@ -61,6 +61,21 @@ function shuffleInPlace(array) {
   return array;
 }
 
+function lcg(seed) {
+  return function() {
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    return seed / 4294967296;
+  };
+}
+
+function seededShuffleInPlace(array, randomFunc) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(randomFunc() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
 async function loadManifest() {
   const response = await fetch(manifestUrl, { cache: 'no-store' });
   if (!response.ok) {
@@ -94,7 +109,7 @@ function snapToRefresh(durationMs) {
   return Math.round(frames * frameMs);
 }
 
-function generateShuffledMask(imageSrc) {
+function generateShuffledMask(imageSrc, seed) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'Anonymous';
@@ -115,7 +130,7 @@ function generateShuffledMask(imageSrc) {
         }
       }
 
-      shuffleInPlace(tiles);
+      seededShuffleInPlace(tiles, lcg(seed));
       const maskedCanvas = document.createElement('canvas');
       maskedCanvas.width = size;
       maskedCanvas.height = size;
@@ -173,6 +188,9 @@ async function buildTrials(manifest) {
       const leftImagePath = targetOnLeft ? targetPath : maskPath;
       const rightImagePath = targetOnLeft ? maskPath : targetPath;
 
+      const maskSeed = Math.floor(Math.random() * 4294967296);
+      const mask2Seed = Math.floor(Math.random() * 4294967296);
+
       trials.push({
         targetFilename,
         targetPath,
@@ -183,7 +201,9 @@ async function buildTrials(manifest) {
         soaFrames: frames,
         targetPosition: targetOnLeft ? 'left' : 'right',
         leftImagePath,
-        rightImagePath
+        rightImagePath,
+        maskSeed,
+        mask2Seed
       });
     }
   }
@@ -273,6 +293,9 @@ function buildTimeline(trials) {
         trial_number: index,
         target_image: trial.targetFilename,
         mask_image: trial.maskFilename,
+        mask2_image: trial.mask2Filename,
+        mask_seed: trial.maskSeed,
+        mask2_seed: trial.mask2Seed,
         soa_frames: trial.soaFrames,
         target_position: trial.targetPosition
       },
@@ -376,6 +399,7 @@ function buildTimeline(trials) {
 
             node._showMask2Timeout = window.setTimeout(() => {
               mask2Image.style.display = 'block';
+              node._mask2OnsetTime = performance.now();
 
               node._hideMask2Timeout = window.setTimeout(() => {
                 mask2Image.style.display = 'none';
@@ -383,7 +407,7 @@ function buildTimeline(trials) {
               }, maskDurationMs);
             }, 0); // Show second mask immediately after the first
 
-          }, maskDurationMs);
+          }, flashDurationMs);
 
         }, Math.max(0, soaMs - flashDurationMs));
 
@@ -434,6 +458,9 @@ function buildTimeline(trials) {
       if (typeof node._maskOnsetTime === 'number' && typeof node._targetOnsetTime === 'number') {
         data.real_soa_ms = node._maskOnsetTime - node._targetOnsetTime;
       }
+      if (typeof node._targetOnsetTime === 'number') data.target_onset_time = performance.timeOrigin + node._targetOnsetTime;
+      if (typeof node._maskOnsetTime === 'number') data.mask_onset_time = performance.timeOrigin + node._maskOnsetTime;
+      if (typeof node._mask2OnsetTime === 'number') data.mask2_onset_time = performance.timeOrigin + node._mask2OnsetTime;
       if (typeof data.rt === 'number' && typeof node._choiceRevealTime === 'number' && typeof node._trialStart === 'number') {
         const revealOffset = Math.max(0, node._choiceRevealTime - node._trialStart);
         const adjusted = Math.max(0, data.rt - revealOffset);
@@ -511,8 +538,8 @@ async function prepare() {
 
     // Generate masks
     for (const trial of sampledTrials) {
-      trial.maskDataUrl = await generateShuffledMask(trial.maskPath);
-      trial.mask2DataUrl = await generateShuffledMask(trial.mask2Path);
+      trial.maskDataUrl = await generateShuffledMask(trial.maskPath, trial.maskSeed);
+      trial.mask2DataUrl = await generateShuffledMask(trial.mask2Path, trial.mask2Seed);
     }
     stimulusStatus.textContent = 'Stimuli ready. Press Start to begin.';
     startButton.disabled = false;
