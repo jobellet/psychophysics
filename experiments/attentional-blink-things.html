@@ -248,27 +248,8 @@
         background: rgba(37, 99, 235, 0.2);
       }
 
-      .jspsych-html-button-response-button.selected-1::after {
-        content: "1";
-        position: absolute;
-        top: -10px;
-        right: -10px;
-        background: var(--accent);
-        color: white;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 16px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-        pointer-events: none;
-      }
-
-      .jspsych-html-button-response-button.selected-2::after {
-        content: "2";
+      .jspsych-html-button-response-button.selected::after {
+        content: "✓";
         position: absolute;
         top: -10px;
         right: -10px;
@@ -343,7 +324,7 @@
       <h1>Things Attentional Blink</h1>
       <p>
         On each trial, you will watch a rapid stream of 20 images. Most images will be shuffled patterns, but two intact images will appear.
-        After the stream, 6 candidate images will appear. Click the two intact images in the order they appeared.
+        After the stream, 6 candidate images will appear. Select the intact images you saw. The order does not matter.
       </p>
       <p>
         Each image is presented for 100 ms. Trials are precomputed and the experiment will end after all trials have been completed, but you may stop at any time and download your data.
