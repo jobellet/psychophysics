@@ -595,9 +595,8 @@
                          });
 
                          // Visual feedback
-                         const f = document.getElementById('fixation-spot');
-                         f.style.backgroundColor = '#00ff00';
-                         setTimeout(() => f.style.backgroundColor = 'red', 200);
+                         fixationEl.style.backgroundColor = '#00ff00';
+                         setTimeout(() => fixationEl.style.backgroundColor = 'red', 200);
                      } else if (timeSinceOnset < 100) {
                          // Too fast
                          logEvent('response_too_fast');
