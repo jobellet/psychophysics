@@ -3,6 +3,7 @@ import {
   getReference as getCalibrationReference,
   onReady as onCalibrationReady
 } from '../shared-resources/calibration.js';
+import { downloadBlob } from '../shared-resources/utils/downloadBlob.js';
 
 // Color Memory (Single Patch) – trial flow:
 // fixation → random(300–500 ms) → patch 60 ms → delay random(0–1400 ms) → color wheel until response → next trial in 1000 ms
@@ -83,14 +84,6 @@ function snapToRefresh(durationMs) {
   const frameMs = 1000/rr;
   const frames = Math.max(1, Math.round(durationMs/frameMs));
   return Math.round(frames * frameMs);
-}
-
-function downloadBlob(filename, content, mime) {
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
-  URL.revokeObjectURL(url);
 }
 
 // === Calibration integration ===
