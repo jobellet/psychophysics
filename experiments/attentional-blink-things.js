@@ -288,9 +288,12 @@ function buildTimeline(trials) {
       type: jsPsychHtmlButtonResponse,
       stimulus: `
         <div class="rsvp-trial">
-          <div class="rsvp-instructions">Select the 2 target images in the order they appeared.</div>
+          <div class="rsvp-instructions">Select the target images you saw. The order does not matter.</div>
           <div class="afc-choice-phase is-active">
             ${choiceButtons.join('')}
+          </div>
+          <div style="margin-top: 24px;">
+            <button id="thats-it-btn" class="primary" style="font-size: 1.1rem; padding: 12px 24px;">That's it</button>
           </div>
         </div>
       `,
@@ -308,18 +311,50 @@ function buildTimeline(trials) {
       },
       on_load: () => {
         const buttons = document.querySelectorAll('.afc-choice');
+        const submitBtn = document.getElementById('thats-it-btn');
         let selectionOrder = [];
 
         const updateSelectionVisuals = () => {
           buttons.forEach((btn, idx) => {
-            btn.classList.remove('selected', 'selected-1', 'selected-2');
+            btn.classList.remove('selected');
             const pos = selectionOrder.indexOf(idx);
             if (pos !== -1) {
               btn.classList.add('selected');
-              btn.classList.add(`selected-${pos + 1}`);
             }
           });
         };
+
+        const finishTrial = () => {
+          buttons.forEach(b => b.disabled = true);
+          if (submitBtn) submitBtn.disabled = true;
+
+          const choice1 = selectionOrder.length > 0 ? trial.choices[selectionOrder[0]] : null;
+          const choice2 = selectionOrder.length > 1 ? trial.choices[selectionOrder[1]] : null;
+
+          const selectedFilenames = [
+            choice1 ? choice1.filename : null,
+            choice2 ? choice2.filename : null
+          ].filter(Boolean);
+
+          const correct1 = selectedFilenames.includes(trial.t1Filename);
+          const correct2 = selectedFilenames.includes(trial.t2Filename);
+
+          jsPsych.finishTrial({
+            selected_1: choice1 ? choice1.filename : null,
+            selected_2: choice2 ? choice2.filename : null,
+            correct_1: correct1,
+            correct_2: correct2,
+            both_correct: correct1 && correct2,
+            rt: performance.now() - responseNode._startTime
+          });
+        };
+
+        if (submitBtn) {
+          submitBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            finishTrial();
+          });
+        }
 
         buttons.forEach((btn, idx) => {
           btn.addEventListener('click', (e) => {
@@ -336,21 +371,7 @@ function buildTimeline(trials) {
             updateSelectionVisuals();
 
             if (selectionOrder.length === 2) {
-              // Disable all buttons to prevent double firing
-              buttons.forEach(b => b.disabled = true);
-
-              // Record data and finish trial
-              const choice1 = trial.choices[selectionOrder[0]];
-              const choice2 = trial.choices[selectionOrder[1]];
-
-              jsPsych.finishTrial({
-                selected_1: choice1.filename,
-                selected_2: choice2.filename,
-                correct_1: choice1.filename === trial.t1Filename,
-                correct_2: choice2.filename === trial.t2Filename,
-                both_correct: choice1.filename === trial.t1Filename && choice2.filename === trial.t2Filename,
-                rt: performance.now() - responseNode._startTime
-              });
+              finishTrial();
             }
           });
         });
