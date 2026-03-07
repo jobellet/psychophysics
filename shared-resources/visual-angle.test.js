@@ -55,24 +55,47 @@ test('VisualAngle.dvaToPixels', async (t) => {
 });
 
 test('VisualAngle.normalizeReference', async (t) => {
-  await t.test('throws for missing reference', () => {
-    assert.throws(() => VisualAngle.pixelsToDVA(10, null), {
-      name: 'TypeError',
-      message: 'A reference object with mmPerPixel and viewingDistanceMm is required.'
-    });
+  await t.test('throws for missing or invalid reference object', () => {
+    const invalidReferences = [null, undefined, 'string', 123, true];
+    for (const ref of invalidReferences) {
+      assert.throws(() => VisualAngle.pixelsToDVA(10, ref), {
+        name: 'TypeError',
+        message: 'A reference object with mmPerPixel and viewingDistanceMm is required.'
+      });
+    }
   });
 
   await t.test('throws for non-positive mmPerPixel', () => {
-    assert.throws(() => VisualAngle.pixelsToDVA(10, { mmPerPixel: 0, viewingDistanceMm: 500 }), {
-      name: 'RangeError',
-      message: 'Reference.mmPerPixel must be a positive number.'
-    });
+    const invalidValues = [0, -1, NaN, Infinity, -Infinity, 'invalid'];
+    for (const val of invalidValues) {
+      assert.throws(() => VisualAngle.pixelsToDVA(10, { mmPerPixel: val, viewingDistanceMm: 500 }), {
+        name: 'RangeError',
+        message: 'Reference.mmPerPixel must be a positive number.'
+      });
+    }
   });
 
   await t.test('throws for non-positive viewingDistanceMm', () => {
-    assert.throws(() => VisualAngle.pixelsToDVA(10, { mmPerPixel: 0.25, viewingDistanceMm: -1 }), {
-      name: 'RangeError',
-      message: 'Reference.viewingDistanceMm must be a positive number.'
-    });
+    const invalidValues = [0, -1, NaN, Infinity, -Infinity, 'invalid'];
+    for (const val of invalidValues) {
+      assert.throws(() => VisualAngle.pixelsToDVA(10, { mmPerPixel: 0.25, viewingDistanceMm: val }), {
+        name: 'RangeError',
+        message: 'Reference.viewingDistanceMm must be a positive number.'
+      });
+    }
+  });
+
+  await t.test('normalizes numeric strings correctly', () => {
+    // using createReference since it calls normalizeReference and returns the object
+    const ref = VisualAngle.createReference({ mmPerPixel: '0.25', viewingDistanceMm: '500' });
+    assert.strictEqual(ref.mmPerPixel, 0.25);
+    assert.strictEqual(ref.viewingDistanceMm, 500);
+  });
+
+  await t.test('normalizes valid reference object correctly', () => {
+    const ref = VisualAngle.createReference({ mmPerPixel: 0.25, viewingDistanceMm: 500, extraProperty: 'ignored' });
+    assert.strictEqual(ref.mmPerPixel, 0.25);
+    assert.strictEqual(ref.viewingDistanceMm, 500);
+    assert.strictEqual(ref.extraProperty, undefined);
   });
 });
