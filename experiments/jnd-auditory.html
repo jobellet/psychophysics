@@ -1483,7 +1483,10 @@
       function refreshStatus() {
         const r = getResponses();
         const n = r.length;
-        const counts = Object.fromEntries(dims.map(value => [value, 0]));
+        const counts = {};
+        for (let i = 0; i < dims.length; i++) {
+          counts[dims[i]] = 0;
+        }
         for (const t of r) {
           if (t && t.is_go && Object.prototype.hasOwnProperty.call(counts, t.change_type)) {
             counts[t.change_type] += 1;
