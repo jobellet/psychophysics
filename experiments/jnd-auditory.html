@@ -328,6 +328,11 @@
   <script src="../jspsych/plugins/call-function.js"></script>
   <script src="https://unpkg.com/jsquest-plus@2.1.0/dist/jsQuestPlus.js"></script>
 
+  <script type="module">
+    import { randomBetween } from '../shared-resources/utils/random.js';
+    window.randomBetween = randomBetween;
+  </script>
+
   <script>
     const jsPsych = initJsPsych({
       display_element: 'jspsych-target',
@@ -504,10 +509,6 @@
     function resetQuests() {
       amplitudeQuest = buildQuest(amplitudeSamples);
       durationQuest = buildQuest(durationSamples);
-    }
-
-    function randomBetween(min, max) {
-      return min + Math.random() * (max - min);
     }
 
     function chooseStimulus(quest, samples) {
