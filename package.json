@@ -11,6 +11,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "jsquest-plus": "^2.1.0"
+    "jsquest-plus": "^2.1.0",
+    "playwright": "^1.58.2"
   }
 }

@@ -42,20 +42,24 @@ const dlJsonBtn = $("dlJson");
 const openCalibrationBtn = $("open-calibration");
 
 let errorAudioContext = null;
+let errorAudioBuffer = null;
 async function playErrorTone() {
   try {
     if (!errorAudioContext) errorAudioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const sr = errorAudioContext.sampleRate;
-    const buffer = errorAudioContext.createBuffer(1, Math.floor((ERROR_TONE_MS/1000)*sr), sr);
-    const data = buffer.getChannelData(0);
-    const f = ERROR_TONE_FREQ;
-    for (let i=0;i<data.length;i++) {
-      const t = i/sr;
-      const env = Math.min(1, t*60) * (1 - Math.min(1, (t*1000)/ERROR_TONE_MS));
-      data[i] = Math.sin(2*Math.PI*f*t) * env * 0.6;
+    if (!errorAudioBuffer) {
+      const sr = errorAudioContext.sampleRate;
+      const buffer = errorAudioContext.createBuffer(1, Math.floor((ERROR_TONE_MS/1000)*sr), sr);
+      const data = buffer.getChannelData(0);
+      const f = ERROR_TONE_FREQ;
+      for (let i=0;i<data.length;i++) {
+        const t = i/sr;
+        const env = Math.min(1, t*60) * (1 - Math.min(1, (t*1000)/ERROR_TONE_MS));
+        data[i] = Math.sin(2*Math.PI*f*t) * env * 0.6;
+      }
+      errorAudioBuffer = buffer;
     }
     const src = errorAudioContext.createBufferSource();
-    src.buffer = buffer;
+    src.buffer = errorAudioBuffer;
     src.connect(errorAudioContext.destination);
     src.start();
   } catch {}
