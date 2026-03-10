@@ -1337,6 +1337,8 @@
         return fa / nogo.length;
       }
 
+      const TEXT_COLOR_SECONDARY = '#444';
+
       function drawPsychometric(canvas, series, fa) {
         if (!canvas) return;
         const TEXT_COLOR_MUTED = '#555';
@@ -1350,7 +1352,7 @@
         const COLOR_FA_TEXT = '#a06';
 
         if (!series || series.length === 0) {
-          ctx.fillStyle = '#444';
+          ctx.fillStyle = TEXT_COLOR_SECONDARY;
           ctx.font = '16px system-ui, sans-serif';
           ctx.fillText('No data to plot for this dimension.', 16, 32);
           return;
