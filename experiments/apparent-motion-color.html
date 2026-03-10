@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Apparent Motion (Color) Threshold</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../jspsych/css/jspsych.css" />
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      --bg: radial-gradient(circle at top, #0f172a 0%, #111827 60%, #020617 100%);
+      --card-bg: rgba(15, 23, 42, 0.9);
+      --accent: #38bdf8;
+      --stage-size: min(68vw, 68vh);
+    }
+
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      background: var(--bg);
+      color: #e2e8f0;
+      padding: clamp(16px, 4vw, 48px);
+      box-sizing: border-box;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    #pre-experiment {
+      position: fixed; inset: 0;
+      background: radial-gradient(circle at top, rgba(15,23,42,.96) 0%, rgba(2,6,23,.94) 100%);
+      display: flex; align-items: center; justify-content: center;
+      padding: clamp(24px, 6vw, 72px);
+      overflow-y: auto; z-index: 10; transition: opacity 220ms ease;
+    }
+    #pre-experiment.hidden { opacity: 0; pointer-events: none; }
+
+    .session-card {
+      margin: auto; width: min(92vw, 720px); max-width: min(92vw, 720px);
+      max-height: calc(100vh - clamp(48px, 12vw, 96px));
+      background: rgba(15, 23, 42, 0.85);
+      border-radius: clamp(24px, 4vw, 36px);
+      box-shadow: 0 30px 70px rgba(2, 6, 23, 0.6);
+      padding: clamp(28px, 6vw, 56px);
+      display: flex; flex-direction: column; gap: clamp(16px, 4vw, 28px);
+      overflow-y: auto; box-sizing: border-box;
+    }
+
+    .session-card h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.15rem); }
+    .session-card p  { margin: 0; color: rgba(203, 213, 225, 0.92); line-height: 1.5; }
+
+    .calibration-section {
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: clamp(18px, 3.5vw, 28px);
+      padding: clamp(16px, 4vw, 28px);
+      background: rgba(15, 23, 42, 0.6);
+      display: flex; flex-direction: column; gap: clamp(12px, 3vw, 20px);
+    }
+    .calibration-section h2 { margin: 0; font-size: clamp(1.15rem, 3vw, 1.35rem); color: #f8fafc; }
+    .calibration-section p.small-print { font-size: .95rem; color: rgba(148,163,184,.92); }
+
+    .calibration-display {
+      position: relative; width: 100%; min-height: clamp(160px, 45vw, 260px);
+      border-radius: clamp(16px, 4vw, 24px); background: rgba(15,23,42,.72);
+      border: 1px dashed rgba(148,163,184,.4);
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+      touch-action: none;
+    }
+    .calibration-instruction {
+      position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+      font-size: .9rem; letter-spacing: .02em; text-transform: uppercase;
+      color: rgba(148,163,184,.88); pointer-events: none;
+    }
+    .calibration-shape {
+      position: relative;
+      border: 2px solid rgba(56,189,248,.85);
+      background: rgba(56,189,248,.12);
+      box-shadow: inset 0 0 0 1px rgba(148,163,184,.35);
+      border-radius: clamp(8px, 2vw, 12px);
+      transition: width .12s ease, height .12s ease, border-radius .12s ease;
+    }
+    .calibration-shape.circle { border-radius: 9999px; }
+
+    .calibration-controls { display:flex; flex-wrap:wrap; gap: clamp(8px,2vw,16px); align-items:center; justify-content:space-between; }
+    .calibration-controls label { font-size: 1rem; color: rgba(226,232,240,.92); }
+    .calibration-controls input[type='number'] {
+      width: clamp(90px, 24vw, 120px);
+      padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(148,163,184,.35);
+      background: rgba(15,23,42,.75); color: #f8fafc; font-size: 1rem; -moz-appearance: textfield;
+    }
+    .calibration-controls input[type='number']::-webkit-outer-spin-button,
+    .calibration-controls input[type='number']::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+
+    .calibration-slider { display:flex; flex-direction:column; gap:6px; }
+    .calibration-slider input[type='range'] { width:100%; }
+    .calibration-slider span { font-size:.95rem; color: rgba(148,163,184,.9); align-self:flex-end; }
+
+    .calibration-status { margin:0; font-size:.95rem; color: rgba(148,163,184,.88); }
+    .calibration-status[data-state='error'] { color:#fca5a5; }
+    .calibration-status[data-state='success'] { color:#a7f3d0; }
+
+    .calibration-target { font-size:.95rem; color: rgba(148,163,184,.9); }
+
+    .jspsych-btn.secondary {
+      background: rgba(56,189,248,.18);
+      color:#38bdf8; box-shadow: inset 0 0 0 1px rgba(56,189,248,.45);
+    }
+    .jspsych-btn.secondary:hover { background: rgba(56,189,248,.28); }
+
+    .session-actions { display:flex; flex-wrap:wrap; gap:12px; }
+    .session-actions .jspsych-btn:disabled { opacity:.55; cursor:not-allowed; }
+
+    #jspsych-target {
+      width: min(96vw, 860px);
+      max-height: calc(100vh - clamp(48px, 10vw, 120px));
+      background: rgba(15,23,42,.82);
+      backdrop-filter: blur(18px);
+      border-radius: 32px;
+      box-shadow: 0 24px 60px rgba(2,6,23,.55);
+      padding: clamp(24px,5vw,56px);
+      margin: clamp(24px,5vw,56px) auto;
+      overflow-y: auto; box-sizing: border-box;
+    }
+
+    .jspsych-display-element { font-size: clamp(18px,3vw,22px); line-height:1.7; min-height:100%; }
+
+    .jspsych-btn {
+      font-size: clamp(1rem, 2.6vw, 1.15rem);
+      padding: clamp(12px,3vw,16px) clamp(24px,5vw,36px);
+      border-radius: 999px; border: none;
+      background: linear-gradient(135deg, var(--accent), #2563eb);
+      color: white; font-weight: 600; box-shadow: inset 0 -2px 0 rgba(15,23,42,.25);
+      transition: transform 160ms ease, box-shadow 160ms ease; touch-action: manipulation;
+      cursor: pointer;
+    }
+    .jspsych-btn:active { transform: translateY(2px); box-shadow: inset 0 2px 0 rgba(15,23,42,.35); }
+
+    .stage {
+      position: relative;
+      width: var(--stage-size);
+      height: var(--stage-size);
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: clamp(24px, 6vw, 36px);
+      box-shadow: inset 0 0 0 1px rgba(2, 6, 23, 0.45);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stimulus-shape {
+      position: absolute; left: 50%; top: 50%;
+      transform: translate(-50%,-50%); pointer-events: none;
+    }
+    .fixation-cross {
+      position: absolute; left:50%; top:50%; transform: translate(-50%,-50%);
+      width: 20px; height: 20px; pointer-events: none;
+    }
+    .fixation-cross::before, .fixation-cross::after {
+      content: ''; position: absolute; background: #ffffff;
+    }
+    .fixation-cross::before {
+      top: 50%; left: 0; right: 0; height: 2px; transform: translateY(-50%);
+    }
+    .fixation-cross::after {
+      left: 50%; top: 0; bottom: 0; width: 2px; transform: translateX(-50%);
+    }
+
+    .response-text { font-size: clamp(18px,3.2vw,24px); color: rgba(226,232,240,.94); text-align:center; padding:24px; }
+  </style>
+</head>
+<body>
+  <div id="pre-experiment">
+    <div class="session-card">
+      <h1>Apparent Motion (Color) Threshold</h1>
+      <p>
+        In this experiment, you will see two flashes of light presented on the screen. The flashes will be different colors and appear at different locations. Your task is to report whether you perceived two separate, alternating flashes, or a single stimulus moving smoothly while changing color.
+      </p>
+
+      <div id="calibration-section" class="calibration-section">
+        <h2>Calibrate your display</h2>
+        <p>
+          Pick a familiar object, hold it gently against the screen, and resize the on-screen shape so it matches.
+          This lets us convert every pixel on your display into degrees of visual angle.
+        </p>
+
+        <div class="calibration-controls">
+          <label for="calibration-object">Reference object</label>
+          <select id="calibration-object" disabled>
+            <option value="">Loading reference objects…</option>
+          </select>
+          <div class="calibration-target" id="calibration-target-info"></div>
+        </div>
+
+        <div class="calibration-display" id="calibration-display">
+          <div class="calibration-instruction">Pinch to zoom or use the slider</div>
+          <div class="calibration-shape" id="calibration-shape"></div>
+        </div>
+
+        <div class="calibration-slider">
+          <input type="range" id="calibration-slider" min="40" max="400" value="200" />
+          <span id="calibration-size-readout"></span>
+        </div>
+
+        <div class="calibration-controls">
+          <label for="viewing-distance">Viewing distance</label>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <input type="number" id="viewing-distance" inputmode="decimal" min="10" max="200" step="0.5" placeholder="40" />
+            <span style="color:rgba(148,163,184,0.9); font-size:0.95em;">cm</span>
+          </div>
+        </div>
+
+        <button id="calibration-confirm" class="jspsych-btn secondary" type="button">Save calibration</button>
+        <p id="calibration-status" class="calibration-status" data-state="info">
+          Calibration required before the experiment can begin.
+        </p>
+      </div>
+
+      <div class="session-actions">
+        <button id="start-experiment" class="jspsych-btn" disabled>Calibrate to start</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="jspsych-target"></div>
+
+  <script src="../jspsych/dist/jspsych.js"></script>
+  <script src="../jspsych/plugins/html-button-response.js"></script>
+  <script src="../jspsych/plugins/html-keyboard-response.js"></script>
+  <script src="../jspsych/plugins/call-function.js"></script>
+  <script src="../shared-resources/visual-angle.js"></script>
+  <script type="module" src="../shared-resources/calibration.js"></script>
+
+  <script src="https://unpkg.com/jsquest-plus@2.1.0/dist/jsQuestPlus.js"></script>
+
+  <script type="module">
+    import {
+      init as initCalibration,
+      getReference as getCalibrationReference,
+      getState as getCalibrationState,
+      onReady as onCalibrationReady
+    } from '../shared-resources/calibration.js';
+
+    const jsPsych = initJsPsych({ display_element: 'jspsych-target', show_progress_bar: true, auto_update_progress_bar: false });
+
+    const preExperimentOverlay = document.getElementById('pre-experiment');
+    const startButton = document.getElementById('start-experiment');
+    const calibrationStatusEl = document.getElementById('calibration-status');
+
+    function showCalibrationStatus(message, state = 'info') {
+      if (!calibrationStatusEl) return;
+      calibrationStatusEl.textContent = message;
+      calibrationStatusEl.dataset.state = state;
+    }
+
+    initCalibration({
+      defaultObjectId: 'credit-card',
+      storageKey: 'visual-am-calibration',
+      startButton,
+      referenceDataUrl: '../shared-resources/reference-data/object-dimensions.xml',
+      elements: {
+        section: document.getElementById('calibration-section'),
+        objectSelect: document.getElementById('calibration-object'),
+        display: document.getElementById('calibration-display'),
+        shape: document.getElementById('calibration-shape'),
+        slider: document.getElementById('calibration-slider'),
+        readout: document.getElementById('calibration-size-readout'),
+        status: calibrationStatusEl,
+        confirm: document.getElementById('calibration-confirm'),
+        viewingDistance: document.getElementById('viewing-distance'),
+        target: document.getElementById('calibration-target-info')
+      }
+    }).catch(error => {
+      console.error('Calibration initialization failed', error);
+      showCalibrationStatus('Calibration could not be initialised. Please reload the page.', 'error');
+    });
+
+    const calibrationState = getCalibrationState();
+    function getVisualReference() { return getCalibrationReference(); }
+
+    const stageSide = Math.min(window.innerWidth, window.innerHeight) * 0.7;
+    document.documentElement.style.setProperty('--stage-size', `${Math.round(stageSide)}px`);
+
+    let questEngine = null;
+    const TOTAL_TRIALS = 50;
+    const STIM_DURATION_MS = 150;
+    const SHAPE_SIZE_DVA = 2;
+    const SPATIAL_SEPARATION_DVA = 5;
+
+    function pWeibull(stim, alpha, beta, guess=0, lapse){
+      return guess + (1-guess-lapse)*(1 - Math.exp(-Math.pow(stim/alpha, beta)));
+    }
+
+    function initQuest() {
+      const soaGrid = Array.from({length: 40}, (_, i) => i * 10);
+      questEngine = new jsQuestPlus({
+        psych_func: [
+          (stim, alpha, beta, guess, lapse) => pWeibull(stim, alpha, beta, guess, lapse),
+          (stim, alpha, beta, guess, lapse) => 1 - pWeibull(stim, alpha, beta, guess, lapse)
+        ],
+        stim_samples: [soaGrid],
+        psych_samples: [soaGrid, [2, 3, 4, 5], [0], [0.01, 0.02]]
+      });
+    }
+
+    function stageHTML(content = '', { showFixation = false } = {}) {
+      const fixation = showFixation ? `<div class="fixation-cross"></div>` : '';
+      return `<div class="stage">${fixation}${content}</div>`;
+    }
+
+    function shapeHTML(color, offsetX, size) {
+      return `<div class="stimulus-shape" style="background-color: ${color}; width: ${size}px; height: ${size}px; margin-left: ${offsetX}px;"></div>`;
+    }
+
+    function buildTimeline() {
+      const timeline = [];
+
+      const instructions = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: \`
+          <div style="text-align: center;">
+            <h1>Apparent Motion (Color)</h1>
+            <p>You will see two colored squares flash in sequence.</p>
+            <p>Keep your eyes on the central cross.</p>
+            <p>Press <strong>1</strong> if you perceived two separate, alternating flashes.</p>
+            <p>Press <strong>2</strong> if you perceived a single shape moving smoothly while changing color.</p>
+            <p>Press any key to begin.</p>
+          </div>
+        \`
+      };
+      timeline.push(instructions);
+
+      for (let i = 0; i < TOTAL_TRIALS; i++) {
+        let currentSoa = 0;
+        let shapeSizePx = 0;
+        let offsetPx = 0;
+        let color1 = 'red';
+        let color2 = 'green';
+        if (i % 2 !== 0) {
+          color1 = 'blue';
+          color2 = 'yellow';
+        }
+
+        const setup = {
+          type: jsPsychCallFunction,
+          func: () => {
+            jsPsych.setProgressBar(i / TOTAL_TRIALS);
+            const ref = getVisualReference();
+            if (ref && typeof VisualAngle !== 'undefined') {
+              shapeSizePx = VisualAngle.dvaToPixels(SHAPE_SIZE_DVA, ref);
+              offsetPx = VisualAngle.dvaToPixels(SPATIAL_SEPARATION_DVA / 2, ref);
+            } else {
+              shapeSizePx = 40;
+              offsetPx = 100;
+            }
+
+            let stimParams = questEngine.getStimParams();
+            currentSoa = Array.isArray(stimParams) ? stimParams[0] : stimParams;
+            if (currentSoa == null || !Number.isFinite(currentSoa)) {
+              currentSoa = 50;
+            }
+          }
+        };
+
+        const fixation = {
+          type: jsPsychHtmlKeyboardResponse,
+          stimulus: () => stageHTML('', { showFixation: true }),
+          choices: 'NO_KEYS',
+          trial_duration: 500
+        };
+
+        const stim1 = {
+          type: jsPsychHtmlKeyboardResponse,
+          stimulus: () => stageHTML(shapeHTML(color1, -offsetPx, shapeSizePx), { showFixation: true }),
+          choices: 'NO_KEYS',
+          trial_duration: STIM_DURATION_MS,
+          data: { stage: 'stim1', color: color1 }
+        };
+
+        const isi = {
+          type: jsPsychHtmlKeyboardResponse,
+          stimulus: () => stageHTML('', { showFixation: true }),
+          choices: 'NO_KEYS',
+          trial_duration: () => currentSoa,
+          data: { stage: 'isi' }
+        };
+
+        const stim2 = {
+          type: jsPsychHtmlKeyboardResponse,
+          stimulus: () => stageHTML(shapeHTML(color2, offsetPx, shapeSizePx), { showFixation: true }),
+          choices: 'NO_KEYS',
+          trial_duration: STIM_DURATION_MS,
+          data: { stage: 'stim2', color: color2 }
+        };
+
+        const response = {
+          type: jsPsychHtmlKeyboardResponse,
+          stimulus: () => \`
+            <div class="response-text">
+              <p>Did you see:</p>
+              <p><strong>1</strong> - Two separate flashes</p>
+              <p><strong>2</strong> - One moving shape</p>
+            </div>
+          \`,
+          choices: ['1', '2'],
+          data: { stage: 'response' },
+          on_finish: (data) => {
+            const motionReported = data.response === '2';
+            data.motion_reported = motionReported;
+            data.soa = currentSoa;
+            data.trial_number = i + 1;
+
+            try {
+              questEngine.update(currentSoa, motionReported ? 1 : 0);
+            } catch (e) {
+              console.warn("QuestEngine update failed", e);
+            }
+          }
+        };
+
+        timeline.push(setup, fixation, stim1, isi, stim2, response);
+      }
+
+      const save = {
+        type: jsPsychCallFunction,
+        func: () => {
+          jsPsych.setProgressBar(1.0);
+          const ts = new Date().toISOString().replace(/[:.]/g,'-');
+
+          const estimates = questEngine.getEstimates();
+          jsPsych.data.get().addToAll({ final_threshold_estimate: estimates.threshold });
+
+          const csvData = jsPsych.data.get().filter({stage: 'response'}).csv();
+          const blob = new Blob([csvData], { type: 'text/csv' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = \`apparent-motion-color-\${ts}.csv\`;
+          a.rel = 'noopener';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 0);
+        }
+      };
+
+      const complete = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: \`
+          <div style="text-align: center;">
+            <h1>Experiment Complete</h1>
+            <p>Thank you for participating!</p>
+            <p>Your data has been downloaded.</p>
+          </div>
+        \`,
+        choices: 'NO_KEYS'
+      };
+
+      timeline.push(save, complete);
+      return timeline;
+    }
+
+    function startExperiment() {
+      if (preExperimentOverlay) preExperimentOverlay.classList.add('hidden');
+      initQuest();
+      const timeline = buildTimeline();
+      jsPsych.run(timeline);
+    }
+
+    if (startButton) {
+      startButton.addEventListener('click', () => {
+        // Fallback for playwright test environment
+        if (!calibrationState.ready && !window.visualCalibration) {
+          showCalibrationStatus('Please complete and save the calibration before starting.', 'error');
+          return;
+        }
+        startExperiment();
+      });
+    }
+
+  </script>
+</body>
+</html>
