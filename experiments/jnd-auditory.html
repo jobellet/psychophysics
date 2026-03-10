@@ -1339,6 +1339,7 @@
 
       function drawPsychometric(canvas, series, fa) {
         if (!canvas) return;
+        const TEXT_COLOR_MUTED = '#555';
         const ctx = canvas.getContext('2d');
         const W = canvas.width;
         const H = canvas.height;
@@ -1435,7 +1436,7 @@
         const xticks = tickCount
           ? series.map(s => s.delta).filter((_, i) => i % Math.ceil(series.length / tickCount || 1) === 0)
           : [];
-        ctx.fillStyle = '#555';
+        ctx.fillStyle = TEXT_COLOR_MUTED;
         ctx.font = '12px system-ui, sans-serif';
         xticks.forEach(v => {
           const x = X(v);
