@@ -3,6 +3,7 @@ import {
   getReference as getCalibrationReference,
   onReady as onCalibrationReady
 } from '../shared-resources/calibration.js';
+import { randomBetween } from '../shared-resources/utils/random.js';
 
 // Color Memory (Single Patch) – trial flow:
 // fixation → random(300–500 ms) → patch 60 ms → delay random(0–1400 ms) → color wheel until response → next trial in 1000 ms
@@ -61,7 +62,6 @@ async function playErrorTone() {
   } catch {}
 }
 
-function randomInRange(min, max) { return min + Math.random()*(max-min); }
 function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
 function format(n, d=0){ return Number(n).toFixed(d); }
 function degNorm(a){ a %= 360; if (a < 0) a += 360; return a; }
@@ -281,9 +281,9 @@ async function runOneTrial(trialIndex) {
 
   // Sample target hue and timings
   const targetHueDeg = Math.random()*360; // uniform
-  const targetOnsetDelay = randomInRange(TARGET_ONSET_MIN_MS, TARGET_ONSET_MAX_MS);
+  const targetOnsetDelay = randomBetween(TARGET_ONSET_MIN_MS, TARGET_ONSET_MAX_MS);
   const snappedFlash = snapToRefresh(FLASH_DURATION_MS);
-  const delayAfterPatch = randomInRange(DELAY_AFTER_PATCH_MIN_MS, DELAY_AFTER_PATCH_MAX_MS);
+  const delayAfterPatch = randomBetween(DELAY_AFTER_PATCH_MIN_MS, DELAY_AFTER_PATCH_MAX_MS);
   const wheelRotationDeg = Math.random()*360;
 
   let tFixOn = performance.now();
