@@ -327,7 +327,7 @@
 
       const instructions = {
         type: jsPsychHtmlKeyboardResponse,
-        stimulus: \`
+        stimulus: `
           <div style="text-align: center;">
             <h1>Apparent Motion (Color)</h1>
             <p>You will see two colored squares flash in sequence.</p>
@@ -336,7 +336,7 @@
             <p>Press <strong>2</strong> if you perceived a single shape moving smoothly while changing color.</p>
             <p>Press any key to begin.</p>
           </div>
-        \`
+        `
       };
       timeline.push(instructions);
 
@@ -405,13 +405,13 @@
 
         const response = {
           type: jsPsychHtmlKeyboardResponse,
-          stimulus: () => \`
+          stimulus: () => `
             <div class="response-text">
               <p>Did you see:</p>
               <p><strong>1</strong> - Two separate flashes</p>
               <p><strong>2</strong> - One moving shape</p>
             </div>
-          \`,
+          `,
           choices: ['1', '2'],
           data: { stage: 'response' },
           on_finish: (data) => {
@@ -445,7 +445,7 @@
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = \`apparent-motion-color-\${ts}.csv\`;
+          a.download = `apparent-motion-color-${ts}.csv`;
           a.rel = 'noopener';
           document.body.appendChild(a);
           a.click();
@@ -456,13 +456,13 @@
 
       const complete = {
         type: jsPsychHtmlKeyboardResponse,
-        stimulus: \`
+        stimulus: `
           <div style="text-align: center;">
             <h1>Experiment Complete</h1>
             <p>Thank you for participating!</p>
             <p>Your data has been downloaded.</p>
           </div>
-        \`,
+        `,
         choices: 'NO_KEYS'
       };
 

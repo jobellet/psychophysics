@@ -1,29 +1,188 @@
+npm warn exec The following package was not found and will be installed: serve@14.2.6
  INFO  Accepting connections at http://localhost:3000
- HTTP  3/10/2026 6:10:06 PM ::1 GET /experiments/jnd-auditory.html
- HTTP  3/10/2026 6:10:06 PM ::1 Returned 301 in 28 ms
- HTTP  3/10/2026 6:10:06 PM ::1 GET /experiments/jnd-auditory
- HTTP  3/10/2026 6:10:06 PM ::1 Returned 200 in 6 ms
- HTTP  3/10/2026 6:10:06 PM ::1 GET /jspsych/css/jspsych.css
- HTTP  3/10/2026 6:10:06 PM ::1 GET /jspsych/dist/jspsych.js
- HTTP  3/10/2026 6:10:06 PM ::1 GET /jspsych/plugins/html-button-response.js
- HTTP  3/10/2026 6:10:06 PM ::1 GET /jspsych/plugins/html-keyboard-response.js
- HTTP  3/10/2026 6:10:06 PM ::1 GET /jspsych/plugins/call-function.js
- HTTP  3/10/2026 6:10:06 PM ::1 Returned 200 in 19 ms
- HTTP  3/10/2026 6:10:06 PM ::1 Returned 200 in 19 ms
- HTTP  3/10/2026 6:10:06 PM ::1 Returned 200 in 19 ms
- HTTP  3/10/2026 6:10:06 PM ::1 Returned 200 in 28 ms
- HTTP  3/10/2026 6:10:06 PM ::1 Returned 200 in 40 ms
- HTTP  3/10/2026 6:11:53 PM ::1 GET /experiments/jnd-auditory.html
- HTTP  3/10/2026 6:11:53 PM ::1 Returned 301 in 2 ms
- HTTP  3/10/2026 6:11:53 PM ::1 GET /experiments/jnd-auditory
- HTTP  3/10/2026 6:11:53 PM ::1 Returned 200 in 3 ms
- HTTP  3/10/2026 6:11:53 PM ::1 GET /jspsych/css/jspsych.css
- HTTP  3/10/2026 6:11:53 PM ::1 Returned 200 in 2 ms
- HTTP  3/10/2026 6:11:53 PM ::1 GET /jspsych/dist/jspsych.js
- HTTP  3/10/2026 6:11:53 PM ::1 GET /jspsych/plugins/html-button-response.js
- HTTP  3/10/2026 6:11:53 PM ::1 GET /jspsych/plugins/html-keyboard-response.js
- HTTP  3/10/2026 6:11:53 PM ::1 GET /jspsych/plugins/call-function.js
- HTTP  3/10/2026 6:11:53 PM ::1 Returned 200 in 3 ms
- HTTP  3/10/2026 6:11:53 PM ::1 Returned 200 in 3 ms
- HTTP  3/10/2026 6:11:53 PM ::1 Returned 200 in 4 ms
- HTTP  3/10/2026 6:11:53 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:43:54 PM ::1 GET /experiments/apparent-motion-color.html
+ HTTP  3/10/2026 6:43:54 PM ::1 Returned 301 in 285 ms
+ HTTP  3/10/2026 6:43:54 PM ::1 GET /experiments/apparent-motion-color
+ HTTP  3/10/2026 6:43:54 PM ::1 Returned 200 in 13 ms
+ HTTP  3/10/2026 6:43:54 PM ::1 GET /jspsych/css/jspsych.css
+ HTTP  3/10/2026 6:43:54 PM ::1 GET /jspsych/dist/jspsych.js
+ HTTP  3/10/2026 6:43:54 PM ::1 GET /jspsych/plugins/html-button-response.js
+ HTTP  3/10/2026 6:43:54 PM ::1 GET /jspsych/plugins/html-keyboard-response.js
+ HTTP  3/10/2026 6:43:54 PM ::1 GET /jspsych/plugins/call-function.js
+ HTTP  3/10/2026 6:43:54 PM ::1 GET /shared-resources/visual-angle.js
+ HTTP  3/10/2026 6:43:54 PM ::1 Returned 200 in 8 ms
+ HTTP  3/10/2026 6:43:54 PM ::1 Returned 200 in 9 ms
+ HTTP  3/10/2026 6:43:54 PM ::1 Returned 200 in 8 ms
+ HTTP  3/10/2026 6:43:54 PM ::1 Returned 200 in 8 ms
+ HTTP  3/10/2026 6:43:54 PM ::1 Returned 200 in 11 ms
+ HTTP  3/10/2026 6:43:54 PM ::1 GET /shared-resources/calibration.js
+ HTTP  3/10/2026 6:43:54 PM ::1 Returned 200 in 20 ms
+ HTTP  3/10/2026 6:43:54 PM ::1 Returned 200 in 17 ms
+ HTTP  3/10/2026 6:44:01 PM ::1 GET /experiments/apparent-motion-color.html
+ HTTP  3/10/2026 6:44:01 PM ::1 Returned 301 in 1 ms
+ HTTP  3/10/2026 6:44:01 PM ::1 GET /experiments/apparent-motion-color
+ HTTP  3/10/2026 6:44:01 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:44:01 PM ::1 GET /jspsych/css/jspsych.css
+ HTTP  3/10/2026 6:44:01 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:44:01 PM ::1 GET /jspsych/dist/jspsych.js
+ HTTP  3/10/2026 6:44:01 PM ::1 GET /jspsych/plugins/html-button-response.js
+ HTTP  3/10/2026 6:44:01 PM ::1 GET /jspsych/plugins/html-keyboard-response.js
+ HTTP  3/10/2026 6:44:01 PM ::1 GET /jspsych/plugins/call-function.js
+ HTTP  3/10/2026 6:44:01 PM ::1 GET /shared-resources/visual-angle.js
+ HTTP  3/10/2026 6:44:01 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:44:01 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:44:01 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:44:01 PM ::1 Returned 200 in 4 ms
+ HTTP  3/10/2026 6:44:01 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:44:01 PM ::1 GET /shared-resources/calibration.js
+ HTTP  3/10/2026 6:44:01 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:44:08 PM ::1 GET /experiments/apparent-motion-color.html
+ HTTP  3/10/2026 6:44:08 PM ::1 Returned 301 in 0 ms
+ HTTP  3/10/2026 6:44:08 PM ::1 GET /experiments/apparent-motion-color
+ HTTP  3/10/2026 6:44:08 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:44:08 PM ::1 GET /jspsych/css/jspsych.css
+ HTTP  3/10/2026 6:44:08 PM ::1 Returned 200 in 1 ms
+ HTTP  3/10/2026 6:44:08 PM ::1 GET /jspsych/dist/jspsych.js
+ HTTP  3/10/2026 6:44:08 PM ::1 GET /jspsych/plugins/html-button-response.js
+ HTTP  3/10/2026 6:44:08 PM ::1 GET /jspsych/plugins/html-keyboard-response.js
+ HTTP  3/10/2026 6:44:08 PM ::1 GET /jspsych/plugins/call-function.js
+ HTTP  3/10/2026 6:44:08 PM ::1 GET /shared-resources/visual-angle.js
+ HTTP  3/10/2026 6:44:08 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:44:08 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:44:08 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:44:08 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:44:08 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:44:08 PM ::1 GET /shared-resources/calibration.js
+ HTTP  3/10/2026 6:44:08 PM ::1 Returned 200 in 1 ms
+ HTTP  3/10/2026 6:44:18 PM ::1 GET /experiments/apparent-motion-color.html
+ HTTP  3/10/2026 6:44:18 PM ::1 Returned 301 in 1 ms
+ HTTP  3/10/2026 6:44:18 PM ::1 GET /experiments/apparent-motion-color
+ HTTP  3/10/2026 6:44:18 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:44:18 PM ::1 GET /jspsych/css/jspsych.css
+ HTTP  3/10/2026 6:44:18 PM ::1 Returned 200 in 1 ms
+ HTTP  3/10/2026 6:44:18 PM ::1 GET /jspsych/dist/jspsych.js
+ HTTP  3/10/2026 6:44:18 PM ::1 GET /jspsych/plugins/html-button-response.js
+ HTTP  3/10/2026 6:44:18 PM ::1 GET /jspsych/plugins/html-keyboard-response.js
+ HTTP  3/10/2026 6:44:18 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:44:18 PM ::1 Returned 200 in 4 ms
+ HTTP  3/10/2026 6:44:18 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:44:18 PM ::1 GET /jspsych/plugins/call-function.js
+ HTTP  3/10/2026 6:44:18 PM ::1 GET /shared-resources/visual-angle.js
+ HTTP  3/10/2026 6:44:18 PM ::1 Returned 200 in 1 ms
+ HTTP  3/10/2026 6:44:18 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:44:18 PM ::1 GET /shared-resources/calibration.js
+ HTTP  3/10/2026 6:44:18 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:44:26 PM ::1 GET /experiments/apparent-motion-color.html
+ HTTP  3/10/2026 6:44:26 PM ::1 Returned 301 in 1 ms
+ HTTP  3/10/2026 6:44:26 PM ::1 GET /experiments/apparent-motion-color
+ HTTP  3/10/2026 6:44:26 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:44:26 PM ::1 GET /jspsych/css/jspsych.css
+ HTTP  3/10/2026 6:44:26 PM ::1 Returned 200 in 1 ms
+ HTTP  3/10/2026 6:44:26 PM ::1 GET /jspsych/dist/jspsych.js
+ HTTP  3/10/2026 6:44:26 PM ::1 GET /jspsych/plugins/html-button-response.js
+ HTTP  3/10/2026 6:44:26 PM ::1 GET /jspsych/plugins/html-keyboard-response.js
+ HTTP  3/10/2026 6:44:26 PM ::1 GET /jspsych/plugins/call-function.js
+ HTTP  3/10/2026 6:44:26 PM ::1 GET /shared-resources/visual-angle.js
+ HTTP  3/10/2026 6:44:26 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:44:26 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:44:26 PM ::1 Returned 200 in 4 ms
+ HTTP  3/10/2026 6:44:26 PM ::1 Returned 200 in 4 ms
+ HTTP  3/10/2026 6:44:26 PM ::1 Returned 200 in 6 ms
+ HTTP  3/10/2026 6:44:26 PM ::1 GET /shared-resources/calibration.js
+ HTTP  3/10/2026 6:44:26 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:44:37 PM ::1 GET /experiments/apparent-motion-color.html
+ HTTP  3/10/2026 6:44:37 PM ::1 Returned 301 in 1 ms
+ HTTP  3/10/2026 6:44:37 PM ::1 GET /experiments/apparent-motion-color
+ HTTP  3/10/2026 6:44:37 PM ::1 Returned 200 in 1 ms
+ HTTP  3/10/2026 6:44:37 PM ::1 GET /jspsych/css/jspsych.css
+ HTTP  3/10/2026 6:44:37 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:44:37 PM ::1 GET /jspsych/dist/jspsych.js
+ HTTP  3/10/2026 6:44:37 PM ::1 GET /jspsych/plugins/html-button-response.js
+ HTTP  3/10/2026 6:44:37 PM ::1 GET /jspsych/plugins/html-keyboard-response.js
+ HTTP  3/10/2026 6:44:37 PM ::1 GET /jspsych/plugins/call-function.js
+ HTTP  3/10/2026 6:44:37 PM ::1 GET /shared-resources/visual-angle.js
+ HTTP  3/10/2026 6:44:37 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:44:37 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:44:37 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:44:37 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:44:37 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:44:37 PM ::1 GET /shared-resources/calibration.js
+ HTTP  3/10/2026 6:44:37 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:44:45 PM ::1 GET /experiments/apparent-motion-color.html
+ HTTP  3/10/2026 6:44:45 PM ::1 Returned 301 in 0 ms
+ HTTP  3/10/2026 6:44:45 PM ::1 GET /experiments/apparent-motion-color
+ HTTP  3/10/2026 6:44:45 PM ::1 Returned 200 in 1 ms
+ HTTP  3/10/2026 6:44:45 PM ::1 GET /jspsych/css/jspsych.css
+ HTTP  3/10/2026 6:44:45 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:44:45 PM ::1 GET /jspsych/dist/jspsych.js
+ HTTP  3/10/2026 6:44:45 PM ::1 GET /jspsych/plugins/html-button-response.js
+ HTTP  3/10/2026 6:44:45 PM ::1 GET /jspsych/plugins/html-keyboard-response.js
+ HTTP  3/10/2026 6:44:45 PM ::1 GET /jspsych/plugins/call-function.js
+ HTTP  3/10/2026 6:44:45 PM ::1 GET /shared-resources/visual-angle.js
+ HTTP  3/10/2026 6:44:45 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:44:45 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:44:45 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:44:45 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:44:45 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:44:45 PM ::1 GET /shared-resources/calibration.js
+ HTTP  3/10/2026 6:44:45 PM ::1 Returned 200 in 1 ms
+ HTTP  3/10/2026 6:45:23 PM ::1 GET /experiments/apparent-motion-color.html
+ HTTP  3/10/2026 6:45:23 PM ::1 Returned 301 in 0 ms
+ HTTP  3/10/2026 6:45:23 PM ::1 GET /experiments/apparent-motion-color
+ HTTP  3/10/2026 6:45:23 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:45:23 PM ::1 GET /jspsych/css/jspsych.css
+ HTTP  3/10/2026 6:45:23 PM ::1 Returned 200 in 1 ms
+ HTTP  3/10/2026 6:45:23 PM ::1 GET /jspsych/dist/jspsych.js
+ HTTP  3/10/2026 6:45:23 PM ::1 GET /jspsych/plugins/html-button-response.js
+ HTTP  3/10/2026 6:45:23 PM ::1 GET /jspsych/plugins/html-keyboard-response.js
+ HTTP  3/10/2026 6:45:23 PM ::1 GET /jspsych/plugins/call-function.js
+ HTTP  3/10/2026 6:45:23 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:45:23 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:45:23 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:45:23 PM ::1 GET /shared-resources/visual-angle.js
+ HTTP  3/10/2026 6:45:23 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:45:23 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:45:23 PM ::1 GET /shared-resources/calibration.js
+ HTTP  3/10/2026 6:45:23 PM ::1 Returned 200 in 1 ms
+ HTTP  3/10/2026 6:45:23 PM ::1 GET /shared-resources/reference-data/object-dimensions.xml
+ HTTP  3/10/2026 6:45:23 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:46:32 PM ::1 GET /experiments/apparent-motion-color.html
+ HTTP  3/10/2026 6:46:32 PM ::1 Returned 301 in 7 ms
+ HTTP  3/10/2026 6:46:32 PM ::1 GET /experiments/apparent-motion-color
+ HTTP  3/10/2026 6:46:32 PM ::1 Returned 200 in 5 ms
+ HTTP  3/10/2026 6:46:32 PM ::1 GET /jspsych/css/jspsych.css
+ HTTP  3/10/2026 6:46:32 PM ::1 Returned 200 in 4 ms
+ HTTP  3/10/2026 6:46:32 PM ::1 GET /jspsych/dist/jspsych.js
+ HTTP  3/10/2026 6:46:32 PM ::1 Returned 200 in 1 ms
+ HTTP  3/10/2026 6:46:32 PM ::1 GET /jspsych/plugins/html-button-response.js
+ HTTP  3/10/2026 6:46:32 PM ::1 Returned 200 in 14 ms
+ HTTP  3/10/2026 6:46:32 PM ::1 GET /jspsych/plugins/html-keyboard-response.js
+ HTTP  3/10/2026 6:46:32 PM ::1 GET /jspsych/plugins/call-function.js
+ HTTP  3/10/2026 6:46:32 PM ::1 GET /shared-resources/visual-angle.js
+ HTTP  3/10/2026 6:46:32 PM ::1 Returned 200 in 10 ms
+ HTTP  3/10/2026 6:46:32 PM ::1 Returned 200 in 10 ms
+ HTTP  3/10/2026 6:46:32 PM ::1 Returned 200 in 10 ms
+ HTTP  3/10/2026 6:46:32 PM ::1 GET /shared-resources/calibration.js
+ HTTP  3/10/2026 6:46:32 PM ::1 Returned 200 in 9 ms
+ HTTP  3/10/2026 6:46:32 PM ::1 GET /shared-resources/reference-data/object-dimensions.xml
+ HTTP  3/10/2026 6:46:32 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:46:59 PM ::1 GET /experiments/apparent-motion-color.html
+ HTTP  3/10/2026 6:46:59 PM ::1 Returned 301 in 1 ms
+ HTTP  3/10/2026 6:46:59 PM ::1 GET /experiments/apparent-motion-color
+ HTTP  3/10/2026 6:46:59 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:46:59 PM ::1 GET /jspsych/css/jspsych.css
+ HTTP  3/10/2026 6:46:59 PM ::1 Returned 200 in 1 ms
+ HTTP  3/10/2026 6:46:59 PM ::1 GET /jspsych/dist/jspsych.js
+ HTTP  3/10/2026 6:46:59 PM ::1 GET /jspsych/plugins/html-button-response.js
+ HTTP  3/10/2026 6:46:59 PM ::1 GET /jspsych/plugins/html-keyboard-response.js
+ HTTP  3/10/2026 6:46:59 PM ::1 GET /jspsych/plugins/call-function.js
+ HTTP  3/10/2026 6:46:59 PM ::1 GET /shared-resources/visual-angle.js
+ HTTP  3/10/2026 6:46:59 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:46:59 PM ::1 Returned 200 in 2 ms
+ HTTP  3/10/2026 6:46:59 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:46:59 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:46:59 PM ::1 Returned 200 in 3 ms
+ HTTP  3/10/2026 6:46:59 PM ::1 GET /shared-resources/calibration.js
+ HTTP  3/10/2026 6:46:59 PM ::1 Returned 200 in 1 ms
+ HTTP  3/10/2026 6:47:00 PM ::1 GET /shared-resources/reference-data/object-dimensions.xml
+ HTTP  3/10/2026 6:47:00 PM ::1 Returned 200 in 1 ms
