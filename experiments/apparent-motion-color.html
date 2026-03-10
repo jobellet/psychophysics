@@ -326,17 +326,17 @@
       const timeline = [];
 
       const instructions = {
-        type: jsPsychHtmlKeyboardResponse,
+        type: jsPsychHtmlButtonResponse,
         stimulus: `
           <div style="text-align: center;">
             <h1>Apparent Motion (Color)</h1>
             <p>You will see two colored squares flash in sequence.</p>
             <p>Keep your eyes on the central cross.</p>
-            <p>Press <strong>1</strong> if you perceived two separate, alternating flashes.</p>
-            <p>Press <strong>2</strong> if you perceived a single shape moving smoothly while changing color.</p>
-            <p>Press any key to begin.</p>
+            <p>Select <strong>Two separate flashes</strong> if you perceived two separate, alternating flashes.</p>
+            <p>Select <strong>One moving shape</strong> if you perceived a single shape moving smoothly while changing color.</p>
           </div>
-        `
+        `,
+        choices: ['Begin']
       };
       timeline.push(instructions);
 
@@ -404,18 +404,16 @@
         };
 
         const response = {
-          type: jsPsychHtmlKeyboardResponse,
+          type: jsPsychHtmlButtonResponse,
           stimulus: () => `
             <div class="response-text">
               <p>Did you see:</p>
-              <p><strong>1</strong> - Two separate flashes</p>
-              <p><strong>2</strong> - One moving shape</p>
             </div>
           `,
-          choices: ['1', '2'],
+          choices: ['Two separate flashes', 'One moving shape'],
           data: { stage: 'response' },
           on_finish: (data) => {
-            const motionReported = data.response === '2';
+            const motionReported = data.response === 1;
             data.motion_reported = motionReported;
             data.soa = currentSoa;
             data.trial_number = i + 1;
