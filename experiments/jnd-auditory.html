@@ -1344,6 +1344,10 @@
         const H = canvas.height;
         ctx.clearRect(0, 0, W, H);
 
+        const COLOR_SERIES = '#08c';
+        const COLOR_FA_LINE = '#f0a';
+        const COLOR_FA_TEXT = '#a06';
+
         if (!series || series.length === 0) {
           ctx.fillStyle = '#444';
           ctx.font = '16px system-ui, sans-serif';
@@ -1381,20 +1385,20 @@
         }
 
         if (fa && fa > 0) {
-          ctx.strokeStyle = '#f0a';
+          ctx.strokeStyle = COLOR_FA_LINE;
           ctx.setLineDash([5, 4]);
           ctx.beginPath();
           ctx.moveTo(pad.l, Y(fa));
           ctx.lineTo(W - pad.r, Y(fa));
           ctx.stroke();
           ctx.setLineDash([]);
-          ctx.fillStyle = '#a06';
+          ctx.fillStyle = COLOR_FA_TEXT;
           ctx.font = '12px system-ui, sans-serif';
           ctx.fillText(`FA ≈ ${fa.toFixed(2)}`, W - pad.r - 80, Y(fa) - 6);
         }
 
-        ctx.strokeStyle = '#08c';
-        ctx.fillStyle = '#08c';
+        ctx.strokeStyle = COLOR_SERIES;
+        ctx.fillStyle = COLOR_SERIES;
         ctx.lineWidth = 2;
         ctx.beginPath();
         series.forEach((point, index) => {
