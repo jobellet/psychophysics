@@ -49,13 +49,27 @@ function joinPath(base, filename) {
   return `${base}/${encodeURIComponent(filename)}`;
 }
 
+const { getSecureUint32, getSecureRandom } = (() => {
+  const array = new Uint32Array(1);
+  return {
+    getSecureUint32: () => {
+      window.crypto.getRandomValues(array);
+      return array[0];
+    },
+    getSecureRandom: () => {
+      window.crypto.getRandomValues(array);
+      return array[0] / 4294967296;
+    },
+  };
+})();
+
 function chooseRandom(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[Math.floor(getSecureRandom() * arr.length)];
 }
 
 function shuffleInPlace(array) {
   for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(getSecureRandom() * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];
   }
   return array;
@@ -183,13 +197,13 @@ async function buildTrials(manifest) {
     const mask2Path = joinPath(NEUTRAL_DIR, mask2Filename);
 
     for (const frames of soaFrames) {
-      const targetOnLeft = Math.random() < 0.5;
+      const targetOnLeft = getSecureRandom() < 0.5;
 
       const leftImagePath = targetOnLeft ? targetPath : maskPath;
       const rightImagePath = targetOnLeft ? maskPath : targetPath;
 
-      const maskSeed = Math.floor(Math.random() * 4294967296);
-      const mask2Seed = Math.floor(Math.random() * 4294967296);
+      const maskSeed = getSecureUint32();
+      const mask2Seed = getSecureUint32();
 
       trials.push({
         targetFilename,
@@ -299,7 +313,7 @@ function buildTimeline(trials) {
         soa_frames: trial.soaFrames,
         target_position: trial.targetPosition
       },
-      post_trial_gap: () => 800 + Math.floor(Math.random() * 2000)
+      post_trial_gap: () => 800 + Math.floor(getSecureRandom() * 2000)
     };
 
     node.on_load = () => {
