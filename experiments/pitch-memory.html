@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pitch Memory Experiment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../jspsych/css/jspsych.css" />
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      --bg: radial-gradient(circle at top, #0f172a 0%, #111827 60%, #020617 100%);
+      --card-bg: rgba(15, 23, 42, 0.9);
+      --accent: #38bdf8;
+      --stage-size: min(68vw, 68vh);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      color: #e2e8f0;
+      padding: clamp(16px, 4vw, 48px);
+    }
+
+    #pre-experiment {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.96) 0%, rgba(2, 6, 23, 0.94) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(24px, 6vw, 72px);
+      z-index: 10;
+      transition: opacity 220ms ease;
+    }
+
+    #pre-experiment.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .session-card {
+      width: min(92vw, 720px);
+      background: rgba(15, 23, 42, 0.85);
+      border-radius: clamp(24px, 4vw, 36px);
+      box-shadow: 0 30px 70px rgba(2, 6, 23, 0.6);
+      padding: clamp(28px, 6vw, 56px);
+      display: flex;
+      flex-direction: column;
+      gap: clamp(16px, 4vw, 28px);
+    }
+
+    .session-card h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 4vw, 2.15rem);
+    }
+
+    .session-card p {
+      margin: 0;
+      color: rgba(203, 213, 225, 0.92);
+      line-height: 1.5;
+    }
+
+    .file-picker {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 0;
+      overflow: hidden;
+      width: fit-content;
+      background: rgba(148, 163, 184, 0.12);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      cursor: pointer;
+    }
+
+    .file-picker input[type='file'] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .file-picker span {
+      padding: 12px 24px;
+      font-weight: 600;
+      color: #e2e8f0;
+      font-size: clamp(0.95rem, 2.4vw, 1.05rem);
+    }
+
+    .session-status {
+      margin: 0;
+      font-size: clamp(0.95rem, 2.6vw, 1.05rem);
+      color: rgba(148, 163, 184, 0.88);
+    }
+
+    .session-status[data-state='error'] {
+      color: #fca5a5;
+    }
+
+    .session-status[data-state='warning'] {
+      color: #facc15;
+    }
+
+    .session-status strong {
+      color: #f8fafc;
+    }
+
+    .session-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .session-actions .jspsych-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    #jspsych-target {
+      width: min(96vw, 860px);
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(18px);
+      border-radius: 32px;
+      box-shadow: 0 24px 60px rgba(2, 6, 23, 0.55);
+      padding: clamp(24px, 5vw, 56px);
+      position: relative;
+    }
+
+    .jspsych-display-element {
+      font-size: clamp(18px, 3vw, 22px);
+      line-height: 1.7;
+    }
+
+    .jspsych-btn {
+      font-size: clamp(1rem, 2.6vw, 1.15rem);
+      padding: clamp(12px, 3vw, 16px) clamp(24px, 5vw, 36px);
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), #2563eb);
+      color: white;
+      font-weight: 600;
+      box-shadow: inset 0 -2px 0 rgba(15, 23, 42, 0.25);
+      transition: transform 160ms ease, box-shadow 160ms ease;
+      cursor: pointer;
+    }
+
+    .jspsych-btn:active {
+      transform: translateY(2px);
+      box-shadow: inset 0 2px 0 rgba(15, 23, 42, 0.35);
+    }
+
+    .stage {
+      position: relative;
+      width: 100%;
+      height: var(--stage-size);
+      margin: 0 auto;
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.95) 0%, rgba(2, 6, 23, 0.88) 80%);
+      border-radius: clamp(24px, 6vw, 36px);
+      box-shadow: inset 0 0 0 2px rgba(148, 163, 184, 0.08), 0 24px 60px rgba(2, 6, 23, 0.6);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .speaker-icon {
+      font-size: clamp(64px, 12vw, 120px);
+      margin-bottom: 20px;
+    }
+
+    .response-text {
+      font-size: clamp(18px, 3.2vw, 24px);
+      color: rgba(226, 232, 240, 0.94);
+      text-align: center;
+      padding: 24px;
+    }
+
+    .trial-progress {
+      font-size: clamp(14px, 2.5vw, 16px);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, 0.8);
+      text-align: center;
+      margin-bottom: 16px;
+      position: absolute;
+      top: 20px;
+      left: 0;
+      width: 100%;
+    }
+
+    /* Split Screen Response Area */
+    .response-split {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms ease;
+    }
+
+    .response-split.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .split-half {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 150ms ease, color 150ms ease;
+      user-select: none;
+    }
+
+    .split-higher {
+      background: rgba(14, 165, 233, 0.1);
+      color: #38bdf8;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    .split-higher:hover {
+      background: rgba(14, 165, 233, 0.2);
+    }
+
+    .split-lower {
+      background: rgba(244, 63, 94, 0.1);
+      color: #fb7185;
+      border-top: 2px solid rgba(0, 0, 0, 0.2);
+    }
+    .split-lower:hover {
+      background: rgba(244, 63, 94, 0.2);
+    }
+
+    .control-button {
+      position: fixed;
+      z-index: 30;
+      border: none;
+      font-family: inherit;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      border-radius: clamp(18px, 4vw, 26px);
+      box-shadow: 0 18px 40px rgba(2, 6, 23, 0.45);
+      cursor: pointer;
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      pointer-events: auto;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    .control-button:active {
+      transform: translateY(2px);
+      box-shadow: 0 8px 24px rgba(2, 6, 23, 0.35);
+    }
+
+    #stop-experiment {
+      top: clamp(24px, 5vw, 48px);
+      left: clamp(24px, 5vw, 48px);
+      padding: clamp(16px, 4vw, 20px) clamp(28px, 6vw, 42px);
+      font-size: clamp(0.95rem, 2.8vw, 1.2rem);
+      background: rgba(248, 250, 252, 0.9);
+      color: #0f172a;
+    }
+
+    @media (max-width: 600px) {
+      #pre-experiment {
+        padding: 20px;
+      }
+
+      #jspsych-target {
+        padding: clamp(20px, 6vw, 40px);
+      }
+
+      .stage {
+        border-radius: clamp(20px, 8vw, 32px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="pre-experiment">
+    <div class="session-card">
+      <h1>Pitch Memory Experiment</h1>
+      <p>
+        You will hear two brief tones separated by a gap.<br>
+        Decide if the <strong>second tone</strong> is higher (↑) or lower (↓) in pitch than the first.<br><br>
+        <strong>Test Mode</strong>: Fixed large difference. You must get 5 consecutive correct to proceed.<br>
+        <strong>Real Experiment</strong>: The pitch differences will adapt based on your performance to find your empirical bounds.
+      </p>
+      <label class="file-picker">
+        <input type="file" id="session-file" accept="application/json" />
+        <span>Resume Previous Session (JSON)</span>
+      </label>
+      <p id="session-status" class="session-status" data-state="info">No previous session loaded.</p>
+      <div class="session-actions">
+        <button id="start-experiment" class="jspsych-btn">Start Test Mode</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="jspsych-target"></div>
+  <button id="stop-experiment" class="control-button" hidden>Stop &amp; Download</button>
+
+  <script src="../jspsych/dist/jspsych.js"></script>
+  <script src="../jspsych/plugins/html-button-response.js"></script>
+  <script src="../jspsych/plugins/html-keyboard-response.js"></script>
+  <script src="../jspsych/plugins/call-function.js"></script>
+  <script src="pitch-memory.js"></script>
+</body>
+</html>
