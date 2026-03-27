@@ -13,7 +13,6 @@ const MASK_DURATION_MS = 100;
 const FULLSCREEN = true;
 const FONT_FAMILY = "monospace";
 const LETTER_FONT_PX = 44;
-const GRID_WIDTH_DVA = null;
 const RESPONSE_TIMEOUT_MS = 15000;
 
 class PartialReportTrial {
