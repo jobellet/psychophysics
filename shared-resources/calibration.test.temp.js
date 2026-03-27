@@ -72,9 +72,7 @@ let suppressCalibrationUpdates = false;
 let initPromise = null;
 let startButtonElement = null;
 
-const ZIP_LIBRARY_URL = typeof import.meta !== 'undefined' && import.meta.url
-  ? new URL('./vendor/fflate.mjs', import.meta.url).href
-  : null;
+const ZIP_LIBRARY_URL = null;
 let zipLibraryPromise = null;
 
 const readyListeners = new Set();
