@@ -189,6 +189,7 @@
       }
 
       .afc-choice {
+        position: relative;
         background: rgba(15, 23, 42, 0.9);
         border-radius: clamp(12px, 2vw, 18px);
         border: 1px solid rgba(148, 163, 184, 0.28);
@@ -214,11 +215,7 @@
         background: rgba(37, 99, 235, 0.2);
       }
 
-      .jspsych-html-button-response-button {
-        position: relative;
-      }
-
-      .jspsych-html-button-response-button.selected::after {
+      .afc-choice.selected::after {
         content: "✓";
         position: absolute;
         top: -8px;
