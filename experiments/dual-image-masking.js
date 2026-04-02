@@ -159,11 +159,13 @@ function initQuest() {
 const QUEST_TARGET_P = 0.75;
 
 function suggestSOA() {
-  let chosen = questEngine.getStimParams(); // returns e.g. [3]
+  let chosen = questEngine.getStimParams();
+  let chosenValue = Array.isArray(chosen) ? chosen[0] : chosen;
+
   try {
     const est = questEngine.getEstimates('mode');
     if (Array.isArray(est) && est.length >= 4) {
-      let best = chosen[0];
+      let best = chosenValue;
       let bestDiff = Infinity;
       const soaFrames = [1, 2, 3, 4, 5, 6, 7];
       for (const v of soaFrames) {
@@ -174,12 +176,12 @@ function suggestSOA() {
           best = v;
         }
       }
-      chosen = [best];
+      chosenValue = best;
     }
   } catch (e) {
     // ignore
   }
-  return chosen[0];
+  return chosenValue;
 }
 
 function buildTimeline(numTrials) {
@@ -327,7 +329,7 @@ function buildTimeline(numTrials) {
 
           // Update QUEST
           try {
-            questEngine.update([soa_frames], t1Correct ? 1 : 0);
+            questEngine.update(soa_frames, t1Correct ? 1 : 0);
           } catch (e) {
             console.warn('Quest update skipped', e);
           }
