@@ -327,6 +327,7 @@
   <script src="../jspsych/plugins/html-keyboard-response.js"></script>
   <script src="../jspsych/plugins/call-function.js"></script>
   <script src="https://unpkg.com/jsquest-plus@2.1.0/dist/jsQuestPlus.js"></script>
+  <script type="module" src="../shared-resources/utils/downloadBlob.js"></script>
 
   <script>
     const jsPsych = initJsPsych({
@@ -634,19 +635,6 @@
       });
     }
 
-    function downloadBlob(content, filename, type) {
-      const blob = new Blob([content], { type });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = filename;
-      anchor.rel = 'noopener';
-      document.body.appendChild(anchor);
-      anchor.click();
-      document.body.removeChild(anchor);
-      setTimeout(() => URL.revokeObjectURL(url), 0);
-    }
-
     function finalizeSession(reason = 'complete') {
       if (sessionFinalized) {
         return;
@@ -671,8 +659,8 @@
       const combined = uploadedDataArray.length ? [...uploadedDataArray, ...newValues] : [...newValues];
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       if (newValues.length) {
-        downloadBlob(JSON.stringify(combined, null, 2), `jnd-auditory-${timestamp}.json`, 'application/json');
-        downloadBlob(jsPsych.data.get().csv(), `jnd-auditory-${timestamp}.csv`, 'text/csv');
+        downloadBlob(`jnd-auditory-${timestamp}.json`, JSON.stringify(combined, null, 2), 'application/json');
+        downloadBlob(`jnd-auditory-${timestamp}.csv`, jsPsych.data.get().csv(), 'text/csv');
       }
 
       uploadedDataArray = combined;

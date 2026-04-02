@@ -1,3 +1,5 @@
+import { downloadBlob } from '../shared-resources/utils/downloadBlob.js';
+
 export const TARGET_DIAMETER_DVA = 0.12;
 export const FIXATION_DIAMETER_DVA = 0.12;
 export const FLASH_DURATION_MS = 60;
@@ -93,18 +95,6 @@ function formatTimestampForFilename(date = new Date()) {
     pad(date.getMinutes()),
     pad(date.getSeconds())
   ].join('');
-}
-
-function downloadBlob(filename, content, mimeType) {
-  const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
 }
 
 function ensureElement(id) {
