@@ -65,32 +65,35 @@ function generateShuffledMask(imageSrc) {
     const img = new Image();
     img.crossOrigin = 'Anonymous';
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
       const size = 300;
-      canvas.width = size;
-      canvas.height = size;
-      ctx.drawImage(img, 0, 0, size, size);
-
       const gridSize = 10;
       const tileSize = size / gridSize;
-      const tiles = [];
+
+      const tileCoords = [];
       for (let y = 0; y < gridSize; y++) {
         for (let x = 0; x < gridSize; x++) {
-          tiles.push(ctx.getImageData(x * tileSize, y * tileSize, tileSize, tileSize));
+          tileCoords.push({ x, y });
         }
       }
 
-      shuffleInPlace(tiles);
+      shuffleInPlace(tileCoords);
       const maskedCanvas = document.createElement('canvas');
       maskedCanvas.width = size;
       maskedCanvas.height = size;
       const maskedCtx = maskedCanvas.getContext('2d');
 
+      const sW = img.naturalWidth / gridSize;
+      const sH = img.naturalHeight / gridSize;
+
       let i = 0;
       for (let y = 0; y < gridSize; y++) {
         for (let x = 0; x < gridSize; x++) {
-          maskedCtx.putImageData(tiles[i++], x * tileSize, y * tileSize);
+          const src = tileCoords[i++];
+          maskedCtx.drawImage(
+            img,
+            src.x * sW, src.y * sH, sW, sH,
+            x * tileSize, y * tileSize, tileSize, tileSize
+          );
         }
       }
       resolve(maskedCanvas.toDataURL());
