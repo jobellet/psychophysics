@@ -281,6 +281,9 @@ function buildTimeline(numTrials) {
           <div class="afc-choice-phase is-active">
             ${choiceButtons.join('')}
           </div>
+          <div style="margin-top: 20px;">
+            <button type="button" id="submit-selection" class="primary" disabled style="font-size: 1.1rem; padding: 12px 24px;">Submit Selection</button>
+          </div>
         </div>
       `,
       choices: [],
@@ -301,6 +304,8 @@ function buildTimeline(numTrials) {
         const buttons = document.querySelectorAll('.afc-choice');
         let selectionOrder = [];
 
+        const submitButton = document.getElementById('submit-selection');
+
         const updateSelectionVisuals = () => {
           buttons.forEach((btn, idx) => {
             btn.classList.remove('selected');
@@ -308,6 +313,7 @@ function buildTimeline(numTrials) {
               btn.classList.add('selected');
             }
           });
+          submitButton.disabled = selectionOrder.length !== 2;
         };
 
         const finishTrial = () => {
@@ -337,27 +343,20 @@ function buildTimeline(numTrials) {
           });
         };
 
+        submitButton.addEventListener('click', finishTrial);
+
         buttons.forEach((btn, idx) => {
           btn.addEventListener('click', (e) => {
             e.preventDefault();
             const pos = selectionOrder.indexOf(idx);
             if (pos !== -1) {
               selectionOrder.splice(pos, 1); // deselect
-              if (window.finishTrialTimeout) {
-                clearTimeout(window.finishTrialTimeout);
-                window.finishTrialTimeout = null;
-              }
             } else {
               if (selectionOrder.length < 2) {
                 selectionOrder.push(idx);
               }
             }
             updateSelectionVisuals();
-
-            if (selectionOrder.length === 2) {
-              // slight delay before finishing so user sees selection
-              window.finishTrialTimeout = window.setTimeout(finishTrial, 300);
-            }
           });
         });
         responseNode._startTime = performance.now();
