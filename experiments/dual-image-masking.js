@@ -224,7 +224,6 @@ function buildTimeline(numTrials) {
         </div>
       `,
       choices: 'NO_KEYS',
-      trial_duration: 1000, // Safe fallback, finished programmatically
       post_trial_gap: 0,
       on_load: () => {
         const currentSOA = suggestSOA();
@@ -249,6 +248,7 @@ function buildTimeline(numTrials) {
 
             window.setTimeout(() => {
               imgElement.style.display = 'none';
+              jsPsych.pluginAPI.clearAllTimeouts(); // Ensure no internal jsPsych timeouts bleed over
               jsPsych.finishTrial({
                 t1_filename: t1Filename,
                 t2_filename: t2Filename,
