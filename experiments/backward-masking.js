@@ -114,23 +114,25 @@ function generateShuffledMask(imageSrc, seed) {
     const img = new Image();
     img.crossOrigin = 'Anonymous';
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      const scaleCanvas = document.createElement('canvas');
+      const scaleCtx = scaleCanvas.getContext('2d');
       const size = 300; // Define a consistent size for mask calculation
-      canvas.width = size;
-      canvas.height = size;
-      ctx.drawImage(img, 0, 0, size, size);
+      scaleCanvas.width = size;
+      scaleCanvas.height = size;
+      scaleCtx.drawImage(img, 0, 0, size, size);
 
       const gridSize = 10;
       const tileSize = size / gridSize;
-      const tiles = [];
+
+      const coords = [];
       for (let y = 0; y < gridSize; y++) {
         for (let x = 0; x < gridSize; x++) {
-          tiles.push(ctx.getImageData(x * tileSize, y * tileSize, tileSize, tileSize));
+          coords.push({x, y});
         }
       }
 
-      seededShuffleInPlace(tiles, lcg(seed));
+      seededShuffleInPlace(coords, lcg(seed));
+
       const maskedCanvas = document.createElement('canvas');
       maskedCanvas.width = size;
       maskedCanvas.height = size;
@@ -139,7 +141,12 @@ function generateShuffledMask(imageSrc, seed) {
       let i = 0;
       for (let y = 0; y < gridSize; y++) {
         for (let x = 0; x < gridSize; x++) {
-          maskedCtx.putImageData(tiles[i++], x * tileSize, y * tileSize);
+          const src = coords[i++];
+          maskedCtx.drawImage(
+            scaleCanvas,
+            src.x * tileSize, src.y * tileSize, tileSize, tileSize,
+            x * tileSize, y * tileSize, tileSize, tileSize
+          );
         }
       }
       resolve(maskedCanvas.toDataURL());
