@@ -111,15 +111,16 @@ async function buildTrials(manifest) {
   // Pre-generate a pool of 50 shuffled masks to reuse as distractors
   stimulusStatus.textContent = 'Generating distractor masks...';
   const maskPoolFiles = shuffleInPlace([...neutralFiles]).slice(0, 50);
-  const maskPoolUrls = [];
-  for (let i = 0; i < maskPoolFiles.length; i++) {
-    const path = joinPath(NEUTRAL_DIR, maskPoolFiles[i]);
+  let completedMasks = 0;
+  const maskPoolUrls = await Promise.all(maskPoolFiles.map(async (filename) => {
+    const path = joinPath(NEUTRAL_DIR, filename);
     const dataUrl = await generateShuffledMask(path);
-    maskPoolUrls.push(dataUrl);
-    if (i % 5 === 0) {
-      stimulusStatus.textContent = `Generating distractor masks (${i}/${maskPoolFiles.length})...`;
+    completedMasks++;
+    if (completedMasks % 5 === 0) {
+      stimulusStatus.textContent = `Generating distractor masks (${completedMasks}/${maskPoolFiles.length})...`;
     }
-  }
+    return dataUrl;
+  }));
 
   // Generate trials (e.g. 50 trials)
   const numTrials = 50;
