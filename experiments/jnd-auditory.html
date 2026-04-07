@@ -853,50 +853,50 @@
           trialState.amplitudeDiff = 0;
           trialState.durationDiff = 0;
 
-          if (trialState.isGo) {
-            const changeOptions = ['amplitude', 'duration', 'both'];
-            const selected = jsPsych.randomization.sampleWithoutReplacement(changeOptions, 1)[0];
-            trialState.changeType = selected;
+          if (!trialState.isGo) return;
 
-            if (selected === 'amplitude' || selected === 'both') {
-              const stim = chooseStimulus(amplitudeQuest, amplitudeSamples);
-              let directions = [];
-              if (trialState.firstAmplitude + stim <= MAX_AMPLITUDE) directions.push(1);
-              if (trialState.firstAmplitude - stim >= MIN_AMPLITUDE_ALLOWED) directions.push(-1);
-              if (!directions.length) {
-                const mid = clamp(trialState.firstAmplitude, MIN_AMPLITUDE_ALLOWED + stim, MAX_AMPLITUDE - stim);
-                trialState.firstAmplitude = mid;
-                directions = [1, -1];
-              }
-              const direction = jsPsych.randomization.sampleWithoutReplacement(directions, 1)[0];
-              trialState.secondAmplitude = clamp(
-                trialState.firstAmplitude + direction * stim,
-                MIN_AMPLITUDE_ALLOWED,
-                MAX_AMPLITUDE
-              );
-              trialState.amplitudeDiff = Math.abs(trialState.secondAmplitude - trialState.firstAmplitude);
-              trialState.questUpdates.push({ quest: amplitudeQuest, value: trialState.amplitudeDiff, key: 'amplitude' });
-            }
+          const changeOptions = ['amplitude', 'duration', 'both'];
+          const selected = jsPsych.randomization.sampleWithoutReplacement(changeOptions, 1)[0];
+          trialState.changeType = selected;
 
-            if (selected === 'duration' || selected === 'both') {
-              const stim = chooseStimulus(durationQuest, durationSamples);
-              let directions = [];
-              if (trialState.firstDuration + stim <= MAX_DURATION_ALLOWED) directions.push(1);
-              if (trialState.firstDuration - stim >= MIN_DURATION_ALLOWED) directions.push(-1);
-              if (!directions.length) {
-                const mid = clamp(trialState.firstDuration, MIN_DURATION_ALLOWED + stim, MAX_DURATION_ALLOWED - stim);
-                trialState.firstDuration = mid;
-                directions = [1, -1];
-              }
-              const direction = jsPsych.randomization.sampleWithoutReplacement(directions, 1)[0];
-              trialState.secondDuration = clamp(
-                trialState.firstDuration + direction * stim,
-                MIN_DURATION_ALLOWED,
-                MAX_DURATION_ALLOWED
-              );
-              trialState.durationDiff = Math.abs(trialState.secondDuration - trialState.firstDuration);
-              trialState.questUpdates.push({ quest: durationQuest, value: trialState.durationDiff, key: 'duration' });
+          if (selected === 'amplitude' || selected === 'both') {
+            const stim = chooseStimulus(amplitudeQuest, amplitudeSamples);
+            let directions = [];
+            if (trialState.firstAmplitude + stim <= MAX_AMPLITUDE) directions.push(1);
+            if (trialState.firstAmplitude - stim >= MIN_AMPLITUDE_ALLOWED) directions.push(-1);
+            if (!directions.length) {
+              const mid = clamp(trialState.firstAmplitude, MIN_AMPLITUDE_ALLOWED + stim, MAX_AMPLITUDE - stim);
+              trialState.firstAmplitude = mid;
+              directions = [1, -1];
             }
+            const direction = jsPsych.randomization.sampleWithoutReplacement(directions, 1)[0];
+            trialState.secondAmplitude = clamp(
+              trialState.firstAmplitude + direction * stim,
+              MIN_AMPLITUDE_ALLOWED,
+              MAX_AMPLITUDE
+            );
+            trialState.amplitudeDiff = Math.abs(trialState.secondAmplitude - trialState.firstAmplitude);
+            trialState.questUpdates.push({ quest: amplitudeQuest, value: trialState.amplitudeDiff, key: 'amplitude' });
+          }
+
+          if (selected === 'duration' || selected === 'both') {
+            const stim = chooseStimulus(durationQuest, durationSamples);
+            let directions = [];
+            if (trialState.firstDuration + stim <= MAX_DURATION_ALLOWED) directions.push(1);
+            if (trialState.firstDuration - stim >= MIN_DURATION_ALLOWED) directions.push(-1);
+            if (!directions.length) {
+              const mid = clamp(trialState.firstDuration, MIN_DURATION_ALLOWED + stim, MAX_DURATION_ALLOWED - stim);
+              trialState.firstDuration = mid;
+              directions = [1, -1];
+            }
+            const direction = jsPsych.randomization.sampleWithoutReplacement(directions, 1)[0];
+            trialState.secondDuration = clamp(
+              trialState.firstDuration + direction * stim,
+              MIN_DURATION_ALLOWED,
+              MAX_DURATION_ALLOWED
+            );
+            trialState.durationDiff = Math.abs(trialState.secondDuration - trialState.firstDuration);
+            trialState.questUpdates.push({ quest: durationQuest, value: trialState.durationDiff, key: 'duration' });
           }
         }
       };
@@ -1104,17 +1104,17 @@
 
           trialState.holdStartedAt = data.hold_started_at;
 
-          if (trialState.isGo) {
-            const responseIndex = responded ? 1 : 0;
-            trialState.questUpdates.forEach(update => {
-              if (!update || typeof update.value !== 'number' || !update.quest) return;
-              try {
-                update.quest.update(update.value, responseIndex);
-              } catch (error) {
-                console.warn('Quest update skipped', error);
-              }
-            });
-          }
+          if (!trialState.isGo) return;
+
+          const responseIndex = responded ? 1 : 0;
+          trialState.questUpdates.forEach(update => {
+            if (!update || typeof update.value !== 'number' || !update.quest) return;
+            try {
+              update.quest.update(update.value, responseIndex);
+            } catch (error) {
+              console.warn('Quest update skipped', error);
+            }
+          });
         }
       };
 
@@ -1282,24 +1282,21 @@
 
       function questValueFor(response, dim) {
         if (!response) return null;
+
         const direct = response.quest_value;
         if (direct !== null && direct !== undefined) {
           const numeric = Number(direct);
-          if (Number.isFinite(numeric)) {
-            return numeric;
-          }
+          if (Number.isFinite(numeric)) return numeric;
         }
+
         const entries = Array.isArray(response.quest_values) ? response.quest_values : null;
-        if (entries) {
-          const match = entries.find(entry => entry && entry.key === dim);
-          if (match && match.value !== null && match.value !== undefined) {
-            const numeric = Number(match.value);
-            if (Number.isFinite(numeric)) {
-              return numeric;
-            }
-          }
-        }
-        return null;
+        if (!entries) return null;
+
+        const match = entries.find(entry => entry && entry.key === dim);
+        if (!match || match.value === null || match.value === undefined) return null;
+
+        const numeric = Number(match.value);
+        return Number.isFinite(numeric) ? numeric : null;
       }
 
       function psychometricData(responses, dim) {
