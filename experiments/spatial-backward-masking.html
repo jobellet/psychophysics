@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Spatial Backward Masking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../jspsych/css/jspsych.css" />
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      --bg: radial-gradient(circle at top, #0f172a 0%, #111827 60%, #020617 100%);
+      --card-bg: rgba(15, 23, 42, 0.9);
+      --accent: #38bdf8;
+      --stage-size: min(85vw, 85vh);
+    }
+
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      background: var(--bg);
+      color: #e2e8f0;
+      padding: clamp(16px, 4vw, 48px);
+      box-sizing: border-box;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    #pre-experiment {
+      position: fixed; inset: 0;
+      background: radial-gradient(circle at top, rgba(15,23,42,.96) 0%, rgba(2,6,23,.94) 100%);
+      display: flex; align-items: center; justify-content: center;
+      padding: clamp(24px, 6vw, 72px);
+      overflow-y: auto; z-index: 10; transition: opacity 220ms ease;
+    }
+    #pre-experiment.hidden { opacity: 0; pointer-events: none; }
+
+    .session-card {
+      margin: auto; width: min(92vw, 720px); max-width: min(92vw, 720px);
+      max-height: calc(100vh - clamp(48px, 12vw, 96px));
+      background: rgba(15, 23, 42, 0.85);
+      border-radius: clamp(24px, 4vw, 36px);
+      box-shadow: 0 30px 70px rgba(2, 6, 23, 0.6);
+      padding: clamp(28px, 6vw, 56px);
+      display: flex; flex-direction: column; gap: clamp(16px, 4vw, 28px);
+      overflow-y: auto; box-sizing: border-box;
+    }
+
+    .session-card h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.15rem); }
+    .session-card p  { margin: 0; color: rgba(203, 213, 225, 0.92); }
+
+    .calibration-section {
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: clamp(18px, 3.5vw, 28px);
+      padding: clamp(16px, 4vw, 28px);
+      background: rgba(15, 23, 42, 0.6);
+      display: flex; flex-direction: column; gap: clamp(12px, 3vw, 20px);
+    }
+    .calibration-section h2 { margin: 0; font-size: clamp(1.15rem, 3vw, 1.35rem); color: #f8fafc; }
+    .calibration-section p.small-print { font-size: .95rem; color: rgba(148,163,184,.92); }
+
+    .calibration-display {
+      position: relative; width: 100%; min-height: clamp(160px, 45vw, 260px);
+      border-radius: clamp(16px, 4vw, 24px); background: rgba(15,23,42,.72);
+      border: 1px dashed rgba(148,163,184,.4);
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+      touch-action: none;
+    }
+    .calibration-instruction {
+      position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+      font-size: .9rem; letter-spacing: .02em; text-transform: uppercase;
+      color: rgba(148,163,184,.88); pointer-events: none;
+    }
+    .calibration-shape {
+      position: relative;
+      border: 2px solid rgba(56,189,248,.85);
+      background: rgba(56,189,248,.12);
+      box-shadow: inset 0 0 0 1px rgba(148,163,184,.35);
+      border-radius: clamp(8px, 2vw, 12px);
+      transition: width .12s ease, height .12s ease, border-radius .12s ease;
+    }
+
+    .calibration-controls { display:flex; flex-wrap:wrap; gap: clamp(8px,2vw,16px); align-items:center; justify-content:space-between; }
+    .calibration-controls label { font-size: 1rem; color: rgba(226,232,240,.92); }
+    .calibration-controls input[type='number'] {
+      width: clamp(90px, 24vw, 120px);
+      padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(148,163,184,.35);
+      background: rgba(15,23,42,.75); color: #f8fafc; font-size: 1rem; -moz-appearance: textfield;
+    }
+    .calibration-controls input[type='number']::-webkit-outer-spin-button,
+    .calibration-controls input[type='number']::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+
+    .calibration-slider { display:flex; flex-direction:column; gap:6px; }
+    .calibration-slider input[type='range'] { width:100%; }
+    .calibration-slider span { font-size:.95rem; color: rgba(148,163,184,.9); align-self:flex-end; }
+
+    .calibration-status { margin:0; font-size:.95rem; color: rgba(148,163,184,.88); }
+    .calibration-status[data-state='error'] { color:#fca5a5; }
+    .calibration-status[data-state='success'] { color:#a7f3d0; }
+
+    .calibration-target { font-size:.95rem; color: rgba(148,163,184,.9); }
+
+    .jspsych-btn.secondary {
+      background: rgba(56,189,248,.18);
+      color:#38bdf8; box-shadow: inset 0 0 0 1px rgba(56,189,248,.45);
+    }
+    .jspsych-btn.secondary:hover { background: rgba(56,189,248,.28); }
+
+    .session-actions { display:flex; flex-wrap:wrap; gap:12px; }
+    .session-actions .jspsych-btn:disabled { opacity:.55; cursor:not-allowed; }
+
+    #jspsych-target {
+      width: min(96vw, 860px);
+      max-height: calc(100vh - clamp(48px, 10vw, 120px));
+      background: rgba(15,23,42,.82);
+      backdrop-filter: blur(18px);
+      border-radius: 32px;
+      box-shadow: 0 24px 60px rgba(2,6,23,.55);
+      padding: clamp(24px,5vw,56px);
+      margin: clamp(24px,5vw,56px) auto;
+      overflow-y: auto; box-sizing: border-box;
+    }
+
+    .jspsych-display-element { font-size: clamp(18px,3vw,22px); line-height:1.7; min-height:100%; }
+
+    .jspsych-btn {
+      font-size: clamp(1rem, 2.6vw, 1.15rem);
+      padding: clamp(12px,3vw,16px) clamp(24px,5vw,36px);
+      border-radius: 999px; border: none;
+      background: linear-gradient(135deg, var(--accent), #2563eb);
+      color: white; font-weight: 600; box-shadow: inset 0 -2px 0 rgba(15,23,42,.25);
+      transition: transform 160ms ease, box-shadow 160ms ease; touch-action: manipulation; cursor:pointer;
+    }
+    .jspsych-btn:active { transform: translateY(2px); box-shadow: inset 0 2px 0 rgba(15,23,42,.35); }
+
+    .stage {
+      position: relative;
+      width: var(--stage-size);
+      height: var(--stage-size);
+      margin: 0 auto;
+      background: radial-gradient(circle at center, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.94) 100%);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: clamp(24px, 6vw, 36px);
+      box-shadow: inset 0 0 0 1px rgba(2, 6, 23, 0.45);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .target {
+      position: absolute; left: 50%; top: 50%;
+      background: rgba(56, 189, 248, 0.7);
+      transform: translate(-50%,-50%); pointer-events: none;
+      display: none;
+    }
+
+    .target.visible { display: block; }
+
+    .mask-square {
+      position: absolute; left: 50%; top: 50%;
+      background: #ffffff;
+      transform: translate(-50%,-50%); pointer-events: none;
+      display: none;
+    }
+    .mask-square.visible { display: block; }
+
+    .fixation {
+      position: absolute; left:50%; top:50%; transform: translate(-50%,-50%);
+      border-radius: 999px; background: #ffffff; pointer-events: none;
+      transition: background 100ms ease;
+    }
+
+    .fixation.hit { background: #4ade80; }
+    .fixation.miss { background: #f87171; }
+
+    .hud {
+      position: absolute; top: clamp(12px, 3vw, 24px); left: clamp(12px, 3vw, 24px);
+      right: clamp(12px, 3vw, 24px); display: flex; justify-content: space-between;
+      pointer-events: none; z-index: 10;
+    }
+
+    .hud-text {
+      font-size: clamp(12px, 2.5vw, 14px);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: rgba(148, 163, 184, 0.8);
+      background: rgba(15, 23, 42, 0.6);
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .control-button {
+      position: fixed; z-index: 30; border: none; font-family: inherit; font-weight: 600; letter-spacing:.01em;
+      border-radius: clamp(18px,4vw,26px); box-shadow: 0 18px 40px rgba(2,6,23,.45); cursor: pointer;
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      pointer-events: auto; touch-action: manipulation; user-select: none;
+    }
+    .control-button:active { transform: translateY(2px); box-shadow: 0 8px 24px rgba(2,6,23,.35); }
+    .control-button:disabled { opacity:.55; cursor:not-allowed; transform:none; box-shadow: 0 8px 24px rgba(2,6,23,.25); }
+
+    #stop-experiment {
+      top: clamp(24px,5vw,48px); left: clamp(24px,5vw,48px);
+      padding: clamp(16px,4vw,20px) clamp(28px,6vw,42px);
+      font-size: clamp(.95rem,2.8vw,1.2rem);
+      background: rgba(248,250,252,.9); color:#0f172a;
+    }
+
+    #download-data {
+      top: clamp(24px,5vw,48px); right: clamp(24px,5vw,48px);
+      padding: clamp(16px,4vw,20px) clamp(28px,6vw,42px);
+      font-size: clamp(.95rem,2.8vw,1.2rem);
+      background: linear-gradient(135deg,#38bdf8,#2563eb); color:#f8fafc;
+    }
+
+    @media (max-width: 600px) {
+      #pre-experiment { padding: 20px; }
+      #jspsych-target { padding: clamp(20px,6vw,40px); }
+      .stage { border-radius: clamp(20px,8vw,32px); }
+    }
+  </style>
+</head>
+<body>
+  <div id="pre-experiment">
+    <div class="session-card">
+      <h1>Spatial Backward Masking</h1>
+      <p>
+        On each trial, stare at the central fixation dot. A dim blue target square may briefly flash in the periphery, followed immediately by a ring of bright white masking squares.
+        <br><br>
+        <strong>Your task:</strong> Tap exactly where the target appeared. If no target was presented, tap the central fixation dot.
+      </p>
+
+      <div id="calibration-section" class="calibration-section">
+        <h2>Calibrate your display</h2>
+        <p>
+          Pick a familiar object, hold it gently against the screen, and resize the on-screen shape so it matches.
+          This lets us convert every pixel on your display into degrees of visual angle.
+        </p>
+
+        <div class="calibration-controls">
+          <label for="calibration-object">Reference object</label>
+          <select id="calibration-object" disabled>
+            <option value="">Loading reference objects…</option>
+          </select>
+          <div class="calibration-target" id="calibration-target-info"></div>
+        </div>
+
+        <div class="calibration-display" id="calibration-display">
+          <div class="calibration-instruction">Pinch to zoom or use the slider</div>
+          <div class="calibration-shape" id="calibration-shape"></div>
+        </div>
+
+        <div class="calibration-slider">
+          <input type="range" id="calibration-slider" min="40" max="400" value="200" />
+          <span id="calibration-size-readout"></span>
+        </div>
+
+        <div class="calibration-controls">
+          <label for="viewing-distance">Viewing distance</label>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <input type="number" id="viewing-distance" inputmode="decimal" min="10" max="200" step="0.5" placeholder="40" />
+            <span style="color:rgba(148,163,184,0.9); font-size:0.95em;">cm</span>
+          </div>
+        </div>
+
+        <button id="calibration-confirm" class="jspsych-btn secondary" type="button">Save calibration</button>
+        <p id="calibration-status" class="calibration-status" data-state="info">
+          Calibration required before the experiment can begin.
+        </p>
+      </div>
+
+      <div class="session-actions">
+        <button id="start-experiment" class="jspsych-btn" disabled>Calibrate to start</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="jspsych-target">
+    <div class="stage" id="experiment-stage" data-active="false" style="display:none;">
+      <div class="hud">
+        <div class="hud-text" id="hud-trial"></div>
+        <div class="hud-text" id="hud-calibration"></div>
+      </div>
+      <div class="fixation" id="fixation"></div>
+      <!-- targets and masks will be injected here dynamically -->
+    </div>
+  </div>
+
+  <button id="stop-experiment" class="control-button" hidden>Stop Early</button>
+  <button id="download-data" class="control-button" hidden disabled>Download Data</button>
+
+  <script src="../jspsych/dist/jspsych.js"></script>
+  <script src="../jspsych/plugins/call-function.js"></script>
+  <script src="../shared-resources/visual-angle.js"></script>
+
+  <script type="module" src="spatial-backward-masking.js"></script>
+</body>
+</html>
