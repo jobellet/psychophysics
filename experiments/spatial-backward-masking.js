@@ -424,6 +424,12 @@ export function run() {
   consecutiveMisses = 0;
 
   const timeline = buildTimeline();
+  timeline.unshift({
+    type: jsPsychCallFunction,
+    func: () => {
+      jsPsych.getDisplayElement().appendChild(stage);
+    }
+  });
   jsPsych.run(timeline);
 }
 
