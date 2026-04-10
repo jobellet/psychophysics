@@ -164,10 +164,10 @@ async function extractXmlFromOdsBuffer(buffer) {
 }
 
 function slugify(text, fallback = 'object') {
-  if (!text) {
+  if (text === null || text === undefined || text === '') {
     return fallback;
   }
-  let normalized = text;
+  let normalized = String(text);
   if (typeof normalized.normalize === 'function') {
     normalized = normalized.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   }

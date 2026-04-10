@@ -78,6 +78,13 @@ try {
       assert.strictEqual(slugify('', 'custom-fallback'), 'custom-fallback');
     });
 
+    await t.test('handles truthy non-string inputs by converting to string', () => {
+      assert.strictEqual(slugify(123), '123');
+      assert.strictEqual(slugify(true), 'true');
+      const base = 'obj' + Date.now();
+      assert.strictEqual(slugify({ toString: () => base }), base.toLowerCase());
+    });
+
     await t.test('ensures uniqueness within a session using slugRegistry', () => {
       const base = 'Unique' + Date.now();
       const first = slugify(base);
@@ -91,5 +98,7 @@ try {
     });
   });
 } finally {
-  // fs.unlinkSync(tempCalibrationPath);
+  if (fs.existsSync(tempCalibrationPath)) {
+    fs.unlinkSync(tempCalibrationPath);
+  }
 }
