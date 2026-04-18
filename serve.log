@@ -1,0 +1,307 @@
+ INFO  Accepting connections at http://localhost:3000
+ HTTP  4/18/2026 8:14:28 PM ::1 GET /experiments/attentional-blink-incidental/index.html
+ HTTP  4/18/2026 8:14:28 PM ::1 Returned 301 in 18 ms
+ HTTP  4/18/2026 8:14:28 PM ::1 GET /experiments/attentional-blink-incidental/index
+ HTTP  4/18/2026 8:14:28 PM ::1 Returned 301 in 1 ms
+ HTTP  4/18/2026 8:14:28 PM ::1 GET /experiments/attentional-blink-incidental
+ HTTP  4/18/2026 8:14:28 PM ::1 Returned 200 in 5 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/cheeseburger_10s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 3 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/leotard_05s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/duck_09s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/mulberry_03s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/handprint_01b.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/toothpick_11s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/tarantula_07s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 21 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 22 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 17 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 18 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 7 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 21 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/pasta_08s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/binder_21s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/nail_04s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/seesaw_12s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 3 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 4 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/string_cheese_04s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/pepperoni_08s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/chute_10s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 4 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/visor_08s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 4 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 9 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 12 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 8 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/beard_11s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/hula_hoop_15s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 4 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 2 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/sonogram_08s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 3 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 21 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/bikini_08s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/suspenders_12s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/nest_04s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/baby_17s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/mustache_13s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 4 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 4 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 5 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 6 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 11 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/turf_09s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/snowball_08s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/ramp_05s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/tack_03s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 6 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 6 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 7 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 6 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/whistle_11s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/sequin_05s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/torso_05s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/pancake_11s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/license_plate_03s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/pipe1_04s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 13 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 7 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 6 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 8 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 6 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 10 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/eclair_04s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 4 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/gold_04s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/lip_balm_11s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/contact_lens_12s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 4 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/cape_07s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 4 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/cummerbund_14s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 4 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 11 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/nacho_04s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 2 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/cummerbund_03s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 7 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/stiletto_06s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/tube_top_12s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/piglet_02s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 7 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/macaroni_14s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 4 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 5 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 5 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 3 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/spam_02s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/crayon_09s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/macaroni_01b.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/ear_09s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 GET /assets/highly_memorable_targets/straw2_14s.jpg
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 14 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 11 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 19 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 16 ms
+ HTTP  4/18/2026 8:14:29 PM ::1 Returned 200 in 16 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/baby_17s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/bench_02s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/bologna_12s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/beard_11s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 2 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 0 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/bikini_08s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/binder_21s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 4 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/brass_knuckles_04s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/bumper_12s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/calf2_03s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/candy_bar_04s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/chaps_04s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/cape_07s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/cheeseburger_10s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 3 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/chute_10s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 6 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 3 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 7 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/comic_book_15s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/contact_lens_12s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 9 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 3 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 5 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/crayon_09s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/cummerbund_03s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/dip_06s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/cummerbund_14s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/doorstop_10s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/duck_09s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 2 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 2 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 2 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 2 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 3 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 5 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/egg_roll_09n.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/ear_09s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 2 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/eclair_04s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/footbath_01s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/footprint_01b.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/giraffe_06s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/gorilla_13s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/gold_04s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 3 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/handprint_01b.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/headband_02s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 2 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 2 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/headscarf_11s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 9 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 7 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/hula_hoop_15s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/juicer1_10s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 2 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 4 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/kilt_01b.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/leotard_05s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/license_plate_03s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 3 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/lip_balm_11s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/loincloth_01b.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/macaroni_01b.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 7 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 2 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/macaroni_14s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 27 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 6 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 3 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/marker_13s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 23 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 3 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/memory_stick_16s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/mouthpiece_02s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/mulberry_03s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 4 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 2 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/mullet_06s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/mustache_03s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 11 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/mustache_07s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 9 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 5 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 4 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/mustache_13s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/nacho_04s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/nail_04s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/nest_04s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/notepad_03s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/orange_rind_14s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 3 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/pancake_11s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/panther_01b.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/parfait_15s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 3 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 3 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/pasta_08s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 4 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/peppermint_07s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 2 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/pig_06s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/pepperoni_08s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/piglet_02s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/pipe1_04s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 0 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 3 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/plaster_cast_02s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/pug_05s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/rack1_07s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/screen2_01b.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/ramp_05s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/seesaw_12s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 8 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 8 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 11 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 14 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 13 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/sequin_05s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 12 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/shelf_07s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/snowball_08s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/sonogram_08s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/splinter_11s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/spam_02s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/springboard_13s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 2 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/spur_03s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 2 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 2 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/stockings_12s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/stiletto_06s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/straw2_14s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/string_cheese_04s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/suspenders_12s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 2 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 2 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 2 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 8 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 6 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/sweater_19s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/swimsuit_06s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/tack_03s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/tamale_06s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 3 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/tarantula_07s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 4 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 3 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/test_tube_01b.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/toilet_paper_01b.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/turban_07s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/toothpick_11s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/torso_05s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/tube_top_12s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/turf_09s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 4 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/videogame_01b.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/visor_08s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/whistle_11s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 1 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 304 in 0 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/wig_14s.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 GET /assets/highly_memorable_targets/wooden_leg_01b.jpg
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 5 ms
+ HTTP  4/18/2026 8:14:31 PM ::1 Returned 200 in 5 ms

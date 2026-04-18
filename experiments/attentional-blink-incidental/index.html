@@ -16,6 +16,14 @@
 
   <style>
     /* Add custom CSS here */
+    #loading-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      z-index: 1000;
+    }
     body {
       background-color: #808080; /* Gray background typical for psychophysics */
       color: #ffffff;
@@ -58,7 +66,11 @@
   </style>
 </head>
 <body>
+  <div id="loading-message">Loading experiment, generating masks...</div>
   <script>
+    // Wrap entire logic in an IIFE so we can await mask generation
+    (async function initExperiment() {
+
     // Initialize jsPsych
     const jsPsych = initJsPsych({
       on_finish: function() {
@@ -83,7 +95,7 @@
     const global_target = generatePlaceholder("#ff4444", "Global Target (S1)");
 
     // 2. S2 Images (Highly memorable intact images)
-        const s2_images = [
+    const s2_images = [
       '../../assets/highly_memorable_targets/baby_17s.jpg',
       '../../assets/highly_memorable_targets/beard_11s.jpg',
       '../../assets/highly_memorable_targets/bench_02s.jpg',
@@ -186,18 +198,69 @@
       '../../assets/highly_memorable_targets/wooden_leg_01b.jpg',
     ];
 
+    // Helper: shuffle array in place
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    const shuffled_s2_images = shuffleArray([...s2_images]);
+    const presented_images = shuffled_s2_images.slice(0, 50);
+    const unpresented_images = shuffled_s2_images.slice(50, 100);
+
 
     // 3. Novel Images (Decoys for Phase 3)
-    const novel_images = [];
-    for (let i = 1; i <= 10; i++) {
-        novel_images.push(generatePlaceholder("#ffaa00", `Decoy Image ${i}`));
-    }
+    const novel_images = unpresented_images; // We use unpresented images as decoys
 
     // 4. Masks (Scrambled images)
-    const masks = [];
-    for (let i = 1; i <= 20; i++) {
-        masks.push(generatePlaceholder("#444444", `Mask ${i}`));
+    function generateShuffledMask(imageSrc) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+          const size = 300;
+          const gridSize = 10;
+          const tileSize = size / gridSize;
+
+          const tileCoords = [];
+          for (let y = 0; y < gridSize; y++) {
+            for (let x = 0; x < gridSize; x++) {
+              tileCoords.push({ x, y });
+            }
+          }
+
+          shuffleArray(tileCoords);
+          const maskedCanvas = document.createElement('canvas');
+          maskedCanvas.width = size;
+          maskedCanvas.height = size;
+          const maskedCtx = maskedCanvas.getContext('2d');
+
+          const sW = img.naturalWidth / gridSize;
+          const sH = img.naturalHeight / gridSize;
+
+          let i = 0;
+          for (let y = 0; y < gridSize; y++) {
+            for (let x = 0; x < gridSize; x++) {
+              const src = tileCoords[i++];
+              maskedCtx.drawImage(
+                img,
+                src.x * sW, src.y * sH, sW, sH,
+                x * tileSize, y * tileSize, tileSize, tileSize
+              );
+            }
+          }
+          resolve(maskedCanvas.toDataURL());
+        };
+        img.onerror = () => reject(new Error('Failed to load image for masking.'));
+        img.src = imageSrc;
+      });
     }
+
+    // Generate masks from unpresented images
+    const masks = await Promise.all(unpresented_images.map(src => generateShuffledMask(src)));
 
     // Combine all images for preloading
     const all_images = [global_target, ...s2_images, ...novel_images, ...masks];
@@ -231,20 +294,11 @@
     timeline.push(phase1_instructions);
 
     // --- Phase 2: RSVP Streams ---
-    const num_trials = s2_images.length;
+    const num_trials = presented_images.length;
     const rsvp_trials = [];
 
-    // Helper: shuffle array in place
-    function shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    }
-
     // Prepare trials
-    let available_s2 = shuffleArray([...s2_images]);
+    let available_s2 = shuffleArray([...presented_images]);
     const trial_variables = [];
 
     // We want a mix of short (Lag 2 or 3) and long (Lag 8) lags
@@ -414,7 +468,7 @@
 
     const memory_trials = [];
     // We will test all S2 images used in the RSVP phase
-    const used_s2 = s2_images.slice(0, num_trials); // They were all used, but keeping it general
+    const used_s2 = presented_images;
     let available_decoys = shuffleArray([...novel_images]);
 
     for (let i = 0; i < num_trials; i++) {
@@ -473,8 +527,11 @@
         choices: ['Continue']
     });
 
-    // Run the experiment
+    // Hide loading message and run the experiment
+    document.getElementById('loading-message').style.display = 'none';
     jsPsych.run(timeline);
+
+    })(); // End of initExperiment
 
   </script>
 </body>
