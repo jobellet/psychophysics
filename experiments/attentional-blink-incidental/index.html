@@ -24,8 +24,10 @@
       max-width: 1000px;
     }
     .stimulus-image {
-      width: 400px;
-      height: 400px;
+      width: 100%;
+      max-width: 400px;
+      height: auto;
+      aspect-ratio: 1 / 1;
       object-fit: cover;
     }
     .instruction-text {
@@ -35,8 +37,10 @@
     }
     .rsvp-container {
       position: relative;
-      width: 400px;
-      height: 400px;
+      width: 100%;
+      max-width: 400px;
+      height: auto;
+      aspect-ratio: 1 / 1;
       margin: 0 auto;
     }
     .rsvp-image {
@@ -209,17 +213,18 @@
 
     // --- Phase 1: Target Introduction ---
     const phase1_instructions = {
-      type: jsPsychHtmlKeyboardResponse,
+      type: jsPsychHtmlButtonResponse,
       stimulus: `
         <div class="instruction-text">
           <p><strong>Phase 1: Memorize the Target</strong></p>
           <p>Please memorize the image below.</p>
           <img src="${global_target}" class="stimulus-image" />
           <p>In the next phase, you will see rapid streams of images.</p>
-          <p>Press the <strong>SPACEBAR</strong> as quickly as possible whenever you see this exact image.</p>
-          <p>Press any key to begin the experiment.</p>
+          <p>Press the <strong>SPACEBAR</strong> or tap <strong>Target!</strong> as quickly as possible whenever you see this exact image.</p>
+          <p>Click Continue to begin the experiment.</p>
         </div>
       `,
+      choices: ['Continue'],
       post_trial_gap: 1000
     };
 
@@ -272,7 +277,7 @@
     }
 
     const rsvp_trial = {
-      type: jsPsychHtmlKeyboardResponse,
+      type: jsPsychHtmlButtonResponse,
       stimulus: function() {
           const stream = jsPsych.timelineVariable('stream');
           let html = '<div class="rsvp-container">';
@@ -282,7 +287,8 @@
           html += '</div>';
           return html;
       },
-      choices: [' '], // Listen for spacebar
+      choices: ['Target!'],
+      button_html: '<button class="jspsych-btn" id="target-btn">%choice%</button>',
       response_ends_trial: false, // Let the stream finish
       trial_duration: 20 * 100, // 20 frames * 100ms
       data: {
@@ -299,6 +305,18 @@
           const frameDuration = 100; // ms
           let s1Onset = null;
           const s1_pos = jsPsych.timelineVariable('s1_pos');
+
+          // Implement keyboard fallback for SPACEBAR
+          const keydownListener = function(e) {
+            if (e.key === ' ' || e.code === 'Space') {
+              e.preventDefault();
+              const btn = document.getElementById('target-btn');
+              if (btn) btn.click();
+            }
+          };
+          document.addEventListener('keydown', keydownListener);
+          // Store listener to remove it in on_finish
+          jsPsych.getCurrentTrial().keydownListener = keydownListener;
 
           let lastTime = performance.now();
           let animationFrameId;
@@ -336,6 +354,12 @@
           }, totalFrames * frameDuration);
       },
       on_finish: function(data) {
+          // Remove the keyboard fallback listener
+          const listener = jsPsych.getCurrentTrial().keydownListener;
+          if (listener) {
+              document.removeEventListener('keydown', listener);
+          }
+
           // Adjust RT relative to S1 onset
           // S1 appears at s1_pos * 100 ms after trial start
           const s1ExpectedOnset = data.s1_pos * 100;
@@ -362,8 +386,9 @@
     };
 
     timeline.push({
-        type: jsPsychHtmlKeyboardResponse,
-        stimulus: '<div class="instruction-text"><p>Phase 2 starting.</p><p>Press SPACEBAR as quickly as possible when you see the target.</p><p>Press any key to begin.</p></div>',
+        type: jsPsychHtmlButtonResponse,
+        stimulus: '<div class="instruction-text"><p>Phase 2 starting.</p><p>Press SPACEBAR or tap the Target button as quickly as possible when you see the target.</p><p>Click Continue to begin.</p></div>',
+        choices: ['Continue'],
         post_trial_gap: 1000
     });
 
@@ -372,7 +397,7 @@
     // --- Phase 3: Surprise 2AFC Memory Test ---
 
     timeline.push({
-        type: jsPsychHtmlKeyboardResponse,
+        type: jsPsychHtmlButtonResponse,
         stimulus: `
             <div class="instruction-text">
                 <p><strong>Phase 3: Surprise Memory Test</strong></p>
@@ -380,9 +405,10 @@
                 <p>During those streams, you actually saw other intact images besides the target.</p>
                 <p>In this final phase, you will see pairs of images.</p>
                 <p>For each pair, click on the image that you <strong>remember seeing</strong> during the streams.</p>
-                <p>Press any key to begin.</p>
+                <p>Click Continue to begin.</p>
             </div>
         `,
+        choices: ['Continue'],
         post_trial_gap: 1000
     });
 
@@ -398,8 +424,8 @@
         const decoy = available_decoys[i];
 
         const choices = [
-            `<img src="${s2}" class="stimulus-image" style="width:300px; height:300px; cursor:pointer;" />`,
-            `<img src="${decoy}" class="stimulus-image" style="width:300px; height:300px; cursor:pointer;" />`
+            `<img src="${s2}" class="stimulus-image" style="width:100%; max-width:300px; height:auto; aspect-ratio:1/1; cursor:pointer;" />`,
+            `<img src="${decoy}" class="stimulus-image" style="width:100%; max-width:300px; height:auto; aspect-ratio:1/1; cursor:pointer;" />`
         ];
 
         let correct_index = 0;
@@ -436,14 +462,15 @@
 
     // --- End of Experiment ---
     timeline.push({
-        type: jsPsychHtmlKeyboardResponse,
+        type: jsPsychHtmlButtonResponse,
         stimulus: `
             <div class="instruction-text">
                 <p>The experiment is now complete.</p>
                 <p>Thank you for participating!</p>
-                <p>Press any key to view your data.</p>
+                <p>Click Continue to view your data.</p>
             </div>
-        `
+        `,
+        choices: ['Continue']
     });
 
     // Run the experiment
