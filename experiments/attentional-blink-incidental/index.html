@@ -205,8 +205,8 @@
         const shuffled_s2_images = shuffleArray([...s2_images]);
         // 2. Global Target (S1)
         const global_target = shuffled_s2_images[0];
-        const presented_images = shuffled_s2_images.slice(1, 50);
-        const unpresented_images = shuffled_s2_images.slice(50, 100);
+        const presented_images = shuffled_s2_images.slice(1, 49); // 48 images for 24 trials
+        const unpresented_images = shuffled_s2_images.slice(49, 97); // 48 decoys
 
         // 3. Novel Images (Decoys for Phase 3)
         const novel_images = unpresented_images; // We use unpresented images as decoys
@@ -304,19 +304,32 @@
         timeline.push(phase1_instructions);
 
         // --- Phase 2: RSVP Streams ---
-        const num_trials = presented_images.length;
+        const num_trials = 24;
         let available_s2 = shuffleArray([...presented_images]);
         const trial_variables = []; // Store variables to be used in phase 3
 
         // Pre-calculate all conditions to use in memory phase
         for (let i = 0; i < num_trials; i++) {
-          const lag = Math.random() > 0.5 ? (Math.random() > 0.5 ? 2 : 3) : 8; // Short vs Long
+          const lag = Math.random() > 0.5 ? 2 : 8;
+          const has_target = Math.random() < 0.2;
+          const i1_pos = 4 + Math.floor(Math.random() * 3);
+          const i2_pos = i1_pos + lag;
+
+          let s1_pos = -1;
+          if (has_target) {
+            do {
+              s1_pos = Math.floor(Math.random() * 20);
+            } while (s1_pos === i1_pos || s1_pos === i2_pos);
+          }
+
           trial_variables.push({
-            s2_image: available_s2[i],
+            image1: available_s2[i * 2],
+            image2: available_s2[i * 2 + 1],
             lag: lag,
             condition: lag < 5 ? "short" : "long",
-            s1_pos: 4 + Math.floor(Math.random() * 3), // Frame 4, 5, or 6
-            s2_pos: 4 + Math.floor(Math.random() * 3) + lag,
+            s1_pos: s1_pos,
+            i1_pos: i1_pos,
+            i2_pos: i2_pos,
           });
         }
 
@@ -374,14 +387,25 @@
             function generateBlock(isSentinel, blockIdx) {
               const frames = [];
               const tv = trial_variables[blockIdx];
-              const s1_pos = tv.s1_pos;
-              const s2_pos = tv.s2_pos;
+              let s1_pos = tv.s1_pos;
+              const i1_pos = tv.i1_pos;
+              const i2_pos = tv.i2_pos;
+
+              if (isSentinel && s1_pos === -1) {
+                // If it's a sentinel block, we must have a target.
+                // If the original trial didn't have one, assign a random valid position
+                do {
+                  s1_pos = Math.floor(Math.random() * 20);
+                } while (s1_pos === i1_pos || s1_pos === i2_pos);
+              }
 
               for (let j = 0; j < 20; j++) {
                 if (j === s1_pos) {
                   frames.push({ src: global_target, type: "S1" });
-                } else if (j === s2_pos && !isSentinel) {
-                  frames.push({ src: tv.s2_image, type: "S2" });
+                } else if (j === i1_pos && !isSentinel) {
+                  frames.push({ src: tv.image1, type: "S2_1" });
+                } else if (j === i2_pos && !isSentinel) {
+                  frames.push({ src: tv.image2, type: "S2_2" });
                 } else {
                   frames.push({
                     src: masks[Math.floor(Math.random() * masks.length)],
@@ -455,9 +479,9 @@
                   lastTime = time;
                 } else {
                   // End of 20 frames (2 seconds)
-                  // Wait another 1 second to see if there's a late response (3s total from S1)
+                  // If there was a target, wait another 1 second to see if there's a late response (3s total from S1)
                   const timeSinceS1 = time - s1ShownTime;
-                  if (s1ShownTime > 0 && timeSinceS1 <= 3000) {
+                  if (s1FrameIndex !== -1 && s1ShownTime > 0 && timeSinceS1 <= 3000) {
                     // keep waiting
                     const maskSrc =
                       masks[Math.floor(Math.random() * masks.length)];
@@ -470,45 +494,59 @@
                     });
                     lastTime = time;
                   } else {
-                    // 3 seconds have passed since S1
+                    // Either 3 seconds have passed since S1, OR there was no S1
                     // Log data before advancing block state
                     jsPsych.data.write({
                       phase: "rsvp",
-                      s2_image: trial_variables[currentBlockIndex].s2_image,
+                      image1: trial_variables[currentBlockIndex].image1,
+                      image2: trial_variables[currentBlockIndex].image2,
                       lag: trial_variables[currentBlockIndex].lag,
                       condition: trial_variables[currentBlockIndex].condition,
                       s1_pos: trial_variables[currentBlockIndex].s1_pos,
-                      s2_pos: trial_variables[currentBlockIndex].s2_pos,
+                      i1_pos: trial_variables[currentBlockIndex].i1_pos,
+                      i2_pos: trial_variables[currentBlockIndex].i2_pos,
                       sentinel_mode: currentState === "SENTINEL",
                       detected: responseDetected,
                       frame_log: JSON.stringify(frameLog), // Save the frame log
                     });
 
-                    if (responseDetected) {
-                      // Correctly detected S1
-                      currentState = "PAUSED";
-                      imgDisplay.style.display = "none";
-                      if (pdElement) pdElement.style.display = "none";
-                      setTimeout(() => {
-                        if (
-                          currentState === "PAUSED" ||
-                          currentState === "SENTINEL_PAUSED"
-                        ) {
-                          if (currentState === "PAUSED") {
-                            currentBlockIndex++;
+                    if (s1FrameIndex !== -1) {
+                      // Trial had a target (or was sentinel)
+                      if (responseDetected) {
+                        // Correctly detected S1
+                        currentState = "PAUSED";
+                        imgDisplay.style.display = "none";
+                        if (pdElement) pdElement.style.display = "none";
+                        setTimeout(() => {
+                          if (
+                            currentState === "PAUSED" ||
+                            currentState === "SENTINEL_PAUSED"
+                          ) {
+                            if (currentState === "PAUSED") {
+                              currentBlockIndex++;
+                            }
+                            if (currentBlockIndex >= totalBlocks) {
+                              finishContinuousTrial();
+                            } else {
+                              startNextBlock(false); // Start normal block
+                            }
                           }
-                          if (currentBlockIndex >= totalBlocks) {
-                            finishContinuousTrial();
-                          } else {
-                            startNextBlock(false); // Start normal block
-                          }
-                        }
-                      }, 1000);
-                      return; 
+                        }, 1000);
+                        return;
+                      } else {
+                        // Missed S1
+                        startNextBlock(true); // Start sentinel block
+                        return;
+                      }
                     } else {
-                      // Missed S1
-                      startNextBlock(true); // Start sentinel block
-                      return; 
+                      // Trial had NO target. Proceed seamlessly.
+                      currentBlockIndex++;
+                      if (currentBlockIndex >= totalBlocks) {
+                        finishContinuousTrial();
+                      } else {
+                        startNextBlock(false); // Start normal block
+                      }
+                      return;
                     }
                   }
                 }
@@ -556,35 +594,70 @@
         let available_decoys = shuffleArray([...novel_images]);
 
         for (let i = 0; i < num_trials; i++) {
-          const s2 = trial_variables[i].s2_image; // Get the specific S2 used in that trial
-          const lag = trial_variables[i].lag;
-          const condition = trial_variables[i].condition;
-          const decoy = available_decoys[i];
+          const tv = trial_variables[i];
+          const lag = tv.lag;
+          const condition = tv.condition;
 
-          const choices = [
-            `<img src="${s2}" class="stimulus-image" style="width:100%; max-width:300px; height:auto; aspect-ratio:1/1; cursor:pointer;" />`,
-            `<img src="${decoy}" class="stimulus-image" style="width:100%; max-width:300px; height:auto; aspect-ratio:1/1; cursor:pointer;" />`,
+          const img1 = tv.image1;
+          const decoy1 = available_decoys[i * 2];
+
+          const img2 = tv.image2;
+          const decoy2 = available_decoys[i * 2 + 1];
+
+          // Push memory test for Image 1
+          const choices1 = [
+            `<img src="${img1}" class="stimulus-image" style="width:100%; max-width:300px; height:auto; aspect-ratio:1/1; cursor:pointer;" />`,
+            `<img src="${decoy1}" class="stimulus-image" style="width:100%; max-width:300px; height:auto; aspect-ratio:1/1; cursor:pointer;" />`,
           ];
-
-          let correct_index = 0;
-          // Randomize left/right position
+          let correct_index1 = 0;
           if (Math.random() > 0.5) {
-            choices.reverse();
-            correct_index = 1;
+            choices1.reverse();
+            correct_index1 = 1;
           }
 
           memory_trials.push({
             type: jsPsychHtmlButtonResponse,
             stimulus:
               '<p style="font-size:24px; margin-bottom: 20px;">Which image did you see?</p>',
-            choices: choices,
+            choices: choices1,
             data: {
               phase: "memory_test",
-              s2_image: s2,
-              decoy_image: decoy,
+              s2_image: img1,
+              decoy_image: decoy1,
+              image_index: 1,
               original_lag: lag,
               original_condition: condition,
-              correct_response: correct_index,
+              correct_response: correct_index1,
+            },
+            on_finish: function (data) {
+              data.correct = data.response === data.correct_response;
+            },
+          });
+
+          // Push memory test for Image 2
+          const choices2 = [
+            `<img src="${img2}" class="stimulus-image" style="width:100%; max-width:300px; height:auto; aspect-ratio:1/1; cursor:pointer;" />`,
+            `<img src="${decoy2}" class="stimulus-image" style="width:100%; max-width:300px; height:auto; aspect-ratio:1/1; cursor:pointer;" />`,
+          ];
+          let correct_index2 = 0;
+          if (Math.random() > 0.5) {
+            choices2.reverse();
+            correct_index2 = 1;
+          }
+
+          memory_trials.push({
+            type: jsPsychHtmlButtonResponse,
+            stimulus:
+              '<p style="font-size:24px; margin-bottom: 20px;">Which image did you see?</p>',
+            choices: choices2,
+            data: {
+              phase: "memory_test",
+              s2_image: img2,
+              decoy_image: decoy2,
+              image_index: 2,
+              original_lag: lag,
+              original_condition: condition,
+              correct_response: correct_index2,
             },
             on_finish: function (data) {
               data.correct = data.response === data.correct_response;
