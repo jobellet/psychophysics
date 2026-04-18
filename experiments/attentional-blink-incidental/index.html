@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attentional Blink - Incidental Memory</title>
+
+  <!-- jsPsych core and CSS -->
+  <script src="https://unpkg.com/jspsych@7.3.4"></script>
+  <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet" type="text/css" />
+
+  <!-- jsPsych plugins -->
+  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-button-response@1.1.3"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-preload@1.1.3"></script>
+
+  <style>
+    /* Add custom CSS here */
+    body {
+      background-color: #808080; /* Gray background typical for psychophysics */
+      color: #ffffff;
+    }
+    .jspsych-content {
+      max-width: 1000px;
+    }
+    .stimulus-image {
+      width: 400px;
+      height: 400px;
+      object-fit: cover;
+    }
+    .instruction-text {
+      font-size: 24px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .rsvp-container {
+      position: relative;
+      width: 400px;
+      height: 400px;
+      margin: 0 auto;
+    }
+    .rsvp-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+    .rsvp-image.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    // Initialize jsPsych
+    const jsPsych = initJsPsych({
+      on_finish: function() {
+        jsPsych.data.displayData();
+      }
+    });
+
+    // --- Placeholders for images ---
+
+    // Function to generate a simple colored SVG image data URI as a placeholder
+    function generatePlaceholder(color, text) {
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+          <rect width="400" height="400" fill="${color}" />
+          <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="40" fill="white">${text}</text>
+        </svg>
+      `;
+      return "data:image/svg+xml;base64," + btoa(svg);
+    }
+
+    // 1. Global Target (S1)
+    const global_target = generatePlaceholder("#ff4444", "Global Target (S1)");
+
+    // 2. S2 Images (Highly memorable intact images)
+    const s2_images = [];
+    for (let i = 1; i <= 10; i++) {
+        s2_images.push(generatePlaceholder("#4444ff", `S2 Image ${i}`));
+    }
+
+    // 3. Novel Images (Decoys for Phase 3)
+    const novel_images = [];
+    for (let i = 1; i <= 10; i++) {
+        novel_images.push(generatePlaceholder("#ffaa00", `Decoy Image ${i}`));
+    }
+
+    // 4. Masks (Scrambled images)
+    const masks = [];
+    for (let i = 1; i <= 20; i++) {
+        masks.push(generatePlaceholder("#444444", `Mask ${i}`));
+    }
+
+    // Combine all images for preloading
+    const all_images = [global_target, ...s2_images, ...novel_images, ...masks];
+
+    // Preload trial
+    const preload_trial = {
+      type: jsPsychPreload,
+      images: all_images
+    };
+
+    // Timeline array
+    const timeline = [preload_trial];
+
+    // --- Phase 1: Target Introduction ---
+    const phase1_instructions = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `
+        <div class="instruction-text">
+          <p><strong>Phase 1: Memorize the Target</strong></p>
+          <p>Please memorize the image below.</p>
+          <img src="${global_target}" class="stimulus-image" />
+          <p>In the next phase, you will see rapid streams of images.</p>
+          <p>Press the <strong>SPACEBAR</strong> as quickly as possible whenever you see this exact image.</p>
+          <p>Press any key to begin the experiment.</p>
+        </div>
+      `,
+      post_trial_gap: 1000
+    };
+
+    timeline.push(phase1_instructions);
+
+    // --- Phase 2: RSVP Streams ---
+    const num_trials = s2_images.length;
+    const rsvp_trials = [];
+
+    // Helper: shuffle array in place
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Prepare trials
+    let available_s2 = shuffleArray([...s2_images]);
+    const trial_variables = [];
+
+    // We want a mix of short (Lag 2 or 3) and long (Lag 8) lags
+    for (let i = 0; i < num_trials; i++) {
+        const s2 = available_s2[i];
+        const lag = (Math.random() > 0.5) ? (Math.random() > 0.5 ? 2 : 3) : 8; // Short vs Long
+        const s1_pos = 4 + Math.floor(Math.random() * 3); // Frame 4, 5, or 6
+        const s2_pos = s1_pos + lag;
+
+        // Generate stream of 20 images
+        const stream = [];
+        for (let j = 0; j < 20; j++) {
+            if (j === s1_pos) {
+                stream.push({ type: 'S1', src: global_target });
+            } else if (j === s2_pos) {
+                stream.push({ type: 'S2', src: s2 });
+            } else {
+                stream.push({ type: 'Mask', src: masks[Math.floor(Math.random() * masks.length)] });
+            }
+        }
+
+        trial_variables.push({
+            stream: stream,
+            s2_image: s2,
+            lag: lag,
+            condition: lag < 5 ? 'short' : 'long',
+            s1_pos: s1_pos,
+            s2_pos: s2_pos
+        });
+    }
+
+    const rsvp_trial = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: function() {
+          const stream = jsPsych.timelineVariable('stream');
+          let html = '<div class="rsvp-container">';
+          stream.forEach((img, idx) => {
+              html += `<img src="${img.src}" class="rsvp-image" id="rsvp-frame-${idx}" />`;
+          });
+          html += '</div>';
+          return html;
+      },
+      choices: [' '], // Listen for spacebar
+      response_ends_trial: false, // Let the stream finish
+      trial_duration: 20 * 100, // 20 frames * 100ms
+      data: {
+          phase: 'rsvp',
+          s2_image: jsPsych.timelineVariable('s2_image'),
+          lag: jsPsych.timelineVariable('lag'),
+          condition: jsPsych.timelineVariable('condition'),
+          s1_pos: jsPsych.timelineVariable('s1_pos'),
+          s2_pos: jsPsych.timelineVariable('s2_pos')
+      },
+      on_load: function() {
+          let currentFrame = 0;
+          const totalFrames = 20;
+          const frameDuration = 100; // ms
+          let s1Onset = null;
+          const s1_pos = jsPsych.timelineVariable('s1_pos');
+
+          let lastTime = performance.now();
+          let animationFrameId;
+
+          function updateFrame(time) {
+              if (time - lastTime >= frameDuration) {
+                  // Hide previous
+                  if (currentFrame > 0) {
+                      document.getElementById(`rsvp-frame-${currentFrame - 1}`).classList.remove('active');
+                  }
+
+                  // Show current
+                  if (currentFrame < totalFrames) {
+                      document.getElementById(`rsvp-frame-${currentFrame}`).classList.add('active');
+                      if (currentFrame === s1_pos) {
+                          s1Onset = performance.now();
+                      }
+                      currentFrame++;
+                      lastTime = time;
+                  }
+              }
+
+              if (currentFrame <= totalFrames) {
+                  animationFrameId = requestAnimationFrame(updateFrame);
+              }
+          }
+
+          animationFrameId = requestAnimationFrame(updateFrame);
+
+          // Store s1Onset globally or in an accessible way for on_finish if needed,
+          // but jsPsych handles RT relative to the start of the trial.
+          // We'll adjust it in on_finish.
+          jsPsych.pluginAPI.setTimeout(() => {
+             // Let the trial run its course, managed by trial_duration
+          }, totalFrames * frameDuration);
+      },
+      on_finish: function(data) {
+          // Adjust RT relative to S1 onset
+          // S1 appears at s1_pos * 100 ms after trial start
+          const s1ExpectedOnset = data.s1_pos * 100;
+          if (data.rt !== null) {
+              data.rt_from_s1 = data.rt - s1ExpectedOnset;
+          } else {
+              data.rt_from_s1 = null;
+          }
+      }
+    };
+
+    const rsvp_fixation = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: '<div style="font-size:48px;">+</div>',
+        choices: "NO_KEYS",
+        trial_duration: 500,
+        post_trial_gap: 0
+    };
+
+    const rsvp_procedure = {
+        timeline: [rsvp_fixation, rsvp_trial],
+        timeline_variables: trial_variables,
+        randomize_order: true // randomize trial order
+    };
+
+    timeline.push({
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: '<div class="instruction-text"><p>Phase 2 starting.</p><p>Press SPACEBAR as quickly as possible when you see the target.</p><p>Press any key to begin.</p></div>',
+        post_trial_gap: 1000
+    });
+
+    timeline.push(rsvp_procedure);
+
+    // --- Phase 3: Surprise 2AFC Memory Test ---
+
+    timeline.push({
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `
+            <div class="instruction-text">
+                <p><strong>Phase 3: Surprise Memory Test</strong></p>
+                <p>You have finished the rapid streams.</p>
+                <p>During those streams, you actually saw other intact images besides the target.</p>
+                <p>In this final phase, you will see pairs of images.</p>
+                <p>For each pair, click on the image that you <strong>remember seeing</strong> during the streams.</p>
+                <p>Press any key to begin.</p>
+            </div>
+        `,
+        post_trial_gap: 1000
+    });
+
+    const memory_trials = [];
+    // We will test all S2 images used in the RSVP phase
+    const used_s2 = s2_images.slice(0, num_trials); // They were all used, but keeping it general
+    let available_decoys = shuffleArray([...novel_images]);
+
+    for (let i = 0; i < num_trials; i++) {
+        const s2 = trial_variables[i].s2_image; // Get the specific S2 used in that trial
+        const lag = trial_variables[i].lag;
+        const condition = trial_variables[i].condition;
+        const decoy = available_decoys[i];
+
+        const choices = [
+            `<img src="${s2}" class="stimulus-image" style="width:300px; height:300px; cursor:pointer;" />`,
+            `<img src="${decoy}" class="stimulus-image" style="width:300px; height:300px; cursor:pointer;" />`
+        ];
+
+        let correct_index = 0;
+        // Randomize left/right position
+        if (Math.random() > 0.5) {
+            choices.reverse();
+            correct_index = 1;
+        }
+
+        memory_trials.push({
+            type: jsPsychHtmlButtonResponse,
+            stimulus: '<p style="font-size:24px; margin-bottom: 20px;">Which image did you see?</p>',
+            choices: choices,
+            data: {
+                phase: 'memory_test',
+                s2_image: s2,
+                decoy_image: decoy,
+                original_lag: lag,
+                original_condition: condition,
+                correct_response: correct_index
+            },
+            on_finish: function(data) {
+                data.correct = (data.response === data.correct_response);
+            }
+        });
+    }
+
+    const memory_procedure = {
+        timeline: memory_trials,
+        randomize_order: true
+    };
+
+    timeline.push(memory_procedure);
+
+    // --- End of Experiment ---
+    timeline.push({
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `
+            <div class="instruction-text">
+                <p>The experiment is now complete.</p>
+                <p>Thank you for participating!</p>
+                <p>Press any key to view your data.</p>
+            </div>
+        `
+    });
+
+    // Run the experiment
+    jsPsych.run(timeline);
+
+  </script>
+</body>
+</html>
