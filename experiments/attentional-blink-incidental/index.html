@@ -1,283 +1,293 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Attentional Blink - Incidental Memory</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Attentional Blink - Incidental Memory</title>
 
-  <!-- jsPsych core and CSS -->
-  <script src="https://unpkg.com/jspsych@7.3.4"></script>
-  <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet" type="text/css" />
+    <script src="https://unpkg.com/jspsych@7.3.4"></script>
+    <link
+      href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css"
+      rel="stylesheet"
+      type="text/css"
+    />
 
-  <!-- jsPsych plugins -->
-  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-html-button-response@1.1.3"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-preload@1.1.3"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-button-response@1.1.3"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-preload@1.1.3"></script>
+    <script src="https://unpkg.com/@jspsych-contrib/plugin-pipe"></script>
 
-  <style>
-    /* Add custom CSS here */
-    #loading-message {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 24px;
-      z-index: 1000;
-    }
-    body {
-      background-color: #808080; /* Gray background typical for psychophysics */
-      color: #ffffff;
-    }
-    .jspsych-content {
-      max-width: 1000px;
-    }
-    .stimulus-image {
-      width: 100%;
-      max-width: 400px;
-      height: auto;
-      aspect-ratio: 1 / 1;
-      object-fit: cover;
-    }
-    .instruction-text {
-      font-size: 24px;
-      line-height: 1.5;
-      margin-bottom: 20px;
-    }
-    .rsvp-container {
-      position: relative;
-      width: 100%;
-      max-width: 400px;
-      height: auto;
-      aspect-ratio: 1 / 1;
-      margin: 0 auto;
-    }
-    .rsvp-image {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: none;
-    }
-    .rsvp-image.active {
-      display: block;
-    }
-  </style>
-</head>
-<body>
-  <div id="loading-message">Loading experiment, generating masks...</div>
-  <script>
-    // Wrap entire logic in an IIFE so we can await mask generation
-    (async function initExperiment() {
-
-    // Initialize jsPsych
-    const jsPsych = initJsPsych({
-      on_finish: function() {
-        jsPsych.data.displayData();
+    <style>
+      /* Add custom CSS here */
+      #loading-message {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 24px;
+        z-index: 1000;
       }
-    });
-
-    // --- Placeholders for images ---
-
-    // Function to generate a simple colored SVG image data URI as a placeholder
-    function generatePlaceholder(color, text) {
-      const svg = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
-          <rect width="400" height="400" fill="${color}" />
-          <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="40" fill="white">${text}</text>
-        </svg>
-      `;
-      return "data:image/svg+xml;base64," + btoa(svg);
-    }
-
-    // 1. Global Target (S1)
-    const global_target = generatePlaceholder("#ff4444", "Global Target (S1)");
-
-    // 2. S2 Images (Highly memorable intact images)
-    const s2_images = [
-      '../../assets/highly_memorable_targets/baby_17s.jpg',
-      '../../assets/highly_memorable_targets/beard_11s.jpg',
-      '../../assets/highly_memorable_targets/bench_02s.jpg',
-      '../../assets/highly_memorable_targets/bikini_08s.jpg',
-      '../../assets/highly_memorable_targets/binder_21s.jpg',
-      '../../assets/highly_memorable_targets/bologna_12s.jpg',
-      '../../assets/highly_memorable_targets/brass_knuckles_04s.jpg',
-      '../../assets/highly_memorable_targets/bumper_12s.jpg',
-      '../../assets/highly_memorable_targets/calf2_03s.jpg',
-      '../../assets/highly_memorable_targets/candy_bar_04s.jpg',
-      '../../assets/highly_memorable_targets/cape_07s.jpg',
-      '../../assets/highly_memorable_targets/chaps_04s.jpg',
-      '../../assets/highly_memorable_targets/cheeseburger_10s.jpg',
-      '../../assets/highly_memorable_targets/chute_10s.jpg',
-      '../../assets/highly_memorable_targets/comic_book_15s.jpg',
-      '../../assets/highly_memorable_targets/contact_lens_12s.jpg',
-      '../../assets/highly_memorable_targets/crayon_09s.jpg',
-      '../../assets/highly_memorable_targets/cummerbund_03s.jpg',
-      '../../assets/highly_memorable_targets/cummerbund_14s.jpg',
-      '../../assets/highly_memorable_targets/dip_06s.jpg',
-      '../../assets/highly_memorable_targets/doorstop_10s.jpg',
-      '../../assets/highly_memorable_targets/duck_09s.jpg',
-      '../../assets/highly_memorable_targets/ear_09s.jpg',
-      '../../assets/highly_memorable_targets/eclair_04s.jpg',
-      '../../assets/highly_memorable_targets/egg_roll_09n.jpg',
-      '../../assets/highly_memorable_targets/footbath_01s.jpg',
-      '../../assets/highly_memorable_targets/footprint_01b.jpg',
-      '../../assets/highly_memorable_targets/giraffe_06s.jpg',
-      '../../assets/highly_memorable_targets/gold_04s.jpg',
-      '../../assets/highly_memorable_targets/gorilla_13s.jpg',
-      '../../assets/highly_memorable_targets/handprint_01b.jpg',
-      '../../assets/highly_memorable_targets/headband_02s.jpg',
-      '../../assets/highly_memorable_targets/headscarf_11s.jpg',
-      '../../assets/highly_memorable_targets/hula_hoop_15s.jpg',
-      '../../assets/highly_memorable_targets/juicer1_10s.jpg',
-      '../../assets/highly_memorable_targets/kilt_01b.jpg',
-      '../../assets/highly_memorable_targets/leotard_05s.jpg',
-      '../../assets/highly_memorable_targets/license_plate_03s.jpg',
-      '../../assets/highly_memorable_targets/lip_balm_11s.jpg',
-      '../../assets/highly_memorable_targets/loincloth_01b.jpg',
-      '../../assets/highly_memorable_targets/macaroni_01b.jpg',
-      '../../assets/highly_memorable_targets/macaroni_14s.jpg',
-      '../../assets/highly_memorable_targets/marker_13s.jpg',
-      '../../assets/highly_memorable_targets/memory_stick_16s.jpg',
-      '../../assets/highly_memorable_targets/mouthpiece_02s.jpg',
-      '../../assets/highly_memorable_targets/mulberry_03s.jpg',
-      '../../assets/highly_memorable_targets/mullet_06s.jpg',
-      '../../assets/highly_memorable_targets/mustache_03s.jpg',
-      '../../assets/highly_memorable_targets/mustache_07s.jpg',
-      '../../assets/highly_memorable_targets/mustache_13s.jpg',
-      '../../assets/highly_memorable_targets/nacho_04s.jpg',
-      '../../assets/highly_memorable_targets/nail_04s.jpg',
-      '../../assets/highly_memorable_targets/nest_04s.jpg',
-      '../../assets/highly_memorable_targets/notepad_03s.jpg',
-      '../../assets/highly_memorable_targets/orange_rind_14s.jpg',
-      '../../assets/highly_memorable_targets/pancake_11s.jpg',
-      '../../assets/highly_memorable_targets/panther_01b.jpg',
-      '../../assets/highly_memorable_targets/parfait_15s.jpg',
-      '../../assets/highly_memorable_targets/pasta_08s.jpg',
-      '../../assets/highly_memorable_targets/peppermint_07s.jpg',
-      '../../assets/highly_memorable_targets/pepperoni_08s.jpg',
-      '../../assets/highly_memorable_targets/pig_06s.jpg',
-      '../../assets/highly_memorable_targets/piglet_02s.jpg',
-      '../../assets/highly_memorable_targets/pipe1_04s.jpg',
-      '../../assets/highly_memorable_targets/plaster_cast_02s.jpg',
-      '../../assets/highly_memorable_targets/pug_05s.jpg',
-      '../../assets/highly_memorable_targets/rack1_07s.jpg',
-      '../../assets/highly_memorable_targets/ramp_05s.jpg',
-      '../../assets/highly_memorable_targets/screen2_01b.jpg',
-      '../../assets/highly_memorable_targets/seesaw_12s.jpg',
-      '../../assets/highly_memorable_targets/sequin_05s.jpg',
-      '../../assets/highly_memorable_targets/shelf_07s.jpg',
-      '../../assets/highly_memorable_targets/snowball_08s.jpg',
-      '../../assets/highly_memorable_targets/sonogram_08s.jpg',
-      '../../assets/highly_memorable_targets/spam_02s.jpg',
-      '../../assets/highly_memorable_targets/splinter_11s.jpg',
-      '../../assets/highly_memorable_targets/springboard_13s.jpg',
-      '../../assets/highly_memorable_targets/spur_03s.jpg',
-      '../../assets/highly_memorable_targets/stiletto_06s.jpg',
-      '../../assets/highly_memorable_targets/stockings_12s.jpg',
-      '../../assets/highly_memorable_targets/straw2_14s.jpg',
-      '../../assets/highly_memorable_targets/string_cheese_04s.jpg',
-      '../../assets/highly_memorable_targets/suspenders_12s.jpg',
-      '../../assets/highly_memorable_targets/sweater_19s.jpg',
-      '../../assets/highly_memorable_targets/swimsuit_06s.jpg',
-      '../../assets/highly_memorable_targets/tack_03s.jpg',
-      '../../assets/highly_memorable_targets/tamale_06s.jpg',
-      '../../assets/highly_memorable_targets/tarantula_07s.jpg',
-      '../../assets/highly_memorable_targets/test_tube_01b.jpg',
-      '../../assets/highly_memorable_targets/toilet_paper_01b.jpg',
-      '../../assets/highly_memorable_targets/toothpick_11s.jpg',
-      '../../assets/highly_memorable_targets/torso_05s.jpg',
-      '../../assets/highly_memorable_targets/tube_top_12s.jpg',
-      '../../assets/highly_memorable_targets/turban_07s.jpg',
-      '../../assets/highly_memorable_targets/turf_09s.jpg',
-      '../../assets/highly_memorable_targets/videogame_01b.jpg',
-      '../../assets/highly_memorable_targets/visor_08s.jpg',
-      '../../assets/highly_memorable_targets/whistle_11s.jpg',
-      '../../assets/highly_memorable_targets/wig_14s.jpg',
-      '../../assets/highly_memorable_targets/wooden_leg_01b.jpg',
-    ];
-
-    // Helper: shuffle array in place
-    function shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+      body {
+        background-color: #808080; /* Gray background typical for psychophysics */
+        color: #ffffff;
       }
-      return array;
-    }
+      .jspsych-content {
+        max-width: 1000px;
+      }
+      .stimulus-image {
+        width: 100%;
+        max-width: 400px;
+        height: auto;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+      }
+      .instruction-text {
+        font-size: 24px;
+        line-height: 1.5;
+        margin-bottom: 20px;
+      }
+      .rsvp-container {
+        position: relative;
+        width: 100%;
+        max-width: 400px;
+        height: auto;
+        aspect-ratio: 1 / 1;
+        margin: 0 auto;
+      }
+      .rsvp-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: none;
+      }
+      .rsvp-image.active {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loading-message">Loading experiment, generating masks...</div>
+    <script>
+      // Wrap entire logic in an IIFE so we can await mask generation
+      (async function initExperiment() {
+        
+        // ENVIRONMENT TOGGLE
+        // Set to "web" for online data collection, or "MEG" for offline lab collection
+        const setup = "MEG"; 
 
-    const shuffled_s2_images = shuffleArray([...s2_images]);
-    const presented_images = shuffled_s2_images.slice(0, 50);
-    const unpresented_images = shuffled_s2_images.slice(50, 100);
+        // Initialize jsPsych
+        const jsPsych = initJsPsych({
+          on_finish: function () {
+            jsPsych.data.displayData();
+          },
+        });
 
+        const subject_id = jsPsych.randomization.randomID(10);
+        const filename = `${subject_id}.csv`;
+        jsPsych.data.addProperties({ subject_id: subject_id });
 
-    // 3. Novel Images (Decoys for Phase 3)
-    const novel_images = unpresented_images; // We use unpresented images as decoys
+        // 1. S2 Images (Highly memorable intact images)
+        const s2_images = [
+          "../../assets/highly_memorable_targets/baby_17s.jpg",
+          "../../assets/highly_memorable_targets/beard_11s.jpg",
+          "../../assets/highly_memorable_targets/bench_02s.jpg",
+          "../../assets/highly_memorable_targets/bikini_08s.jpg",
+          "../../assets/highly_memorable_targets/binder_21s.jpg",
+          "../../assets/highly_memorable_targets/bologna_12s.jpg",
+          "../../assets/highly_memorable_targets/brass_knuckles_04s.jpg",
+          "../../assets/highly_memorable_targets/bumper_12s.jpg",
+          "../../assets/highly_memorable_targets/calf2_03s.jpg",
+          "../../assets/highly_memorable_targets/candy_bar_04s.jpg",
+          "../../assets/highly_memorable_targets/cape_07s.jpg",
+          "../../assets/highly_memorable_targets/chaps_04s.jpg",
+          "../../assets/highly_memorable_targets/cheeseburger_10s.jpg",
+          "../../assets/highly_memorable_targets/chute_10s.jpg",
+          "../../assets/highly_memorable_targets/comic_book_15s.jpg",
+          "../../assets/highly_memorable_targets/contact_lens_12s.jpg",
+          "../../assets/highly_memorable_targets/crayon_09s.jpg",
+          "../../assets/highly_memorable_targets/cummerbund_03s.jpg",
+          "../../assets/highly_memorable_targets/cummerbund_14s.jpg",
+          "../../assets/highly_memorable_targets/dip_06s.jpg",
+          "../../assets/highly_memorable_targets/doorstop_10s.jpg",
+          "../../assets/highly_memorable_targets/duck_09s.jpg",
+          "../../assets/highly_memorable_targets/ear_09s.jpg",
+          "../../assets/highly_memorable_targets/eclair_04s.jpg",
+          "../../assets/highly_memorable_targets/egg_roll_09n.jpg",
+          "../../assets/highly_memorable_targets/footbath_01s.jpg",
+          "../../assets/highly_memorable_targets/footprint_01b.jpg",
+          "../../assets/highly_memorable_targets/giraffe_06s.jpg",
+          "../../assets/highly_memorable_targets/gold_04s.jpg",
+          "../../assets/highly_memorable_targets/gorilla_13s.jpg",
+          "../../assets/highly_memorable_targets/handprint_01b.jpg",
+          "../../assets/highly_memorable_targets/headband_02s.jpg",
+          "../../assets/highly_memorable_targets/headscarf_11s.jpg",
+          "../../assets/highly_memorable_targets/hula_hoop_15s.jpg",
+          "../../assets/highly_memorable_targets/juicer1_10s.jpg",
+          "../../assets/highly_memorable_targets/kilt_01b.jpg",
+          "../../assets/highly_memorable_targets/leotard_05s.jpg",
+          "../../assets/highly_memorable_targets/license_plate_03s.jpg",
+          "../../assets/highly_memorable_targets/lip_balm_11s.jpg",
+          "../../assets/highly_memorable_targets/loincloth_01b.jpg",
+          "../../assets/highly_memorable_targets/macaroni_01b.jpg",
+          "../../assets/highly_memorable_targets/macaroni_14s.jpg",
+          "../../assets/highly_memorable_targets/marker_13s.jpg",
+          "../../assets/highly_memorable_targets/memory_stick_16s.jpg",
+          "../../assets/highly_memorable_targets/mouthpiece_02s.jpg",
+          "../../assets/highly_memorable_targets/mulberry_03s.jpg",
+          "../../assets/highly_memorable_targets/mullet_06s.jpg",
+          "../../assets/highly_memorable_targets/mustache_03s.jpg",
+          "../../assets/highly_memorable_targets/mustache_07s.jpg",
+          "../../assets/highly_memorable_targets/mustache_13s.jpg",
+          "../../assets/highly_memorable_targets/nacho_04s.jpg",
+          "../../assets/highly_memorable_targets/nail_04s.jpg",
+          "../../assets/highly_memorable_targets/nest_04s.jpg",
+          "../../assets/highly_memorable_targets/notepad_03s.jpg",
+          "../../assets/highly_memorable_targets/orange_rind_14s.jpg",
+          "../../assets/highly_memorable_targets/pancake_11s.jpg",
+          "../../assets/highly_memorable_targets/panther_01b.jpg",
+          "../../assets/highly_memorable_targets/parfait_15s.jpg",
+          "../../assets/highly_memorable_targets/pasta_08s.jpg",
+          "../../assets/highly_memorable_targets/peppermint_07s.jpg",
+          "../../assets/highly_memorable_targets/pepperoni_08s.jpg",
+          "../../assets/highly_memorable_targets/pig_06s.jpg",
+          "../../assets/highly_memorable_targets/piglet_02s.jpg",
+          "../../assets/highly_memorable_targets/pipe1_04s.jpg",
+          "../../assets/highly_memorable_targets/plaster_cast_02s.jpg",
+          "../../assets/highly_memorable_targets/pug_05s.jpg",
+          "../../assets/highly_memorable_targets/rack1_07s.jpg",
+          "../../assets/highly_memorable_targets/ramp_05s.jpg",
+          "../../assets/highly_memorable_targets/screen2_01b.jpg",
+          "../../assets/highly_memorable_targets/seesaw_12s.jpg",
+          "../../assets/highly_memorable_targets/sequin_05s.jpg",
+          "../../assets/highly_memorable_targets/shelf_07s.jpg",
+          "../../assets/highly_memorable_targets/snowball_08s.jpg",
+          "../../assets/highly_memorable_targets/sonogram_08s.jpg",
+          "../../assets/highly_memorable_targets/spam_02s.jpg",
+          "../../assets/highly_memorable_targets/splinter_11s.jpg",
+          "../../assets/highly_memorable_targets/springboard_13s.jpg",
+          "../../assets/highly_memorable_targets/spur_03s.jpg",
+          "../../assets/highly_memorable_targets/stiletto_06s.jpg",
+          "../../assets/highly_memorable_targets/stockings_12s.jpg",
+          "../../assets/highly_memorable_targets/straw2_14s.jpg",
+          "../../assets/highly_memorable_targets/string_cheese_04s.jpg",
+          "../../assets/highly_memorable_targets/suspenders_12s.jpg",
+          "../../assets/highly_memorable_targets/sweater_19s.jpg",
+          "../../assets/highly_memorable_targets/swimsuit_06s.jpg",
+          "../../assets/highly_memorable_targets/tack_03s.jpg",
+          "../../assets/highly_memorable_targets/tamale_06s.jpg",
+          "../../assets/highly_memorable_targets/tarantula_07s.jpg",
+          "../../assets/highly_memorable_targets/test_tube_01b.jpg",
+          "../../assets/highly_memorable_targets/toilet_paper_01b.jpg",
+          "../../assets/highly_memorable_targets/toothpick_11s.jpg",
+          "../../assets/highly_memorable_targets/torso_05s.jpg",
+          "../../assets/highly_memorable_targets/tube_top_12s.jpg",
+          "../../assets/highly_memorable_targets/turban_07s.jpg",
+          "../../assets/highly_memorable_targets/turf_09s.jpg",
+          "../../assets/highly_memorable_targets/videogame_01b.jpg",
+          "../../assets/highly_memorable_targets/visor_08s.jpg",
+          "../../assets/highly_memorable_targets/whistle_11s.jpg",
+          "../../assets/highly_memorable_targets/wig_14s.jpg",
+          "../../assets/highly_memorable_targets/wooden_leg_01b.jpg",
+        ];
 
-    // 4. Masks (Scrambled images)
-    function generateShuffledMask(imageSrc) {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = 'Anonymous';
-        img.onload = () => {
-          const size = 300;
-          const gridSize = 10;
-          const tileSize = size / gridSize;
-
-          const tileCoords = [];
-          for (let y = 0; y < gridSize; y++) {
-            for (let x = 0; x < gridSize; x++) {
-              tileCoords.push({ x, y });
-            }
+        // Helper: shuffle array in place
+        function shuffleArray(array) {
+          for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
           }
+          return array;
+        }
 
-          shuffleArray(tileCoords);
-          const maskedCanvas = document.createElement('canvas');
-          maskedCanvas.width = size;
-          maskedCanvas.height = size;
-          const maskedCtx = maskedCanvas.getContext('2d');
+        const shuffled_s2_images = shuffleArray([...s2_images]);
+        // 2. Global Target (S1)
+        const global_target = shuffled_s2_images[0];
+        const presented_images = shuffled_s2_images.slice(1, 50);
+        const unpresented_images = shuffled_s2_images.slice(50, 100);
 
-          const sW = img.naturalWidth / gridSize;
-          const sH = img.naturalHeight / gridSize;
+        // 3. Novel Images (Decoys for Phase 3)
+        const novel_images = unpresented_images; // We use unpresented images as decoys
 
-          let i = 0;
-          for (let y = 0; y < gridSize; y++) {
-            for (let x = 0; x < gridSize; x++) {
-              const src = tileCoords[i++];
-              maskedCtx.drawImage(
-                img,
-                src.x * sW, src.y * sH, sW, sH,
-                x * tileSize, y * tileSize, tileSize, tileSize
-              );
-            }
-          }
-          resolve(maskedCanvas.toDataURL());
+        // 4. Masks (Scrambled images)
+        function generateShuffledMask(imageSrc) {
+          return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.onload = () => {
+              const size = 300;
+              const gridSize = 10;
+              const tileSize = size / gridSize;
+
+              const tileCoords = [];
+              for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                  tileCoords.push({ x, y });
+                }
+              }
+
+              shuffleArray(tileCoords);
+              const maskedCanvas = document.createElement("canvas");
+              maskedCanvas.width = size;
+              maskedCanvas.height = size;
+              const maskedCtx = maskedCanvas.getContext("2d");
+
+              const sW = img.naturalWidth / gridSize;
+              const sH = img.naturalHeight / gridSize;
+
+              let i = 0;
+              for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                  const src = tileCoords[i++];
+                  maskedCtx.drawImage(
+                    img,
+                    src.x * sW,
+                    src.y * sH,
+                    sW,
+                    sH,
+                    x * tileSize,
+                    y * tileSize,
+                    tileSize,
+                    tileSize,
+                  );
+                }
+              }
+              resolve(maskedCanvas.toDataURL());
+            };
+            img.onerror = () =>
+              reject(new Error("Failed to load image for masking."));
+            img.src = imageSrc;
+          });
+        }
+
+        // Generate masks from unpresented images
+        const masks = await Promise.all(
+          unpresented_images.map((src) => generateShuffledMask(src)),
+        );
+
+        // Combine all images for preloading
+        const all_images = [
+          global_target,
+          ...s2_images,
+          ...novel_images,
+          ...masks,
+        ];
+
+        // Preload trial
+        const preload_trial = {
+          type: jsPsychPreload,
+          images: all_images,
         };
-        img.onerror = () => reject(new Error('Failed to load image for masking.'));
-        img.src = imageSrc;
-      });
-    }
 
-    // Generate masks from unpresented images
-    const masks = await Promise.all(unpresented_images.map(src => generateShuffledMask(src)));
+        // Timeline array
+        const timeline = [preload_trial];
 
-    // Combine all images for preloading
-    const all_images = [global_target, ...s2_images, ...novel_images, ...masks];
-
-    // Preload trial
-    const preload_trial = {
-      type: jsPsychPreload,
-      images: all_images
-    };
-
-    // Timeline array
-    const timeline = [preload_trial];
-
-    // --- Phase 1: Target Introduction ---
-    const phase1_instructions = {
-      type: jsPsychHtmlButtonResponse,
-      stimulus: `
+        // --- Phase 1: Target Introduction ---
+        const phase1_instructions = {
+          type: jsPsychHtmlButtonResponse,
+          stimulus: `
         <div class="instruction-text">
           <p><strong>Phase 1: Memorize the Target</strong></p>
           <p>Please memorize the image below.</p>
@@ -287,172 +297,246 @@
           <p>Click Continue to begin the experiment.</p>
         </div>
       `,
-      choices: ['Continue'],
-      post_trial_gap: 1000
-    };
+          choices: ["Continue"],
+          post_trial_gap: 1000,
+        };
 
-    timeline.push(phase1_instructions);
+        timeline.push(phase1_instructions);
 
-    // --- Phase 2: RSVP Streams ---
-    const num_trials = presented_images.length;
-    const rsvp_trials = [];
+        // --- Phase 2: RSVP Streams ---
+        const num_trials = presented_images.length;
+        let available_s2 = shuffleArray([...presented_images]);
+        const trial_variables = []; // Store variables to be used in phase 3
 
-    // Prepare trials
-    let available_s2 = shuffleArray([...presented_images]);
-    const trial_variables = [];
-
-    // We want a mix of short (Lag 2 or 3) and long (Lag 8) lags
-    for (let i = 0; i < num_trials; i++) {
-        const s2 = available_s2[i];
-        const lag = (Math.random() > 0.5) ? (Math.random() > 0.5 ? 2 : 3) : 8; // Short vs Long
-        const s1_pos = 4 + Math.floor(Math.random() * 3); // Frame 4, 5, or 6
-        const s2_pos = s1_pos + lag;
-
-        // Generate stream of 20 images
-        const stream = [];
-        for (let j = 0; j < 20; j++) {
-            if (j === s1_pos) {
-                stream.push({ type: 'S1', src: global_target });
-            } else if (j === s2_pos) {
-                stream.push({ type: 'S2', src: s2 });
-            } else {
-                stream.push({ type: 'Mask', src: masks[Math.floor(Math.random() * masks.length)] });
-            }
+        // Pre-calculate all conditions to use in memory phase
+        for (let i = 0; i < num_trials; i++) {
+          const lag = Math.random() > 0.5 ? (Math.random() > 0.5 ? 2 : 3) : 8; // Short vs Long
+          trial_variables.push({
+            s2_image: available_s2[i],
+            lag: lag,
+            condition: lag < 5 ? "short" : "long",
+            s1_pos: 4 + Math.floor(Math.random() * 3), // Frame 4, 5, or 6
+            s2_pos: 4 + Math.floor(Math.random() * 3) + lag,
+          });
         }
 
-        trial_variables.push({
-            stream: stream,
-            s2_image: s2,
-            lag: lag,
-            condition: lag < 5 ? 'short' : 'long',
-            s1_pos: s1_pos,
-            s2_pos: s2_pos
-        });
-    }
+        const rsvp_continuous_trial = {
+          type: jsPsychHtmlButtonResponse,
+          stimulus: `
+        <div class="rsvp-container">
+            <div id="rsvp-fixation" style="font-size:48px; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); display:none;">+</div>
+            <img id="rsvp-image-display" class="rsvp-image" style="display:block;" src="" />
+            <div id="photodiode-patch" style="position: absolute; bottom: 0; right: 0; width: 50px; height: 50px; background-color: black; display: none; z-index: 100;"></div>
+        </div>
+        <button class="jspsych-btn" id="custom-target-btn" style="margin-top: 20px;">Target!</button>
+      `,
+          choices: [],
+          response_ends_trial: false,
+          on_load: function () {
+            const imgDisplay = document.getElementById("rsvp-image-display");
+            const fixDisplay = document.getElementById("rsvp-fixation");
+            const totalBlocks = num_trials;
+            let currentBlockIndex = 0;
+            let currentState = "NORMAL"; // NORMAL, SENTINEL, PAUSED, FIXATION
 
-    const rsvp_trial = {
-      type: jsPsychHtmlButtonResponse,
-      stimulus: function() {
-          const stream = jsPsych.timelineVariable('stream');
-          let html = '<div class="rsvp-container">';
-          stream.forEach((img, idx) => {
-              html += `<img src="${img.src}" class="rsvp-image" id="rsvp-frame-${idx}" />`;
-          });
-          html += '</div>';
-          return html;
-      },
-      choices: ['Target!'],
-      button_html: '<button class="jspsych-btn" id="target-btn">%choice%</button>',
-      response_ends_trial: false, // Let the stream finish
-      trial_duration: 20 * 100, // 20 frames * 100ms
-      data: {
-          phase: 'rsvp',
-          s2_image: jsPsych.timelineVariable('s2_image'),
-          lag: jsPsych.timelineVariable('lag'),
-          condition: jsPsych.timelineVariable('condition'),
-          s1_pos: jsPsych.timelineVariable('s1_pos'),
-          s2_pos: jsPsych.timelineVariable('s2_pos')
-      },
-      on_load: function() {
-          let currentFrame = 0;
-          const totalFrames = 20;
-          const frameDuration = 100; // ms
-          let s1Onset = null;
-          const s1_pos = jsPsych.timelineVariable('s1_pos');
+            let blockFrames = [];
+            let frameIndex = 0;
+            let s1FrameIndex = -1;
 
-          // Implement keyboard fallback for SPACEBAR
-          const keydownListener = function(e) {
-            if (e.key === ' ' || e.code === 'Space') {
-              e.preventDefault();
-              const btn = document.getElementById('target-btn');
-              if (btn) btn.click();
+            let lastTime = performance.now();
+            const frameDuration = 100;
+            let animationFrameId;
+
+            let responseDetected = false;
+            let s1ShownTime = 0;
+
+            // Keyboard fallback
+            const keydownListener = function (e) {
+              if (e.key === " " || e.code === "Space") {
+                e.preventDefault();
+                responseDetected = true;
+              }
+            };
+            document.addEventListener("keydown", keydownListener);
+            jsPsych.getCurrentTrial().keydownListener = keydownListener;
+
+            // Button click fallback
+            const btn = document.getElementById("custom-target-btn");
+            if (btn) {
+              btn.addEventListener("click", (e) => {
+                e.preventDefault();
+                responseDetected = true;
+              });
             }
-          };
-          document.addEventListener('keydown', keydownListener);
-          // Store listener to remove it in on_finish
-          jsPsych.getCurrentTrial().keydownListener = keydownListener;
 
-          let lastTime = performance.now();
-          let animationFrameId;
+            let frameLog = []; // Store timing and ID for each frame
 
-          function updateFrame(time) {
+            function generateBlock(isSentinel, blockIdx) {
+              const frames = [];
+              const tv = trial_variables[blockIdx];
+              const s1_pos = tv.s1_pos;
+              const s2_pos = tv.s2_pos;
+
+              for (let j = 0; j < 20; j++) {
+                if (j === s1_pos) {
+                  frames.push({ src: global_target, type: "S1" });
+                } else if (j === s2_pos && !isSentinel) {
+                  frames.push({ src: tv.s2_image, type: "S2" });
+                } else {
+                  frames.push({
+                    src: masks[Math.floor(Math.random() * masks.length)],
+                    type: "Mask",
+                  });
+                }
+              }
+              return { frames, s1_pos };
+            }
+
+            function startNextBlock(isSentinel) {
+              responseDetected = false;
+              s1ShownTime = 0;
+              frameLog = []; // Reset log for the new block
+
+              let currentTvIndex = isSentinel
+                ? Math.floor(Math.random() * totalBlocks)
+                : currentBlockIndex;
+
+              const blockData = generateBlock(isSentinel, currentTvIndex);
+              blockFrames = blockData.frames;
+              s1FrameIndex = blockData.s1_pos;
+              frameIndex = 0;
+
+              currentState = isSentinel ? "SENTINEL" : "NORMAL";
+              imgDisplay.style.display = "block";
+
+              lastTime = performance.now();
+              animationFrameId = requestAnimationFrame(updateStream);
+            }
+
+            function finishContinuousTrial() {
+              if (animationFrameId) cancelAnimationFrame(animationFrameId);
+              const listener = jsPsych.getCurrentTrial().keydownListener;
+              if (listener) {
+                document.removeEventListener("keydown", listener);
+              }
+              jsPsych.finishTrial({});
+            }
+
+            function updateStream(time) {
               if (time - lastTime >= frameDuration) {
-                  // Hide previous
-                  if (currentFrame > 0) {
-                      document.getElementById(`rsvp-frame-${currentFrame - 1}`).classList.remove('active');
+                
+                // Photodiode state generation
+                let pd_is_on = false;
+                const pdElement = document.getElementById("photodiode-patch");
+                if (setup === "MEG" && pdElement) {
+                  pdElement.style.display = "block";
+                  pd_is_on = Math.random() > 0.5;
+                  pdElement.style.backgroundColor = pd_is_on ? "white" : "black";
+                } else if (pdElement) {
+                  pdElement.style.display = "none";
+                }
+
+                if (frameIndex < blockFrames.length) {
+                  const frameData = blockFrames[frameIndex];
+                  imgDisplay.src = frameData.src;
+                  frameLog.push({
+                    time: time,
+                    src: frameData.src,
+                    type: frameData.type,
+                    pd_state: pd_is_on
+                  });
+
+                  if (frameIndex === s1FrameIndex) {
+                    s1ShownTime = time;
+                    responseDetected = false; // Reset response window at S1 onset
                   }
 
-                  // Show current
-                  if (currentFrame < totalFrames) {
-                      document.getElementById(`rsvp-frame-${currentFrame}`).classList.add('active');
-                      if (currentFrame === s1_pos) {
-                          s1Onset = performance.now();
-                      }
-                      currentFrame++;
-                      lastTime = time;
+                  frameIndex++;
+                  lastTime = time;
+                } else {
+                  // End of 20 frames (2 seconds)
+                  // Wait another 1 second to see if there's a late response (3s total from S1)
+                  const timeSinceS1 = time - s1ShownTime;
+                  if (s1ShownTime > 0 && timeSinceS1 <= 3000) {
+                    // keep waiting
+                    const maskSrc =
+                      masks[Math.floor(Math.random() * masks.length)];
+                    imgDisplay.src = maskSrc;
+                    frameLog.push({
+                      time: time,
+                      src: maskSrc,
+                      type: "Mask_Padding",
+                      pd_state: pd_is_on
+                    });
+                    lastTime = time;
+                  } else {
+                    // 3 seconds have passed since S1
+                    // Log data before advancing block state
+                    jsPsych.data.write({
+                      phase: "rsvp",
+                      s2_image: trial_variables[currentBlockIndex].s2_image,
+                      lag: trial_variables[currentBlockIndex].lag,
+                      condition: trial_variables[currentBlockIndex].condition,
+                      s1_pos: trial_variables[currentBlockIndex].s1_pos,
+                      s2_pos: trial_variables[currentBlockIndex].s2_pos,
+                      sentinel_mode: currentState === "SENTINEL",
+                      detected: responseDetected,
+                      frame_log: JSON.stringify(frameLog), // Save the frame log
+                    });
+
+                    if (responseDetected) {
+                      // Correctly detected S1
+                      currentState = "PAUSED";
+                      imgDisplay.style.display = "none";
+                      if (pdElement) pdElement.style.display = "none";
+                      setTimeout(() => {
+                        if (
+                          currentState === "PAUSED" ||
+                          currentState === "SENTINEL_PAUSED"
+                        ) {
+                          if (currentState === "PAUSED") {
+                            currentBlockIndex++;
+                          }
+                          if (currentBlockIndex >= totalBlocks) {
+                            finishContinuousTrial();
+                          } else {
+                            startNextBlock(false); // Start normal block
+                          }
+                        }
+                      }, 1000);
+                      return; 
+                    } else {
+                      // Missed S1
+                      startNextBlock(true); // Start sentinel block
+                      return; 
+                    }
                   }
+                }
               }
 
-              if (currentFrame <= totalFrames) {
-                  animationFrameId = requestAnimationFrame(updateFrame);
-              }
-          }
+              animationFrameId = requestAnimationFrame(updateStream);
+            }
 
-          animationFrameId = requestAnimationFrame(updateFrame);
+            // Start the first block
+            startNextBlock(false);
+          },
+        };
 
-          // Store s1Onset globally or in an accessible way for on_finish if needed,
-          // but jsPsych handles RT relative to the start of the trial.
-          // We'll adjust it in on_finish.
-          jsPsych.pluginAPI.setTimeout(() => {
-             // Let the trial run its course, managed by trial_duration
-          }, totalFrames * frameDuration);
-      },
-      on_finish: function(data) {
-          // Remove the keyboard fallback listener
-          const listener = jsPsych.getCurrentTrial().keydownListener;
-          if (listener) {
-              document.removeEventListener('keydown', listener);
-          }
+        timeline.push({
+          type: jsPsychHtmlButtonResponse,
+          stimulus:
+            '<div class="instruction-text"><p>Phase 2 starting.</p><p>Press SPACEBAR or tap the Target button as quickly as possible when you see the target.</p><p>Click Continue to begin.</p></div>',
+          choices: ["Continue"],
+          post_trial_gap: 1000,
+        });
 
-          // Adjust RT relative to S1 onset
-          // S1 appears at s1_pos * 100 ms after trial start
-          const s1ExpectedOnset = data.s1_pos * 100;
-          if (data.rt !== null) {
-              data.rt_from_s1 = data.rt - s1ExpectedOnset;
-          } else {
-              data.rt_from_s1 = null;
-          }
-      }
-    };
+        timeline.push(rsvp_continuous_trial);
 
-    const rsvp_fixation = {
-        type: jsPsychHtmlKeyboardResponse,
-        stimulus: '<div style="font-size:48px;">+</div>',
-        choices: "NO_KEYS",
-        trial_duration: 500,
-        post_trial_gap: 0
-    };
+        // --- Phase 3: Surprise 2AFC Memory Test ---
 
-    const rsvp_procedure = {
-        timeline: [rsvp_fixation, rsvp_trial],
-        timeline_variables: trial_variables,
-        randomize_order: true // randomize trial order
-    };
-
-    timeline.push({
-        type: jsPsychHtmlButtonResponse,
-        stimulus: '<div class="instruction-text"><p>Phase 2 starting.</p><p>Press SPACEBAR or tap the Target button as quickly as possible when you see the target.</p><p>Click Continue to begin.</p></div>',
-        choices: ['Continue'],
-        post_trial_gap: 1000
-    });
-
-    timeline.push(rsvp_procedure);
-
-    // --- Phase 3: Surprise 2AFC Memory Test ---
-
-    timeline.push({
-        type: jsPsychHtmlButtonResponse,
-        stimulus: `
+        timeline.push({
+          type: jsPsychHtmlButtonResponse,
+          stimulus: `
             <div class="instruction-text">
                 <p><strong>Phase 3: Surprise Memory Test</strong></p>
                 <p>You have finished the rapid streams.</p>
@@ -462,77 +546,95 @@
                 <p>Click Continue to begin.</p>
             </div>
         `,
-        choices: ['Continue'],
-        post_trial_gap: 1000
-    });
+          choices: ["Continue"],
+          post_trial_gap: 1000,
+        });
 
-    const memory_trials = [];
-    // We will test all S2 images used in the RSVP phase
-    const used_s2 = presented_images;
-    let available_decoys = shuffleArray([...novel_images]);
+        const memory_trials = [];
+        // We will test all S2 images used in the RSVP phase
+        const used_s2 = presented_images;
+        let available_decoys = shuffleArray([...novel_images]);
 
-    for (let i = 0; i < num_trials; i++) {
-        const s2 = trial_variables[i].s2_image; // Get the specific S2 used in that trial
-        const lag = trial_variables[i].lag;
-        const condition = trial_variables[i].condition;
-        const decoy = available_decoys[i];
+        for (let i = 0; i < num_trials; i++) {
+          const s2 = trial_variables[i].s2_image; // Get the specific S2 used in that trial
+          const lag = trial_variables[i].lag;
+          const condition = trial_variables[i].condition;
+          const decoy = available_decoys[i];
 
-        const choices = [
+          const choices = [
             `<img src="${s2}" class="stimulus-image" style="width:100%; max-width:300px; height:auto; aspect-ratio:1/1; cursor:pointer;" />`,
-            `<img src="${decoy}" class="stimulus-image" style="width:100%; max-width:300px; height:auto; aspect-ratio:1/1; cursor:pointer;" />`
-        ];
+            `<img src="${decoy}" class="stimulus-image" style="width:100%; max-width:300px; height:auto; aspect-ratio:1/1; cursor:pointer;" />`,
+          ];
 
-        let correct_index = 0;
-        // Randomize left/right position
-        if (Math.random() > 0.5) {
+          let correct_index = 0;
+          // Randomize left/right position
+          if (Math.random() > 0.5) {
             choices.reverse();
             correct_index = 1;
-        }
+          }
 
-        memory_trials.push({
+          memory_trials.push({
             type: jsPsychHtmlButtonResponse,
-            stimulus: '<p style="font-size:24px; margin-bottom: 20px;">Which image did you see?</p>',
+            stimulus:
+              '<p style="font-size:24px; margin-bottom: 20px;">Which image did you see?</p>',
             choices: choices,
             data: {
-                phase: 'memory_test',
-                s2_image: s2,
-                decoy_image: decoy,
-                original_lag: lag,
-                original_condition: condition,
-                correct_response: correct_index
+              phase: "memory_test",
+              s2_image: s2,
+              decoy_image: decoy,
+              original_lag: lag,
+              original_condition: condition,
+              correct_response: correct_index,
             },
-            on_finish: function(data) {
-                data.correct = (data.response === data.correct_response);
-            }
-        });
-    }
+            on_finish: function (data) {
+              data.correct = data.response === data.correct_response;
+            },
+          });
+        }
 
-    const memory_procedure = {
-        timeline: memory_trials,
-        randomize_order: true
-    };
+        const memory_procedure = {
+          timeline: memory_trials,
+          randomize_order: true,
+        };
 
-    timeline.push(memory_procedure);
+        timeline.push(memory_procedure);
 
-    // --- End of Experiment ---
-    timeline.push({
-        type: jsPsychHtmlButtonResponse,
-        stimulus: `
+        // --- End of Experiment ---
+        timeline.push({
+          type: jsPsychHtmlButtonResponse,
+          stimulus: `
             <div class="instruction-text">
                 <p>The experiment is now complete.</p>
                 <p>Thank you for participating!</p>
-                <p>Click Continue to view your data.</p>
+                <p>Click Download Results/Finish to end.</p>
             </div>
         `,
-        choices: ['Continue']
-    });
+          choices: ["Finish"],
+          on_finish: function () {
+            // Only trigger local download in MEG setup
+            if (setup === "MEG") {
+                jsPsych.data.get().localSave("csv", "results.csv");
+            }
+          },
+        });
 
-    // Hide loading message and run the experiment
-    document.getElementById('loading-message').style.display = 'none';
-    jsPsych.run(timeline);
+        const save_data = {
+          type: jsPsychPipe,
+          action: "save",
+          experiment_id: "igmld2RYBkaK",
+          filename: filename,
+          data_string: () => jsPsych.data.get().csv(),
+        };
 
-    })(); // End of initExperiment
+        // Only push to DataPipe if we are connected to the web
+        if (setup === "web") {
+            timeline.push(save_data);
+        }
 
-  </script>
-</body>
+        // Hide loading message and run the experiment
+        document.getElementById("loading-message").style.display = "none";
+        jsPsych.run(timeline);
+      })(); // End of initExperiment
+    </script>
+  </body>
 </html>
