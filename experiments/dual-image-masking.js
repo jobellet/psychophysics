@@ -401,12 +401,26 @@ startButton.addEventListener('click', () => {
   }
 
   jsPsych.data.reset();
+
+  const subject_id = jsPsych.randomization.randomID(10);
+  const filename = `${subject_id}.csv`;
+  jsPsych.data.addProperties({ subject_id: subject_id });
+
   completedTrials = 0;
   totalTrials = 50; // 50 trials per experiment
   updateProgress();
 
   initQuest();
   const timeline = buildTimeline(totalTrials);
+
+  const save_data = {
+    type: jsPsychPipe,
+    action: "save",
+    experiment_id: "EJ8DP6RjZItO",
+    filename: filename,
+    data_string: () => jsPsych.data.get().csv()
+  };
+  timeline.push(save_data);
 
   setStatus('');
   jspsychContainer.classList.add('active');
