@@ -151,7 +151,7 @@ function initQuest() {
   const soaFrames = [1, 2, 3, 4, 5, 6, 7]; // 1-7 frames
   const alphas = [1, 2, 3, 4, 5, 6, 7]; // threshold guesses
   const betas = [1, 2, 3, 4]; // slopes
-  const guessRates = [0.20]; // 2/10 chance of randomly picking T1
+  const guessRates = [2/3]; // 2/3 chance of randomly picking T1
   const lapseRates = [0.01, 0.02, 0.05];
 
   questEngine = new jsQuestPlus({
@@ -274,8 +274,11 @@ function buildTimeline(numTrials) {
 
     timeline.push(flashNode);
 
-    // Response Node (all 10 images)
-    const choices = shuffleInPlace([...imagePool]).map(filename => ({
+    // Response Node (3 images)
+    const distractors = imagePool.filter(f => f !== t1Filename && f !== t2Filename);
+    const randomDistractor = chooseRandom(distractors);
+    const choiceFilenames = [t1Filename, t2Filename, randomDistractor];
+    const choices = shuffleInPlace(choiceFilenames).map(filename => ({
       filename,
       src: joinPath(NEUTRAL_DIR, filename)
     }));
