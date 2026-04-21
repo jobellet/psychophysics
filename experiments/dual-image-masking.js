@@ -14,7 +14,16 @@ const jsPsych = initJsPsych({
   display_element: 'jspsych-target',
   show_progress_bar: true,
   auto_update_progress_bar: false,
-  on_finish: () => finalizeSession('complete')
+  on_finish: () => finalizeSession('complete'),
+  on_data_update: function(data) {
+    if (data.task === 'dual-image-masking') {
+      completedTrials += 1;
+      if (typeof jsPsych.setProgressBar === 'function') {
+        jsPsych.setProgressBar(completedTrials / totalTrials);
+      }
+      updateProgress();
+    }
+  }
 });
 
 let allTrials = [];
@@ -427,14 +436,6 @@ startButton.addEventListener('click', () => {
   startButton.disabled = true;
   stopButton.disabled = false;
   experimentRunning = true;
-
-  jsPsych.opts.on_data_update = (data) => {
-    if (data.task === 'dual-image-masking') {
-      completedTrials += 1;
-      jsPsych.setProgressBar(completedTrials / totalTrials);
-      updateProgress();
-    }
-  };
 
   jsPsych.run(timeline);
 });
