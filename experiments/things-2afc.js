@@ -95,8 +95,12 @@ function buildTrials(manifest) {
     const outlierCandidates = outlierMap.get(prefix) || [];
 
     if (prototypicalCandidates.length === 0 || outlierCandidates.length === 0) {
-      console.warn(`Skipping ${neutralFilename}: missing prototypical or outlier match.`);
-      skipped.push({ neutral: neutralFilename, prefix, missingPrototypical: prototypicalCandidates.length === 0, missingOutlier: outlierCandidates.length === 0 });
+      skipped.push({
+        neutral: neutralFilename,
+        prefix,
+        missingPrototypical: prototypicalCandidates.length === 0,
+        missingOutlier: outlierCandidates.length === 0
+      });
       continue;
     }
 
