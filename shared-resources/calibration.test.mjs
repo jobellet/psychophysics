@@ -14,14 +14,122 @@ calibrationContent = calibrationContent.replace(
   "const ZIP_LIBRARY_URL = null;"
 );
 
+// Add missing exports for testing
+calibrationContent += "\nexport { applyCalibrationEntries, assignCalibrationElements, slugRegistry };\n";
+
 const tempCalibrationPath = path.join(__dirname, 'calibration.test.temp.mjs');
 fs.writeFileSync(tempCalibrationPath, calibrationContent);
 
+// Mock document for testing DOM elements
+global.document = {
+  createElement: (tag) => {
+    return {
+      tagName: tag.toUpperCase(),
+      dataset: {},
+      children: [],
+      appendChild(child) {
+        this.children.push(child);
+      },
+      get options() {
+        if (this.tagName === 'SELECT') {
+          const opts = [];
+          for (const child of this.children) {
+            if (child.tagName === 'OPTION') opts.push(child);
+            else if (child.tagName === 'OPTGROUP') opts.push(...child.children);
+          }
+          return opts;
+        }
+        return undefined;
+      }
+    };
+  },
+  getElementById: (id) => {
+    return null;
+  }
+};
+
 try {
-  const pkg = await import('./calibration.test.temp.mjs');
-  const { slugify } = pkg;
+
+const pkg = await import('./calibration.test.temp.mjs');
+  const { slugify, applyCalibrationEntries, assignCalibrationElements, slugRegistry } = pkg;
+
+  test('applyCalibrationEntries', async (t) => {
+    let mockSelect;
+
+    t.beforeEach(() => {
+      slugRegistry.clear();
+      mockSelect = global.document.createElement('select');
+      assignCalibrationElements({ objectSelect: mockSelect });
+    });
+
+    await t.test('returns an empty array for invalid or empty inputs', () => {
+      assert.deepStrictEqual(applyCalibrationEntries(null), []);
+      assert.deepStrictEqual(applyCalibrationEntries(undefined), []);
+      assert.deepStrictEqual(applyCalibrationEntries([]), []);
+    });
+
+await t.test('handles category entries correctly by grouping options', () => {
+      const entries = [
+        { type: 'category', label: 'Group 1' },
+        { type: 'object', name: 'Obj 1', shape: 'rect', lengthMm: 10, widthMm: 5 },
+        { type: 'category', label: 'Group 2' },
+        { type: 'object', name: 'Obj 2', shape: 'circle', radiusMm: 5 }
+      ];
+
+      const parsed = applyCalibrationEntries(entries);
+
+      assert.strictEqual(parsed.length, 2);
+      assert.strictEqual(parsed[0].name, 'Obj 1');
+      assert.strictEqual(parsed[1].name, 'Obj 2');
+    });
+
+    await t.test('correctly converts dimensions and parses them back', () => {
+      const entries = [
+        { type: 'object', name: 'Card', shape: 'rect', lengthMm: 85.6, widthMm: 53.98 }
+      ];
+
+      const parsed = applyCalibrationEntries(entries);
+
+      assert.strictEqual(parsed.length, 1);
+      assert.strictEqual(parsed[0].shape, 'rect');
+      assert.strictEqual(parsed[0].lengthMm, 85.6);
+      assert.strictEqual(parsed[0].widthMm, 53.98);
+      assert.strictEqual(parsed[0].widthReferenceMm, 85.6);
+      assert.strictEqual(parsed[0].heightReferenceMm, 53.98);
+      assert.strictEqual(parsed[0].aspectRatio, 53.98 / 85.6);
+    });
+
+    await t.test('falls back to circle shape and parses legacy IDs correctly', () => {
+      const entries = [
+        { type: 'object', name: 'Coin', radiusMm: 10, legacyIds: ['COIN-1', 'COIN-2'] }
+      ];
+
+      const parsed = applyCalibrationEntries(entries);
+
+      assert.strictEqual(parsed.length, 1);
+      assert.strictEqual(parsed[0].shape, 'circle');
+      assert.strictEqual(parsed[0].radiusMm, 10);
+      assert.strictEqual(parsed[0].diameterMm, 20);
+      assert.strictEqual(parsed[0].widthReferenceMm, 20);
+      assert.strictEqual(parsed[0].heightReferenceMm, 20);
+      assert.strictEqual(parsed[0].aspectRatio, 1);
+      assert.deepStrictEqual(parsed[0].legacyIds, ['COIN-1', 'COIN-2']);
+    });
+
+    await t.test('uses slugify to generate missing IDs', () => {
+      const entries = [
+        { type: 'object', name: 'Missing ID Obj', lengthMm: 10, widthMm: 10 }
+      ];
+
+      const parsed = applyCalibrationEntries(entries);
+
+      assert.strictEqual(parsed.length, 1);
+      assert.strictEqual(parsed[0].id, 'missing-id-obj');
+    });
+  });
 
   test('slugify', async (t) => {
+
     await t.test('converts simple strings to lowercase and replaces non-alphanumeric with hyphens', () => {
       assert.strictEqual(slugify('Hello World'), 'hello-world');
       assert.strictEqual(slugify('Test String'), 'test-string');
@@ -91,5 +199,5 @@ try {
     });
   });
 } finally {
-  // fs.unlinkSync(tempCalibrationPath);
+  fs.unlinkSync(tempCalibrationPath);
 }
