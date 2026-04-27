@@ -1,4 +1,5 @@
-import { downloadBlob } from '../shared-resources/utils/downloadBlob.js';
+import { downloadBlob } from "../shared-resources/utils/downloadBlob.js";
+import { formatTimestampForFilename } from "../shared-resources/utils/date.js";
 
 export const TARGET_DIAMETER_DVA = 0.12;
 export const FIXATION_DIAMETER_DVA = 0.12;
@@ -23,13 +24,19 @@ function randomTargetOnsetDelay() {
 
 function snapFlashDuration(durationMs) {
   let refreshRate = 60;
-  const screen = typeof window !== 'undefined' ? window.screen : null;
+  const screen = typeof window !== "undefined" ? window.screen : null;
   if (screen && Number.isFinite(screen.frameRate) && screen.frameRate > 0) {
     refreshRate = screen.frameRate;
-  } else if (typeof window !== 'undefined') {
-    if (window.matchMedia && window.matchMedia('(min-refresh-rate: 120hz)').matches) {
+  } else if (typeof window !== "undefined") {
+    if (
+      window.matchMedia &&
+      window.matchMedia("(min-refresh-rate: 120hz)").matches
+    ) {
       refreshRate = 120;
-    } else if (window.matchMedia && window.matchMedia('(min-resolution: 2dppx)').matches) {
+    } else if (
+      window.matchMedia &&
+      window.matchMedia("(min-resolution: 2dppx)").matches
+    ) {
       refreshRate = 120;
     }
   }
@@ -46,7 +53,9 @@ function clamp(value, min, max) {
 
 export function sampleAnnulusPointDeg(rMinDeg, rMaxDeg) {
   const u = Math.random();
-  const r = Math.sqrt(u * (rMaxDeg * rMaxDeg - rMinDeg * rMinDeg) + rMinDeg * rMinDeg);
+  const r = Math.sqrt(
+    u * (rMaxDeg * rMaxDeg - rMinDeg * rMinDeg) + rMinDeg * rMinDeg,
+  );
   const th = Math.random() * 2 * Math.PI;
   const x = r * Math.cos(th);
   const y = r * Math.sin(th);
@@ -54,21 +63,21 @@ export function sampleAnnulusPointDeg(rMinDeg, rMaxDeg) {
 }
 
 function formatNumber(value, digits = 2) {
-  return Number.isFinite(value) ? value.toFixed(digits) : '—';
+  return Number.isFinite(value) ? value.toFixed(digits) : "—";
 }
 
 function buildCsv(data) {
   if (!Array.isArray(data) || data.length === 0) {
-    return 'trial_index';
+    return "trial_index";
   }
   const columns = Object.keys(data[0]);
-  const header = columns.join(',');
-  const rows = data.map(row =>
+  const header = columns.join(",");
+  const rows = data.map((row) =>
     columns
-      .map(key => {
+      .map((key) => {
         const value = row[key];
-        if (value === null || value === undefined) return '';
-        if (typeof value === 'string') {
+        if (value === null || value === undefined) return "";
+        if (typeof value === "string") {
           const escaped = value.replace(/"/g, '""');
           return `"${escaped}"`;
         }
@@ -80,21 +89,9 @@ function buildCsv(data) {
         }
         return String(value);
       })
-      .join(',')
+      .join(","),
   );
-  return [header, ...rows].join('\n');
-}
-
-function formatTimestampForFilename(date = new Date()) {
-  const pad = value => String(value).padStart(2, '0');
-  return [
-    date.getFullYear(),
-    pad(date.getMonth() + 1),
-    pad(date.getDate()),
-    pad(date.getHours()),
-    pad(date.getMinutes()),
-    pad(date.getSeconds())
-  ].join('');
+  return [header, ...rows].join("\n");
 }
 
 function ensureElement(id) {
@@ -108,13 +105,13 @@ function ensureElement(id) {
 let errorAudioContext = null;
 
 async function playErrorTone() {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   if (!AudioContext) return;
   if (!errorAudioContext) {
     errorAudioContext = new AudioContext();
   }
-  if (errorAudioContext.state === 'suspended') {
+  if (errorAudioContext.state === "suspended") {
     try {
       await errorAudioContext.resume();
     } catch (err) {
@@ -132,8 +129,8 @@ async function playErrorTone() {
 
   const osc1 = errorAudioContext.createOscillator();
   const osc2 = errorAudioContext.createOscillator();
-  osc1.type = 'sawtooth';
-  osc2.type = 'square';
+  osc1.type = "sawtooth";
+  osc2.type = "square";
   osc1.frequency.setValueAtTime(330, now);
   osc2.frequency.setValueAtTime(355, now);
   osc1.connect(gain);
@@ -152,21 +149,29 @@ async function playErrorTone() {
 
 export function run({ reference, trialCount = 1000 } = {}) {
   if (!reference) {
-    throw new Error('A calibration reference is required to run the experiment.');
+    throw new Error(
+      "A calibration reference is required to run the experiment.",
+    );
   }
 
-  const stage = ensureElement('experiment-stage');
-  const fixation = ensureElement('fixation');
-  const target = ensureElement('flash-target');
-  const hudTrial = document.getElementById('hud-trial');
-  const hudCalibration = document.getElementById('hud-calibration');
-  const downloadCsvButton = document.getElementById('download-csv');
-  const downloadJsonButton = document.getElementById('download-json');
-  const downloadPanel = document.getElementById('download-panel');
+  const stage = ensureElement("experiment-stage");
+  const fixation = ensureElement("fixation");
+  const target = ensureElement("flash-target");
+  const hudTrial = document.getElementById("hud-trial");
+  const hudCalibration = document.getElementById("hud-calibration");
+  const downloadCsvButton = document.getElementById("download-csv");
+  const downloadJsonButton = document.getElementById("download-json");
+  const downloadPanel = document.getElementById("download-panel");
 
   const dvaPerPixel = VisualAngle.pixelsToDVA(1, reference);
-  const targetDiameterPx = Math.max(2, VisualAngle.dvaToPixels(TARGET_DIAMETER_DVA, reference));
-  const fixationDiameterPx = Math.max(2, VisualAngle.dvaToPixels(FIXATION_DIAMETER_DVA, reference));
+  const targetDiameterPx = Math.max(
+    2,
+    VisualAngle.dvaToPixels(TARGET_DIAMETER_DVA, reference),
+  );
+  const fixationDiameterPx = Math.max(
+    2,
+    VisualAngle.dvaToPixels(FIXATION_DIAMETER_DVA, reference),
+  );
 
   fixation.style.width = `${fixationDiameterPx}px`;
   fixation.style.height = `${fixationDiameterPx}px`;
@@ -179,7 +184,7 @@ export function run({ reference, trialCount = 1000 } = {}) {
     const mmPerPixel = reference.mmPerPixel;
     hudCalibration.textContent = `Distance ${formatNumber(distanceCm, 1)} cm · 1° ≈ ${formatNumber(
       VisualAngle.dvaToPixels(1, reference),
-      1
+      1,
     )} px · 1 px ≈ ${formatNumber(mmPerPixel, 3)} mm`;
   }
 
@@ -191,7 +196,7 @@ export function run({ reference, trialCount = 1000 } = {}) {
   const snappedFlashDuration = snapFlashDuration(FLASH_DURATION_MS);
 
   function waitForMs(ms) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       window.setTimeout(resolve, ms);
     });
   }
@@ -202,7 +207,7 @@ export function run({ reference, trialCount = 1000 } = {}) {
       initialFlashTimeout,
       flashTimeout,
       releaseTimeout,
-      responseTimeout
+      responseTimeout,
     } = timerHandles;
     if (initialFlashTimeout) {
       window.clearTimeout(initialFlashTimeout);
@@ -229,15 +234,15 @@ export function run({ reference, trialCount = 1000 } = {}) {
   }
 
   function hideTarget() {
-    target.classList.remove('visible');
+    target.classList.remove("visible");
   }
 
   function showFixation() {
-    fixation.classList.remove('hidden');
+    fixation.classList.remove("hidden");
   }
 
   function concealFixation() {
-    fixation.classList.add('hidden');
+    fixation.classList.add("hidden");
   }
 
   async function runTrial(trialIndex) {
@@ -270,7 +275,9 @@ export function run({ reference, trialCount = 1000 } = {}) {
     const targetXDeg = VisualAngle.pixelsToDVA(targetXPx, reference);
     const targetYDeg = VisualAngle.pixelsToDVA(targetYPx, reference);
     const targetThetaDeg = (Math.atan2(targetYDeg, targetXDeg) * 180) / Math.PI;
-    const targetRadiusDeg = Math.sqrt(targetXDeg * targetXDeg + targetYDeg * targetYDeg);
+    const targetRadiusDeg = Math.sqrt(
+      targetXDeg * targetXDeg + targetYDeg * targetYDeg,
+    );
 
     target.style.transform = `translate(-50%, -50%) translate(${targetXPx}px, ${-targetYPx}px)`;
 
@@ -285,7 +292,7 @@ export function run({ reference, trialCount = 1000 } = {}) {
       initialFlashTimeout: null,
       flashTimeout: null,
       releaseTimeout: null,
-      responseTimeout: null
+      responseTimeout: null,
     };
 
     showFixation();
@@ -295,7 +302,7 @@ export function run({ reference, trialCount = 1000 } = {}) {
       awaitingResponse = false;
       cleanupTrialTimers(timerHandles);
       hideTarget();
-      stage.removeEventListener('pointerdown', handlePointer);
+      stage.removeEventListener("pointerdown", handlePointer);
       responseWindowOpen = false;
       releaseOpenedAt = null;
       showFixation();
@@ -306,9 +313,13 @@ export function run({ reference, trialCount = 1000 } = {}) {
       if (!awaitingResponse) return;
       const responseTimestamp = performance.now();
       const rt = firstOnset !== null ? responseTimestamp - firstOnset : null;
-      const rtFromRelease = releaseOpenedAt !== null
-        ? Math.min(responseTimestamp - releaseOpenedAt, POST_FIXATION_OFFSET_HOLD_MS)
-        : null;
+      const rtFromRelease =
+        releaseOpenedAt !== null
+          ? Math.min(
+              responseTimestamp - releaseOpenedAt,
+              POST_FIXATION_OFFSET_HOLD_MS,
+            )
+          : null;
 
       const result = {
         trial_index: trialIndex,
@@ -331,7 +342,8 @@ export function run({ reference, trialCount = 1000 } = {}) {
         response_y_deg: null,
         response_x_px: null,
         response_y_px: null,
-        target_onset_delay_ms: firstOnset !== null ? firstOnset - fixationOnset : null,
+        target_onset_delay_ms:
+          firstOnset !== null ? firstOnset - fixationOnset : null,
         mm_per_pixel: reference.mmPerPixel,
         viewing_distance_mm: reference.viewingDistanceMm,
         dva_per_pixel: dvaPerPixel,
@@ -339,13 +351,13 @@ export function run({ reference, trialCount = 1000 } = {}) {
         screen_h_px: window.screen.height,
         stage_w_px: stageWidth,
         stage_h_px: stageHeight,
-        devicePixelRatio: window.devicePixelRatio || 1
+        devicePixelRatio: window.devicePixelRatio || 1,
       };
 
       const postTrial = {
         delayMs: NEXT_TRIAL_DELAY_AFTER_FIXATION_OFFSET_MS,
         anchorTimestamp: releaseOpenedAt ?? performance.now(),
-        source: 'fixation_offset'
+        source: "fixation_offset",
       };
 
       finishTrial(result, postTrial);
@@ -375,7 +387,7 @@ export function run({ reference, trialCount = 1000 } = {}) {
         firstOnset = now;
       }
 
-      target.classList.add('visible');
+      target.classList.add("visible");
       timerHandles.flashTimeout = window.setTimeout(() => {
         hideTarget();
         const releaseDelay = randomFixationReleaseDelay();
@@ -390,11 +402,10 @@ export function run({ reference, trialCount = 1000 } = {}) {
           }, POST_FIXATION_OFFSET_HOLD_MS);
         }, releaseDelay);
       }, snappedFlashDuration);
-
     }
 
     let resolveTrial;
-    const trialPromise = new Promise(resolve => {
+    const trialPromise = new Promise((resolve) => {
       resolveTrial = resolve;
     });
 
@@ -418,7 +429,7 @@ export function run({ reference, trialCount = 1000 } = {}) {
       cleanupTrialTimers(timerHandles);
       hideTarget();
       concealFixation();
-      stage.removeEventListener('pointerdown', handlePointer);
+      stage.removeEventListener("pointerdown", handlePointer);
 
       const rect = stage.getBoundingClientRect();
       const relativeX = event.clientX - rect.left;
@@ -433,7 +444,8 @@ export function run({ reference, trialCount = 1000 } = {}) {
 
       const responseTimestamp = performance.now();
       const rt = firstOnset !== null ? responseTimestamp - firstOnset : null;
-      const rtFromRelease = releaseOpenedAt !== null ? responseTimestamp - releaseOpenedAt : null;
+      const rtFromRelease =
+        releaseOpenedAt !== null ? responseTimestamp - releaseOpenedAt : null;
 
       const result = {
         trial_index: trialIndex,
@@ -456,7 +468,8 @@ export function run({ reference, trialCount = 1000 } = {}) {
         response_y_deg: responseYDeg,
         response_x_px: responseXPx,
         response_y_px: responseYPx,
-        target_onset_delay_ms: firstOnset !== null ? firstOnset - fixationOnset : null,
+        target_onset_delay_ms:
+          firstOnset !== null ? firstOnset - fixationOnset : null,
         mm_per_pixel: reference.mmPerPixel,
         viewing_distance_mm: reference.viewingDistanceMm,
         dva_per_pixel: dvaPerPixel,
@@ -464,21 +477,21 @@ export function run({ reference, trialCount = 1000 } = {}) {
         screen_h_px: window.screen.height,
         stage_w_px: stageWidth,
         stage_h_px: stageHeight,
-        devicePixelRatio: window.devicePixelRatio || 1
+        devicePixelRatio: window.devicePixelRatio || 1,
       };
 
       const postTrial = {
         delayMs: NEXT_TRIAL_DELAY_AFTER_TOUCH_MS,
         anchorTimestamp: responseTimestamp,
-        source: 'response'
+        source: "response",
       };
 
       finishTrial(result, postTrial);
     }
 
-    stage.addEventListener('pointerdown', handlePointer);
+    stage.addEventListener("pointerdown", handlePointer);
     activeCleanup = () => {
-      stage.removeEventListener('pointerdown', handlePointer);
+      stage.removeEventListener("pointerdown", handlePointer);
       cleanupTrialTimers(timerHandles);
       hideTarget();
       showFixation();
@@ -492,12 +505,12 @@ export function run({ reference, trialCount = 1000 } = {}) {
 
   async function runLoop() {
     try {
-      stage.classList.add('running');
-      stage.setAttribute('data-active', 'true');
-      stage.style.cursor = 'crosshair';
+      stage.classList.add("running");
+      stage.setAttribute("data-active", "true");
+      stage.style.cursor = "crosshair";
       if (downloadPanel) {
         downloadPanel.hidden = true;
-        downloadPanel.setAttribute('hidden', 'hidden');
+        downloadPanel.setAttribute("hidden", "hidden");
       }
 
       for (let i = 0; i < trialCount; i += 1) {
@@ -510,14 +523,18 @@ export function run({ reference, trialCount = 1000 } = {}) {
           let elapsedSinceAnchor = null;
           if (postTrial && Number.isFinite(postTrial.delayMs)) {
             if (Number.isFinite(postTrial.anchorTimestamp)) {
-              elapsedSinceAnchor = Math.max(0, performance.now() - postTrial.anchorTimestamp);
+              elapsedSinceAnchor = Math.max(
+                0,
+                performance.now() - postTrial.anchorTimestamp,
+              );
               waitMs = Math.max(0, postTrial.delayMs - elapsedSinceAnchor);
             } else {
               waitMs = Math.max(0, postTrial.delayMs);
             }
           }
 
-          const totalWaitMs = (elapsedSinceAnchor !== null ? elapsedSinceAnchor : 0) + waitMs;
+          const totalWaitMs =
+            (elapsedSinceAnchor !== null ? elapsedSinceAnchor : 0) + waitMs;
 
           result.post_trial_delay_ms = postTrial ? postTrial.delayMs : null;
           result.post_trial_delay_type = postTrial ? postTrial.source : null;
@@ -536,22 +553,22 @@ export function run({ reference, trialCount = 1000 } = {}) {
       }
     } finally {
       running = false;
-      stage.classList.remove('running');
-      stage.removeAttribute('data-active');
+      stage.classList.remove("running");
+      stage.removeAttribute("data-active");
       hideTarget();
       showFixation();
-      stage.style.cursor = 'default';
+      stage.style.cursor = "default";
       if (hudTrial) {
         hudTrial.textContent = trials.length
-          ? `Completed ${trials.length} trial${trials.length === 1 ? '' : 's'}.`
-          : 'No responses recorded.';
+          ? `Completed ${trials.length} trial${trials.length === 1 ? "" : "s"}.`
+          : "No responses recorded.";
       }
       if (downloadPanel) {
         downloadPanel.hidden = false;
-        downloadPanel.removeAttribute('hidden');
-        const countEl = document.getElementById('download-count');
+        downloadPanel.removeAttribute("hidden");
+        const countEl = document.getElementById("download-count");
         if (countEl) {
-          countEl.textContent = `${trials.length} trial${trials.length === 1 ? '' : 's'} recorded.`;
+          countEl.textContent = `${trials.length} trial${trials.length === 1 ? "" : "s"} recorded.`;
         }
       }
       if (downloadCsvButton) {
@@ -568,7 +585,7 @@ export function run({ reference, trialCount = 1000 } = {}) {
 
   function stop(immediate = false) {
     stopRequested = true;
-    if (immediate && typeof activeCleanup === 'function') {
+    if (immediate && typeof activeCleanup === "function") {
       activeCleanup();
     }
   }
@@ -581,30 +598,34 @@ export function run({ reference, trialCount = 1000 } = {}) {
       `# Timestamp: ${new Date().toISOString()}`,
       `# Viewing distance (mm): ${reference.viewingDistanceMm}`,
       `# mm per pixel: ${reference.mmPerPixel}`,
-      `# trials: ${trials.length}`
+      `# trials: ${trials.length}`,
     ];
     const csv = buildCsv(trials);
-    const content = `${headerLines.join('\n')}\n${csv}`;
-    downloadBlob(`${timestampPrefix}perceptual-localization-delayed.csv`, content, 'text/csv');
+    const content = `${headerLines.join("\n")}\n${csv}`;
+    downloadBlob(
+      `${timestampPrefix}perceptual-localization-delayed.csv`,
+      content,
+      "text/csv",
+    );
   }
 
   function downloadJson() {
     if (!trials.length) return;
     const timestampPrefix = `${formatTimestampForFilename()}_`;
     const payload = {
-      task: 'perceptual-localization-delayed',
+      task: "perceptual-localization-delayed",
       generated_at: new Date().toISOString(),
       calibration: {
         mm_per_pixel: reference.mmPerPixel,
         viewing_distance_mm: reference.viewingDistanceMm,
-        dva_per_pixel: dvaPerPixel
+        dva_per_pixel: dvaPerPixel,
       },
-      trials
+      trials,
     };
     downloadBlob(
       `${timestampPrefix}perceptual-localization-delayed.json`,
       JSON.stringify(payload, null, 2),
-      'application/json'
+      "application/json",
     );
   }
 
@@ -614,18 +635,18 @@ export function run({ reference, trialCount = 1000 } = {}) {
     finished: runPromise,
     isRunning: () => running,
     downloadCsv,
-    downloadJson
+    downloadJson,
   };
 }
 
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   window.PerceptualLocalizationDelayed = {
     run,
-    sampleAnnulusPointDeg
+    sampleAnnulusPointDeg,
   };
 }
 
 export default {
   run,
-  sampleAnnulusPointDeg
+  sampleAnnulusPointDeg,
 };
