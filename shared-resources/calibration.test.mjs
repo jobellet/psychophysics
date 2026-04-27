@@ -90,6 +90,57 @@ try {
       assert.strictEqual(third, `${expectedBase}-3`);
     });
   });
+
+  test('arrayBufferToUint8', async (t) => {
+    const { arrayBufferToUint8 } = pkg;
+
+    await t.test('returns the same object if already a Uint8Array', () => {
+      const arr = new Uint8Array([1, 2, 3]);
+      const result = arrayBufferToUint8(arr);
+      assert.strictEqual(result, arr);
+    });
+
+    await t.test('converts an ArrayBuffer to a Uint8Array', () => {
+      const buffer = new ArrayBuffer(4);
+      const view = new DataView(buffer);
+      view.setUint8(0, 10);
+      view.setUint8(1, 20);
+      view.setUint8(2, 30);
+      view.setUint8(3, 40);
+
+      const result = arrayBufferToUint8(buffer);
+      assert.ok(result instanceof Uint8Array);
+      assert.strictEqual(result.length, 4);
+      assert.strictEqual(result[0], 10);
+      assert.strictEqual(result[1], 20);
+      assert.strictEqual(result[2], 30);
+      assert.strictEqual(result[3], 40);
+    });
+
+    await t.test('handles objects wrapping an ArrayBuffer like DataView or other TypedArrays', () => {
+      const floatArr = new Float32Array([1.5, 2.5]);
+      const result = arrayBufferToUint8(floatArr);
+      assert.ok(result instanceof Uint8Array);
+      assert.strictEqual(result.length, 8); // 2 floats * 4 bytes
+      assert.strictEqual(result.buffer, floatArr.buffer);
+    });
+
+    await t.test('respects byteOffset and byteLength of TypedArrays wrapping an ArrayBuffer', () => {
+      const buffer = new ArrayBuffer(16);
+      const view = new DataView(buffer);
+      for(let i=0; i<16; i++) view.setUint8(i, i);
+
+      const floatArr = new Float32Array(buffer, 4, 2);
+      const result = arrayBufferToUint8(floatArr);
+      assert.ok(result instanceof Uint8Array);
+      assert.strictEqual(result.length, 8); // 2 floats * 4 bytes
+      assert.strictEqual(result.buffer, floatArr.buffer);
+      assert.strictEqual(result.byteOffset, 4);
+      assert.strictEqual(result.byteLength, 8);
+      assert.strictEqual(result[0], 4);
+      assert.strictEqual(result[7], 11);
+    });
+  });
 } finally {
   // fs.unlinkSync(tempCalibrationPath);
 }
