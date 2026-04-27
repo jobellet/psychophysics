@@ -138,6 +138,9 @@ function arrayBufferToUint8(buffer) {
   if (buffer instanceof Uint8Array) {
     return buffer;
   }
+  if (buffer.buffer instanceof ArrayBuffer) {
+    return new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+  }
   return new Uint8Array(buffer);
 }
 
@@ -966,5 +969,5 @@ if (typeof window !== 'undefined') {
   window.Calibration = CalibrationAPI;
 }
 
-export { init, getReference, getState, requireReady, onReady, slugify };
+export { init, getReference, getState, requireReady, onReady, slugify, arrayBufferToUint8 };
 export default CalibrationAPI;
