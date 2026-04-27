@@ -966,5 +966,5 @@ if (typeof window !== 'undefined') {
   window.Calibration = CalibrationAPI;
 }
 
-export { init, getReference, getState, requireReady, onReady, slugify };
+export { init, getReference, getState, requireReady, onReady, slugify, extractEntriesFromSheet };
 export default CalibrationAPI;
