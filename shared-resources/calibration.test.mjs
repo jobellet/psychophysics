@@ -3,6 +3,11 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { JSDOM } from 'jsdom';
+
+const { window } = new JSDOM();
+global.DOMParser = window.DOMParser;
+global.Node = window.Node;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const calibrationPath = path.join(__dirname, 'calibration.js');
@@ -19,7 +24,117 @@ fs.writeFileSync(tempCalibrationPath, calibrationContent);
 
 try {
   const pkg = await import('./calibration.test.temp.mjs');
-  const { slugify } = pkg;
+  const { slugify, extractEntriesFromSheet } = pkg;
+
+  test('extractEntriesFromSheet', async (t) => {
+    await t.test('returns empty array if no table exists', () => {
+      const xml = `<root><other></other></root>`;
+      assert.deepStrictEqual(extractEntriesFromSheet(xml), []);
+    });
+
+    await t.test('skips legacy format headers', () => {
+      const xml = `
+<table:table xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" table:name="Dimensions">
+  <table:table-row>
+    <table:table-cell><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">type</text:p></table:table-cell>
+    <table:table-cell><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">name</text:p></table:table-cell>
+  </table:table-row>
+</table:table>
+`;
+      assert.deepStrictEqual(extractEntriesFromSheet(xml), []);
+    });
+
+    await t.test('extracts legacy format categories', () => {
+      const xml = `
+<table:table xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" table:name="Dimensions">
+  <table:table-row>
+    <table:table-cell><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">category</text:p></table:table-cell>
+    <table:table-cell><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">Tools</text:p></table:table-cell>
+  </table:table-row>
+</table:table>
+`;
+      assert.deepStrictEqual(extractEntriesFromSheet(xml), [
+        { type: 'category', label: 'Tools' }
+      ]);
+    });
+
+    await t.test('extracts legacy format objects', () => {
+      const xml = `
+<table:table xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" table:name="Dimensions">
+  <table:table-row>
+    <table:table-cell><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">object</text:p></table:table-cell>
+    <table:table-cell><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">Hammer</text:p></table:table-cell>
+    <table:table-cell><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">rect</text:p></table:table-cell>
+    <table:table-cell><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">100</text:p></table:table-cell>
+    <table:table-cell><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">50</text:p></table:table-cell>
+    <table:table-cell><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">25</text:p></table:table-cell>
+    <table:table-cell><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">hm1, hm2</text:p></table:table-cell>
+  </table:table-row>
+</table:table>
+`;
+      assert.deepStrictEqual(extractEntriesFromSheet(xml), [
+        {
+          type: 'object',
+          name: 'Hammer',
+          shape: 'rect',
+          lengthMm: 100,
+          widthMm: 50,
+          radiusMm: 25,
+          legacyIds: ['hm1', 'hm2']
+        }
+      ]);
+    });
+
+    await t.test('skips new format headers', () => {
+      const xml = `
+<table:table xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" table:name="Dimensions">
+  <table:table-row>
+    <table:table-cell><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">Name</text:p></table:table-cell>
+  </table:table-row>
+</table:table>
+`;
+      assert.deepStrictEqual(extractEntriesFromSheet(xml), []);
+    });
+
+    await t.test('extracts new format categories (no dimensions)', () => {
+      const xml = `
+<table:table xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" table:name="Dimensions">
+  <table:table-row>
+    <table:table-cell><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">Fruits</text:p></table:table-cell>
+    <table:table-cell><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">n/a</text:p></table:table-cell>
+  </table:table-row>
+</table:table>
+`;
+      assert.deepStrictEqual(extractEntriesFromSheet(xml), [
+        { type: 'category', label: 'Fruits' }
+      ]);
+    });
+
+    await t.test('extracts new format objects with inferred circle shape', () => {
+      const xml = `
+<table:table xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" table:name="Dimensions">
+  <table:table-row>
+    <table:table-cell><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">Apple</text:p></table:table-cell>
+    <table:table-cell><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">50</text:p></table:table-cell>
+    <table:table-cell><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">50</text:p></table:table-cell>
+    <table:table-cell><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">25</text:p></table:table-cell>
+    <table:table-cell><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">ap1</text:p></table:table-cell>
+  </table:table-row>
+</table:table>
+`;
+      assert.deepStrictEqual(extractEntriesFromSheet(xml), [
+        {
+          type: 'object',
+          name: 'Apple',
+          shape: 'circle',
+          lengthMm: 50,
+          widthMm: 50,
+          radiusMm: 25,
+          legacyIds: ['ap1']
+        }
+      ]);
+    });
+  });
 
   test('slugify', async (t) => {
     await t.test('converts simple strings to lowercase and replaces non-alphanumeric with hyphens', () => {
