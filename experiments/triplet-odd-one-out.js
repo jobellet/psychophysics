@@ -66,47 +66,58 @@ const instructions = {
 
 const trialState = {};
 
-const playAudioNode = {
+const pickSoundsNode = {
   type: jsPsychCallFunction,
-  async: true,
-  func: async (callback) => {
-    const display = jsPsych.getDisplayElement();
-    if (display) {
-      display.innerHTML = `
-        <div class="stage">
-          <div class="trial-progress">Trial ${trialCount + 1}</div>
-          <div class="speaker-icon" role="img" aria-label="speaker">🔊</div>
-          <p class="response-text">Playing sounds...</p>
-        </div>
-      `;
-    }
-
-    const sounds = getRandomSounds(3);
-    trialState.sounds = sounds;
+  func: () => {
+    trialState.sounds = getRandomSounds(3);
     trialState.soundStartTime = performance.now();
-
-    const playSound = (path) => {
-      return new Promise((resolve, reject) => {
-        const audio = new Audio(`../assets/${path}`);
-        audio.onended = resolve;
-        audio.onerror = reject;
-        audio.play().catch(reject);
-      });
-    };
-
-    try {
-      await playSound(sounds[0]);
-      await new Promise(r => setTimeout(r, 500));
-      await playSound(sounds[1]);
-      await new Promise(r => setTimeout(r, 500));
-      await playSound(sounds[2]);
-
-      callback();
-    } catch (e) {
-      console.error("Error playing audio", e);
-      callback();
-    }
   }
+};
+
+const playSoundPrompt = () => `
+  <div class="stage">
+    <div class="trial-progress">Trial ${trialCount + 1}</div>
+    <div class="speaker-icon" role="img" aria-label="speaker">🔊</div>
+    <p class="response-text">Playing sounds...</p>
+  </div>
+`;
+
+const playSound1 = {
+  type: jsPsychAudioKeyboardResponse,
+  stimulus: () => `../assets/${trialState.sounds[0]}`,
+  choices: "NO_KEYS",
+  trial_ends_after_audio: true,
+  prompt: playSoundPrompt
+};
+
+const isi1 = {
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: playSoundPrompt,
+  choices: "NO_KEYS",
+  trial_duration: 500
+};
+
+const playSound2 = {
+  type: jsPsychAudioKeyboardResponse,
+  stimulus: () => `../assets/${trialState.sounds[1]}`,
+  choices: "NO_KEYS",
+  trial_ends_after_audio: true,
+  prompt: playSoundPrompt
+};
+
+const isi2 = {
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: playSoundPrompt,
+  choices: "NO_KEYS",
+  trial_duration: 500
+};
+
+const playSound3 = {
+  type: jsPsychAudioKeyboardResponse,
+  stimulus: () => `../assets/${trialState.sounds[2]}`,
+  choices: "NO_KEYS",
+  trial_ends_after_audio: true,
+  prompt: playSoundPrompt
 };
 
 const responseNode = {
@@ -129,7 +140,7 @@ const responseNode = {
 };
 
 const trialSequence = {
-  timeline: [playAudioNode, responseNode]
+  timeline: [pickSoundsNode, playSound1, isi1, playSound2, isi2, playSound3, responseNode]
 };
 
 const experimentLoop = {
