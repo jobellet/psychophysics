@@ -25,3 +25,10 @@ Contributions are welcome! Open an issue or submit a pull request to suggest new
 
 ## GitHub
 The project lives on GitHub at [jobellet/psychophysics](https://github.com/jobellet/psychophysics) and is published via GitHub Pages at [jobellet.github.io/psychophysics/](https://jobellet.github.io/psychophysics/).
+
+## Naturalistic Audio Stimuli
+The `assets/sounds` directory contains a standardized naturalistic audio stimuli database designed for cognitive neuroscience and behavioral experiments. These short, recognizable, and emotionally rated audio clips span various categories (e.g., animals, mechanical, speech, nature) and can be easily re-used across new paradigms.
+
+**References:**
+- **Study:** Al-Naji, A., Schubotz, R. I., & Zahedi, A. (2026). *A standardized naturalistic audio stimuli database with unsupervised labeling*. bioRxiv. [https://doi.org/10.64898/2026.04.16.718910](https://doi.org/10.64898/2026.04.16.718910)
+- **Data Origin:** The original data, including full ratings and categorizations, was obtained from OSF: [https://osf.io/7wqnm/overview?view_only=af0f2b4608c6407497daf8360d9a3710](https://osf.io/7wqnm/overview?view_only=af0f2b4608c6407497daf8360d9a3710)

@@ -130,6 +130,7 @@ const responseNode = {
     </div>
   `,
   choices: ['1', '2', '3'],
+  post_trial_gap: 500,
   on_finish: (data) => {
     data.sound1 = trialState.sounds[0];
     data.sound2 = trialState.sounds[1];
