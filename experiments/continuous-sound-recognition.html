@@ -98,6 +98,10 @@
     }
 
     #jspsych-target {
+      display: none;
+    }
+
+    #experiment-stage {
       width: min(96vw, 860px);
       background: rgba(15, 23, 42, 0.82);
       backdrop-filter: blur(18px);
@@ -105,6 +109,10 @@
       box-shadow: 0 24px 60px rgba(2, 6, 23, 0.55);
       padding: clamp(24px, 5vw, 56px);
       position: relative;
+    }
+
+    #experiment-stage.hidden {
+      display: none;
     }
 
     .jspsych-display-element {
@@ -206,7 +214,7 @@
         padding: 20px;
       }
 
-      #jspsych-target {
+      #jspsych-target, #experiment-stage {
         padding: clamp(20px, 6vw, 40px);
       }
 
@@ -229,6 +237,15 @@
       <div class="session-actions">
         <button id="start-experiment" class="jspsych-btn">Start Experiment</button>
       </div>
+    </div>
+  </div>
+
+  <div id="experiment-stage" class="hidden">
+    <div class="stage">
+      <div class="trial-progress" id="trial-progress-el">Trial 1</div>
+      <div class="speaker-icon" role="img" aria-label="speaker">🔊</div>
+      <button id="same-button" class="jspsych-btn" style="margin-top: 20px;">SAME</button>
+      <p class="response-text">Press Spacebar or click SAME if this sound matches the previous one.</p>
     </div>
   </div>
 

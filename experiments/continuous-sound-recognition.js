@@ -1,4 +1,3 @@
-import NoGoCtrl from './noGoController.js';
 import { secureRandom } from '../shared-resources/utils/random.js';
 import { formatTimestampForFilename } from '../shared-resources/utils/date.js';
 import { downloadBlob } from '../shared-resources/utils/downloadBlob.js';
@@ -11,11 +10,74 @@ let audioContext = null;
 let soundManifest = [];
 let audioBuffers = {}; // cache decoded audio buffers
 
+// Adaptive Bias Controller
+const BiasCtrl = (() => {
+  const cfg = {
+    emaAlpha: 0.12,  // EMA smoothing factor
+    Kp: 0.5,         // Proportional controller gain
+    pLoud: 0.2       // Proportion of Loud Different trials (catch trials)
+  };
+
+  let hrEma = 0.5;
+  let faEma = 0.15;
+  let pSameFaint = 0.5;
+
+  let nFaintSame = 0;
+  let nFaintDiff = 0;
+  let nFaintSameHits = 0;
+  let nFaintDiffFAs = 0;
+
+  function onTrialEnd(trialType, responded) {
+    if (trialType === 'FaintSame') {
+      nFaintSame++;
+      if (responded) nFaintSameHits++;
+      hrEma = (1 - cfg.emaAlpha) * hrEma + cfg.emaAlpha * (responded ? 1 : 0);
+    } else if (trialType === 'FaintDifferent') {
+      nFaintDiff++;
+      if (responded) nFaintDiffFAs++;
+      faEma = (1 - cfg.emaAlpha) * faEma + cfg.emaAlpha * (responded ? 1 : 0);
+    } else {
+      return; // LoudDifferent trial, doesn't affect faint bias
+    }
+
+    const error = hrEma + faEma - 1.0;
+    pSameFaint = 0.5 - cfg.Kp * error;
+    pSameFaint = Math.max(0.2, Math.min(0.8, pSameFaint));
+  }
+
+  function getStats() {
+    return {
+      hrEma,
+      faEma,
+      pSameFaint,
+      nFaintSame,
+      nFaintDiff,
+      nFaintSameHits,
+      nFaintDiffFAs
+    };
+  }
+
+  function reset() {
+    hrEma = 0.5;
+    faEma = 0.15;
+    pSameFaint = 0.5;
+    nFaintSame = 0;
+    nFaintDiff = 0;
+    nFaintSameHits = 0;
+    nFaintDiffFAs = 0;
+  }
+
+  return { onTrialEnd, getStats, reset, cfg };
+})();
+
 // DOM Elements
 const preExperimentOverlay = document.getElementById('pre-experiment');
 const startButton = document.getElementById('start-experiment');
 const statusEl = document.getElementById('session-status');
 const stopExperimentButton = document.getElementById('stop-experiment');
+const experimentStage = document.getElementById('experiment-stage');
+const sameButton = document.getElementById('same-button');
+const trialProgressEl = document.getElementById('trial-progress-el');
 
 // State
 let sessionRunning = false;
@@ -26,11 +88,14 @@ let questEngine = null;
 const trialState = {
   previousSound: null,
   currentSound: null,
-  isGo: false, // Go = SAME (target), No-Go = DIFFERENT (distractor)
+  isGo: false, // matches isSame (repeat)
   currentVolume: 1.0,
   isi: 1000,
   responded: false,
-  rt: null
+  rt: null,
+  trialType: null, // 'LoudDifferent', 'FaintDifferent', 'FaintSame'
+  responseWindowActive: false,
+  soundStartTime: null
 };
 
 function setStatus(message, state = 'info') {
@@ -132,6 +197,7 @@ function suggestVolume() {
 }
 
 // Node: Prepare trial
+// Node: Prepare trial
 const prepareTrialNode = {
   type: jsPsychCallFunction,
   async: true,
@@ -141,21 +207,26 @@ const prepareTrialNode = {
     // Gap: 1 to 5 seconds
     trialState.isi = 1000 + secureRandom() * 4000;
 
+    // Reset button highlight at start of preparation / gap
+    if (sameButton) {
+      sameButton.style.background = '';
+    }
+
     if (trialCount === 0) {
-      // First trial: Random sound, volume 1.0
+      // First trial: Random sound, volume 1.0, Loud Different
       trialState.isGo = false;
+      trialState.trialType = 'LoudDifferent';
       trialState.currentVolume = 1.0;
       trialState.currentSound = soundManifest[Math.floor(secureRandom() * soundManifest.length)];
     } else {
-      // Is this a Go (SAME) or No-Go (DIFFERENT) trial?
-      // NoGoCtrl schedules No-Go trials. In our context, No-Go = DIFFERENT.
-      // So decideNoGo() returning true means we should present a DIFFERENT sound.
+      // Choose trial type: LoudDifferent, FaintDifferent, FaintSame
+      const stats = BiasCtrl.getStats();
+      const isLoud = secureRandom() < BiasCtrl.cfg.pLoud;
 
-      const isDifferent = NoGoCtrl.decideNoGo();
-
-      if (isDifferent) {
-        // No-Go: DIFFERENT sound, Volume 1.0
+      if (isLoud) {
+        // LoudDifferent
         trialState.isGo = false;
+        trialState.trialType = 'LoudDifferent';
         trialState.currentVolume = 1.0;
 
         let newSound;
@@ -163,58 +234,61 @@ const prepareTrialNode = {
           newSound = soundManifest[Math.floor(secureRandom() * soundManifest.length)];
         } while (newSound === trialState.previousSound);
         trialState.currentSound = newSound;
-
       } else {
-        // Go: SAME sound, Quest+ volume
-        trialState.isGo = true;
-        trialState.currentVolume = suggestVolume();
-        trialState.currentSound = trialState.previousSound;
+        // Faint trials. Decide if it's Same or Different based on pSameFaint
+        const isSame = secureRandom() < stats.pSameFaint;
+
+        if (isSame) {
+          // FaintSame (Repeat)
+          trialState.isGo = true;
+          trialState.trialType = 'FaintSame';
+          trialState.currentVolume = suggestVolume();
+          trialState.currentSound = trialState.previousSound;
+        } else {
+          // FaintDifferent (Non-repeat catch trial)
+          trialState.isGo = false;
+          trialState.trialType = 'FaintDifferent';
+          trialState.currentVolume = suggestVolume();
+
+          let newSound;
+          do {
+            newSound = soundManifest[Math.floor(secureRandom() * soundManifest.length)];
+          } while (newSound === trialState.previousSound);
+          trialState.currentSound = newSound;
+        }
       }
     }
 
     trialState.responded = false;
     trialState.rt = null;
+    trialState.responseWindowActive = false;
 
-    // Decode audio
+    // Decode audio in background during the gap
     await getAudioBuffer(trialState.currentSound);
 
-    // Wait for ISI
+    // Wait for the random ISI
     setTimeout(() => {
-        done();
+      done();
     }, trialState.isi);
   }
 };
 
-// Play audio and show response button
-const playSoundAndResponseNode = {
-  type: jsPsychHtmlButtonResponse,
-  stimulus: () => `
-    <div class="stage">
-      <div class="trial-progress">Trial ${trialCount + 1}</div>
-      <div class="speaker-icon" role="img" aria-label="speaker">🔊</div>
-      <p class="response-text">Press Spacebar or click SAME if this sound matches the previous one.</p>
-    </div>
-  `,
-  choices: ['SAME'],
-  trial_duration: 2000,
-  response_ends_trial: false, // Need to let sound play, wait up to 2 seconds
-  on_start: (trial) => {
-    // Add keydown listener
-    const keyListener = (e) => {
-      if (e.code === 'Space' && !trialState.responded) {
-        e.preventDefault();
-        trialState.responded = true;
-        trialState.rt = performance.now() - trialState.soundStartTime;
-        // Optionally update UI to show response registered
-        const btn = document.querySelector('.jspsych-btn');
-        if (btn) btn.style.background = '#10b981'; // Green
-      }
-    };
-    document.addEventListener('keydown', keyListener);
-    trialState.keyListener = keyListener;
-  },
-  on_load: () => {
-    // Play sound via Web Audio API with Gain
+// Node: Play audio and accept responses
+const playTrialNode = {
+  type: jsPsychCallFunction,
+  async: true,
+  func: async (done) => {
+    // Update UI progress indicator
+    if (trialProgressEl) {
+      trialProgressEl.textContent = `Trial ${trialCount + 1}`;
+    }
+
+    // Reset button background (if it wasn't already reset)
+    if (sameButton) {
+      sameButton.style.background = '';
+    }
+
+    // Play sound via Web Audio API
     ensureAudioContext();
     const source = audioContext.createBufferSource();
     source.buffer = audioBuffers[trialState.currentSound];
@@ -226,66 +300,67 @@ const playSoundAndResponseNode = {
     gainNode.connect(audioContext.destination);
 
     trialState.soundStartTime = performance.now();
-    source.start();
+    trialState.responseWindowActive = true;
     trialState.currentSource = source;
 
-    // Handle button click manually since response_ends_trial is false
-    const btn = document.querySelector('.jspsych-btn');
-    if (btn) {
-      btn.addEventListener('click', () => {
-        if (!trialState.responded) {
-          trialState.responded = true;
-          trialState.rt = performance.now() - trialState.soundStartTime;
-          btn.style.background = '#10b981';
-        }
-      });
-    }
-  },
-  on_finish: (data) => {
-    document.removeEventListener('keydown', trialState.keyListener);
+    source.start();
 
-    if (trialState.currentSource) {
-      try {
-        trialState.currentSource.stop();
-      } catch (e) {}
-    }
+    // The response window duration is 2 seconds (matching the original trial duration)
+    setTimeout(() => {
+      // Close response window
+      trialState.responseWindowActive = false;
 
-    // Determine response (true if button clicked or space pressed within 2s)
-    const responded = trialState.responded;
-
-    // Update NoGoCtrl (for DIFFERENT sounds)
-    // NoGoCtrl expects { isNoGo, responded }
-    NoGoCtrl.onTrialEnd({ isNoGo: !trialState.isGo, responded });
-
-    // Update Quest+ (for SAME sounds)
-    if (trialState.isGo && questEngine) {
-      try {
-        questEngine.update(trialState.currentVolume, responded ? 1 : 0);
-      } catch (e) {
-        console.warn('Quest update skipped', e);
+      // Stop source if it's still playing
+      if (trialState.currentSource) {
+        try {
+          trialState.currentSource.stop();
+        } catch (e) {}
       }
-    }
 
-    // Save data
-    data.trial_index = trialCount;
-    data.sound = trialState.currentSound;
-    data.previous_sound = trialState.previousSound;
-    data.is_go = trialState.isGo;
-    data.is_same = trialState.isGo;
-    data.volume = trialState.currentVolume;
-    data.isi = trialState.isi;
-    data.responded = responded;
-    data.rt = trialState.rt;
-    data.correct = trialState.isGo ? responded : !responded;
+      const responded = trialState.responded;
 
-    // Prepare for next
-    trialState.previousSound = trialState.currentSound;
-    trialCount++;
+      // Update Bias Controller
+      BiasCtrl.onTrialEnd(trialState.trialType, responded);
+
+      // Update Quest+ (only for SAME/Repeat trials)
+      if (trialState.isGo && questEngine) {
+        try {
+          questEngine.update(trialState.currentVolume, responded ? 1 : 0);
+        } catch (e) {
+          console.warn('Quest update skipped', e);
+        }
+      }
+
+      // Log trial details to jsPsych data
+      const stats = BiasCtrl.getStats();
+      jsPsych.data.write({
+        trial_index: trialCount,
+        sound: trialState.currentSound,
+        previous_sound: trialState.previousSound,
+        is_go: trialState.isGo,
+        is_same: trialState.isGo,
+        trial_type: trialState.trialType,
+        volume: trialState.currentVolume,
+        isi: trialState.isi,
+        responded: responded,
+        rt: trialState.rt,
+        correct: trialState.isGo ? responded : !responded,
+        p_same_faint: stats.pSameFaint,
+        hr_ema: stats.hrEma,
+        fa_ema: stats.faEma
+      });
+
+      // Prepare for next trial
+      trialState.previousSound = trialState.currentSound;
+      trialCount++;
+
+      done();
+    }, 2000);
   }
 };
 
 const trialSequence = {
-  timeline: [prepareTrialNode, playSoundAndResponseNode]
+  timeline: [prepareTrialNode, playTrialNode]
 };
 
 const experimentLoop = {
@@ -306,6 +381,10 @@ function finalizeSession(reason = 'complete') {
 
   if (jsPsych) {
     jsPsych.abortExperiment();
+  }
+
+  if (experimentStage) {
+    experimentStage.classList.add('hidden');
   }
 
   if (stopExperimentButton) {
@@ -354,9 +433,14 @@ function handleStartClick() {
   trialState.previousSound = null;
 
   initQuest();
+  BiasCtrl.reset();
 
   if (preExperimentOverlay) {
     preExperimentOverlay.classList.add('hidden');
+  }
+
+  if (experimentStage) {
+    experimentStage.classList.remove('hidden');
   }
 
   if (stopExperimentButton) {
@@ -379,6 +463,18 @@ function handleStartClick() {
   jsPsych.run(timeline);
 }
 
+// Global Response Handler
+function registerResponse() {
+  if (!sessionRunning || !trialState.responseWindowActive || trialState.responded) return;
+
+  trialState.responded = true;
+  trialState.rt = performance.now() - trialState.soundStartTime;
+
+  if (sameButton) {
+    sameButton.style.background = '#10b981'; // Green highlight
+  }
+}
+
 // Event Listeners
 if (startButton) startButton.addEventListener('click', handleStartClick);
 if (stopExperimentButton) {
@@ -386,6 +482,15 @@ if (stopExperimentButton) {
     finalizeSession('stopped');
   });
 }
+if (sameButton) {
+  sameButton.addEventListener('click', registerResponse);
+}
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') {
+    e.preventDefault();
+    registerResponse();
+  }
+});
 
 // Initialize
 loadManifest();
