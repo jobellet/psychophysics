@@ -190,7 +190,8 @@ function suggestVolume() {
 
   // Fallback to questEngine's current suggestion if we couldn't calculate
   try {
-    return questEngine.getStimParams();
+    const chosen = questEngine.getStimParams();
+    return Array.isArray(chosen) ? chosen[0] : chosen;
   } catch (e) {
     return 1.0;
   }
@@ -278,11 +279,6 @@ const playTrialNode = {
   type: jsPsychCallFunction,
   async: true,
   func: async (done) => {
-    // Update UI progress indicator
-    if (trialProgressEl) {
-      trialProgressEl.textContent = `Trial ${trialCount + 1}`;
-    }
-
     // Reset button background (if it wasn't already reset)
     if (sameButton) {
       sameButton.style.background = '';
@@ -331,9 +327,8 @@ const playTrialNode = {
         }
       }
 
-      // Log trial details to jsPsych data
       const stats = BiasCtrl.getStats();
-      jsPsych.data.write({
+      const trialData = {
         trial_index: trialCount,
         sound: trialState.currentSound,
         previous_sound: trialState.previousSound,
@@ -348,14 +343,19 @@ const playTrialNode = {
         p_same_faint: stats.pSameFaint,
         hr_ema: stats.hrEma,
         fa_ema: stats.faEma
-      });
+      };
 
       // Prepare for next trial
       trialState.previousSound = trialState.currentSound;
       trialCount++;
 
-      done();
+      done(trialData);
     }, 2000);
+  },
+  on_finish: (data) => {
+    if (data.value) {
+      Object.assign(data, data.value);
+    }
   }
 };
 
