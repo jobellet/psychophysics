@@ -214,10 +214,11 @@ function buildTimeline(trials) {
       type: jsPsychHtmlButtonResponse,
       stimulus: renderStimulus(trial.referencePath),
       choices: ['', ''],
-      button_html: [
-        `<button type="button" class="afc-choice" data-choice="left" aria-label="Left choice"><img src="${trial.leftImagePath}" alt="Left option" /></button>`,
-        `<button type="button" class="afc-choice" data-choice="right" aria-label="Right choice"><img src="${trial.rightImagePath}" alt="Right option" /></button>`
-      ],
+      button_html: (choice, choice_index) => {
+        return choice_index === 0 ?
+          `<button type="button" class="afc-choice" data-choice="left" aria-label="Left choice"><img src="${trial.leftImagePath}" alt="Left option" /></button>` :
+          `<button type="button" class="afc-choice" data-choice="right" aria-label="Right choice"><img src="${trial.rightImagePath}" alt="Right option" /></button>`;
+      },
       margin_vertical: '0px',
       margin_horizontal: '0px',
       prompt: '<div class="afc-help">Use ← / → keys or tap an image to respond.</div>',
@@ -239,7 +240,11 @@ function buildTimeline(trials) {
         const progressInner = document.querySelector('#jspsych-progressbar-inner');
         if (progressInner) {
           const progress = totalTrials === 0 ? 0 : completedTrials / totalTrials;
-          jsPsych.setProgressBar(progress);
+          if (typeof jsPsych.setProgressBar === 'function') {
+            jsPsych.setProgressBar(progress);
+          } else if (jsPsych.progressBar && typeof jsPsych.progressBar.progress !== 'undefined') {
+            jsPsych.progressBar.progress = progress;
+          }
         } else {
           requestAnimationFrame(syncProgressBar);
         }
@@ -250,16 +255,24 @@ function buildTimeline(trials) {
       const group = document.getElementById('jspsych-html-button-response-btngroup');
       const choicePhase = document.querySelector('.afc-choice-phase');
       const referencePhase = document.querySelector('.afc-reference-phase');
+      
+      let leftButton = null;
+      let rightButton = null;
+      if (group) {
+        const buttons = group.querySelectorAll('button');
+        leftButton = buttons[0];
+        rightButton = buttons[1];
+      }
+
       if (group && choicePhase) {
         group.classList.add('afc-choice-group');
-        const [leftWrapper, rightWrapper] = group.querySelectorAll('.jspsych-html-button-response-button');
         const leftSlot = choicePhase.querySelector('.afc-choice-slot[data-slot="left"]');
         const rightSlot = choicePhase.querySelector('.afc-choice-slot[data-slot="right"]');
-        if (leftWrapper && leftSlot) {
-          leftSlot.appendChild(leftWrapper);
+        if (leftButton && leftSlot) {
+          leftSlot.appendChild(leftButton);
         }
-        if (rightWrapper && rightSlot) {
-          rightSlot.appendChild(rightWrapper);
+        if (rightButton && rightSlot) {
+          rightSlot.appendChild(rightButton);
         }
       }
 
@@ -273,8 +286,6 @@ function buildTimeline(trials) {
         }
       });
 
-      const leftButton = document.querySelector('#jspsych-html-button-response-button-0 button');
-      const rightButton = document.querySelector('#jspsych-html-button-response-button-1 button');
       node._responseSource = 'unknown';
       const allButtons = [leftButton, rightButton].filter(Boolean);
       allButtons.forEach((btn) => {
@@ -356,7 +367,12 @@ function buildTimeline(trials) {
       }
 
       completedTrials += 1;
-      jsPsych.setProgressBar(completedTrials / totalTrials);
+      const progress = completedTrials / totalTrials;
+      if (typeof jsPsych.setProgressBar === 'function') {
+        jsPsych.setProgressBar(progress);
+      } else if (jsPsych.progressBar && typeof jsPsych.progressBar.progress !== 'undefined') {
+        jsPsych.progressBar.progress = progress;
+      }
       updateProgress();
     };
 
@@ -412,11 +428,14 @@ async function prepare() {
     if (trials.length === 0) {
       throw new Error('No trials could be generated.');
     }
-    allTrials = trials;
-    totalTrials = trials.length;
+    // limit trials for quicker start
+    const sampledTrials = trials.slice(0, 50);
+
+    allTrials = sampledTrials;
+    totalTrials = sampledTrials.length;
     progressStatus.textContent = `Trials prepared: ${totalTrials}`;
     stimulusStatus.textContent = 'Preloading images…';
-    await preloadImages(trials);
+    await preloadImages(sampledTrials);
     stimulusStatus.textContent = 'Stimuli ready. Press Start to begin.';
     startButton.disabled = false;
     startButton.textContent = 'Start experiment';
