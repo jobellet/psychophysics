@@ -432,6 +432,7 @@ REMAINS TO BE IMPLEMENTED / TODO:
     let lastChangeTime = -999;
     let changeResponded = true;
     let changeHistory = [];
+    let missedTypes = []; // Logs the change types missed in the current trial
 
     // Session-level stats & metrics log
     let score = 0;
@@ -476,6 +477,13 @@ REMAINS TO BE IMPLEMENTED / TODO:
     let numBalls = 4;
     let occluders = [];
     let currentChangeMagnitude = { hue: 120, radius: 15, speed: 100 };
+    
+    // Adaptive multipliers for easier trials if subject misses properties
+    let magnitudeModifiers = {
+      color: 1.0,
+      size: 1.0,
+      speed: 1.0
+    };
 
     function applyAdaptiveDifficulty() {
       if (isPractice) {
@@ -507,9 +515,9 @@ REMAINS TO BE IMPLEMENTED / TODO:
       
       let mult = 1.0 / (1.0 + currentDifficulty * 0.75);
       currentChangeMagnitude = {
-        hue: 120 * mult,
-        radius: 16 * mult,
-        speed: 120 * mult
+        hue: 120 * mult * magnitudeModifiers.color,
+        radius: 16 * mult * magnitudeModifiers.size,
+        speed: 120 * mult * magnitudeModifiers.speed
       };
     }
 
@@ -563,7 +571,9 @@ REMAINS TO BE IMPLEMENTED / TODO:
       changeHistory.push({
         ball: b,
         time: currentTime,
-        responded: false
+        type: chosenType, // color, size, speed
+        responded: false,
+        expired: false
       });
       console.log(`[EVENT] ${desc} at ${currentTime.toFixed(2)}s`);
     }
@@ -650,6 +660,7 @@ REMAINS TO BE IMPLEMENTED / TODO:
       trialHits = 0;
       trialChanges = 0;
       changeHistory = [];
+      missedTypes = [];
       
       document.getElementById('score-val').innerText = score;
       document.getElementById('hud-mode').innerText = isPractice ? "PRACTICE" : `TRIAL ${trialNum}/${maxRealTrials}`;
@@ -738,6 +749,15 @@ REMAINS TO BE IMPLEMENTED / TODO:
         triggerRandomChangeEvent(elapsedSimulationTime);
         scheduleNextEvent(elapsedSimulationTime);
       }
+
+      // Check for expired changes (Misses)
+      changeHistory.forEach(c => {
+        if (!c.responded && !c.expired && (elapsedSimulationTime - c.time > 1.0)) {
+          c.expired = true;
+          missedTypes.push(c.type);
+          console.log(`[MISS] Missed change type: ${c.type}`);
+        }
+      });
 
       balls.forEach(b => {
         b.x += b.vx * dt;
@@ -851,6 +871,16 @@ REMAINS TO BE IMPLEMENTED / TODO:
             } else {
               let success = (hitRate >= 0.80) ? 1 : 0;
               questEngine.update(currentDifficulty, success);
+
+              // If hitRate is below 100% with only 1 occluder, adaptively increase change magnitudes for the missed property type
+              if (occluders.length === 1 && hitRate < 1.0) {
+                missedTypes.forEach(type => {
+                  if (type === 'color') magnitudeModifiers.color = Math.min(3.0, magnitudeModifiers.color + 0.3);
+                  if (type === 'size') magnitudeModifiers.size = Math.min(3.0, magnitudeModifiers.size + 0.3);
+                  if (type === 'speed') magnitudeModifiers.speed = Math.min(3.0, magnitudeModifiers.speed + 0.3);
+                  console.log(`[ADAPT] Increased property change magnitude modifier for: ${type} to make it more obvious`);
+                });
+              }
 
               sessionData.trials.push({
                 trialNum: trialNum,
