@@ -568,11 +568,38 @@ REMAINS TO BE IMPLEMENTED / TODO:
         speed: 1.0,
       };
 
+      function getRandomEmptyGridCell() {
+        const gridSize = 10;
+        const cellSize = 60;
+        const totalCells = gridSize * gridSize;
+
+        let availableCells = [];
+        for (let i = 0; i < totalCells; i++) {
+          let cx = i % gridSize;
+          let cy = Math.floor(i / gridSize);
+          let x = cx * cellSize;
+          let y = cy * cellSize;
+
+          let occupied = occluders.some(occ => occ.x === x && occ.y === y);
+          if (!occupied) {
+            availableCells.push({ x: x, y: y, size: cellSize });
+          }
+        }
+
+        if (availableCells.length === 0) return null;
+        let randomIndex = Math.floor(Math.random() * availableCells.length);
+        return availableCells[randomIndex];
+      }
+
       function applyAdaptiveDifficulty() {
         if (isPractice) {
           currentDifficulty = 0.0;
           numBalls = 2;
-          occluders = [{ x: 260, y: 260, size: 80 }];
+          occluders = [];
+          for (let i = 0; i < 10; i++) {
+            let cell = getRandomEmptyGridCell();
+            if (cell) occluders.push(cell);
+          }
           currentChangeMagnitude = { hue: 120, radius: 15, speed: 100 };
           return;
         }
@@ -586,19 +613,12 @@ REMAINS TO BE IMPLEMENTED / TODO:
         }
 
         numBalls = 2; // Consistent 2 balls layout
-        let numOccluders = Math.min(
-          5,
-          Math.max(1, Math.floor(1 + currentDifficulty)),
-        );
-        let occluderSize = 80 + Math.round(currentDifficulty * 10);
+        let numOccluders = Math.floor(10 + currentDifficulty);
 
         occluders = [];
         for (let i = 0; i < numOccluders; i++) {
-          occluders.push({
-            x: Math.random() * (WIDTH - occluderSize),
-            y: Math.random() * (HEIGHT - occluderSize),
-            size: occluderSize,
-          });
+          let cell = getRandomEmptyGridCell();
+          if (cell) occluders.push(cell);
         }
 
         let mult = 1.0 / (1.0 + currentDifficulty * 0.75);
@@ -714,12 +734,8 @@ REMAINS TO BE IMPLEMENTED / TODO:
               hitFound = true;
 
               // Add a new random occlusion on hit
-              let occluderSize = 80 + Math.round(currentDifficulty * 10);
-              occluders.push({
-                x: Math.random() * (WIDTH - occluderSize),
-                y: Math.random() * (HEIGHT - occluderSize),
-                size: occluderSize,
-              });
+              let newOcclusion = getRandomEmptyGridCell();
+              if (newOcclusion) occluders.push(newOcclusion);
               break;
             }
           }
@@ -968,7 +984,7 @@ REMAINS TO BE IMPLEMENTED / TODO:
         applyAdaptiveDifficulty();
         initPhysics();
 
-        let duration = isPractice ? 10000 : 20000;
+        let duration = isPractice ? 20000 : 40000;
         let durationSeconds = duration / 1000;
 
         // Initialize audio buffer
