@@ -474,7 +474,7 @@ REMAINS TO BE IMPLEMENTED / TODO:
     }
 
     // Map unified difficulty level to physical params
-    let numBalls = 4;
+    let numBalls = 2;
     let occluders = [];
     let currentChangeMagnitude = { hue: 120, radius: 15, speed: 100 };
     
@@ -488,7 +488,7 @@ REMAINS TO BE IMPLEMENTED / TODO:
     function applyAdaptiveDifficulty() {
       if (isPractice) {
         currentDifficulty = 0.0;
-        numBalls = 4;
+        numBalls = 2;
         occluders = [{ x: 260, y: 260, size: 80 }];
         currentChangeMagnitude = { hue: 120, radius: 15, speed: 100 };
         return;
@@ -500,7 +500,7 @@ REMAINS TO BE IMPLEMENTED / TODO:
         currentDifficulty = 0.0;
       }
       
-      numBalls = 4; // Consistent 4 balls layout
+      numBalls = 2; // Consistent 2 balls layout
       let numOccluders = Math.min(5, Math.max(1, Math.floor(1 + currentDifficulty)));
       let occluderSize = 80 + Math.round(currentDifficulty * 10);
       
