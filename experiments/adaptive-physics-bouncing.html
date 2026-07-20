@@ -38,895 +38,1070 @@ REMAINS TO BE IMPLEMENTED / TODO:
       starting the main staircase trial block.
 ================================================================================
 -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Adaptive Physics Bouncing Balls Experiment</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://unpkg.com/jspsych@8.0.0/css/jspsych.css" />
-  <style>
-    :root {
-      color-scheme: light dark;
-      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
-      --bg: radial-gradient(circle at top, #0f172a 0%, #111827 60%, #020617 100%);
-      --card-bg: rgba(15, 23, 42, 0.95);
-      --accent: #38bdf8;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg);
-      color: #e2e8f0;
-      flex-direction: column;
-    }
-
-    #experiment-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-    }
-
-    #experiment-container {
-      position: relative;
-      width: 600px;
-      height: 600px;
-      background: #0c0c0e;
-      border: 2px solid #334155;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    }
-
-    #physics-canvas {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
-
-    #hud-score {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      font-size: 20px;
-      font-weight: 700;
-      color: #10b981; /* Emerald green default */
-      background: rgba(15, 23, 42, 0.85);
-      padding: 6px 12px;
-      border-radius: 8px;
-      border: 1px solid #1e293b;
-      z-index: 10;
-      transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    #hud-score.flash-hit {
-      transform: scale(1.25);
-      color: #34d399;
-      background: rgba(16, 185, 129, 0.3);
-      border-color: #34d399;
-    }
-
-    #hud-score.flash-miss {
-      transform: scale(0.85);
-      color: #f87171;
-      background: rgba(239, 68, 68, 0.3);
-      border-color: #f87171;
-    }
-
-    #hud-mode {
-      position: absolute;
-      top: 15px;
-      left: 15px;
-      font-size: 14px;
-      font-weight: 700;
-      color: #fbbf24;
-      background: rgba(15, 23, 42, 0.85);
-      padding: 6px 12px;
-      border-radius: 8px;
-      border: 1px solid #fbbf24;
-      z-index: 10;
-    }
-
-    #pre-experiment, #results-dashboard {
-      position: fixed;
-      inset: 0;
-      background: var(--card-bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      flex-direction: column;
-      gap: 20px;
-      padding: 40px;
-      text-align: center;
-      max-width: 650px;
-      margin: auto;
-      border-radius: 16px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-      border: 1px solid #334155;
-      height: fit-content;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-
-    .slide {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .slide.active {
-      display: flex;
-    }
-
-    .btn {
-      background: var(--accent);
-      color: #0f172a;
-      border: none;
-      padding: 12px 24px;
-      font-weight: bold;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: all 0.2s ease;
-    }
-
-    .btn:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-      background: #475569;
-      color: #f8fafc;
-      margin-left: 10px;
-    }
-
-    .table-container {
-      width: 100%;
-      max-height: 200px;
-      overflow-y: auto;
-      margin: 15px 0;
-      border: 1px solid #334155;
-      border-radius: 8px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-
-    th, td {
-      padding: 8px;
-      border-bottom: 1px solid #334155;
-      text-align: center;
-    }
-
-    th {
-      background-color: #1e293b;
-      font-weight: 600;
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Onboarding / Tutorial Overlay -->
-  <div id="pre-experiment">
-    <div id="slide-1" class="slide active">
-      <h1>Adaptive Physics Bouncing Balls</h1>
-      <p>Welcome! This is an adaptive psychophysics tracking experiment. You will see several objects bouncing in an environment with collision sounds.</p>
-      <button onclick="nextSlide(2)" class="btn">Next</button>
-    </div>
-
-    <div id="slide-2" class="slide">
-      <h2>Opaque Occlusions & Odd Events</h2>
-      <p>Opaque slate grey boxes will occlude parts of the canvas. The balls continue to move behind them.</p>
-      <p>At random moments, objects will experience sudden **odd events** (shifts in color, size, or speed).</p>
-      <button onclick="nextSlide(3)" class="btn">Next</button>
-    </div>
-
-    <div id="slide-3" class="slide">
-      <h2>Your Task</h2>
-      <p>Your goal is to **touch or click on the changed object** as fast as possible within 1 second of the shift.</p>
-      <p>Successful taps score **+100 points**. False alarms or late taps deduct **-50 points**.</p>
-      <button onclick="startPractice()" class="btn">Start 10s Practice</button>
-    </div>
-
-    <div id="slide-practice-end" class="slide">
-      <h2>Practice Complete!</h2>
-      <p id="practice-stats"></p>
-      <p>Now, you will begin the main adaptive blocks. The difficulty level (number of occluders, size, and subtlety of change events) will adapt dynamically to target an 80% success rate.</p>
-      <button onclick="startMainExperiment()" class="btn">Start Experiment</button>
-    </div>
-  </div>
-
-  <!-- End of Session Results Dashboard -->
-  <div id="results-dashboard" style="display: none;">
-    <h1>Experiment Complete!</h1>
-    <p id="results-summary"></p>
-    <div class="table-container">
-      <table id="results-table">
-        <thead>
-          <tr>
-            <th>Trial</th>
-            <th>Difficulty</th>
-            <th>Balls</th>
-            <th>Occluders</th>
-            <th>Changes</th>
-            <th>Hits</th>
-            <th>Hit Rate</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-    <div>
-      <button onclick="downloadJSON()" class="btn">Download JSON</button>
-      <button onclick="downloadCSV()" class="btn btn-secondary">Download CSV</button>
-      <button onclick="restartExperiment()" class="btn btn-secondary">Restart</button>
-    </div>
-  </div>
-
-  <div id="experiment-wrapper">
-    <div id="experiment-container" style="display: none;">
-      <div id="hud-mode">PRACTICE</div>
-      <div id="hud-score">Score: <span id="score-val">0</span></div>
-      <canvas id="physics-canvas" width="600" height="600"></canvas>
-    </div>
-    <div id="jspsych-target"></div>
-  </div>
-
-  <!-- Dependencies -->
-  <script src="https://unpkg.com/jspsych@8.0.0"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.0.0"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-html-button-response@2.0.0"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-call-function@2.0.0"></script>
-  <script src="https://unpkg.com/jsquest-plus@2.1.0/dist/jsQuestPlus.js"></script>
-
-  <script>
-    // Initialize jsPsych
-    const jsPsych = initJsPsych({
-      display_element: 'jspsych-target'
-    });
-
-    // Web Audio API context
-    let audioCtx = null;
-    function initAudio() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Adaptive Physics Bouncing Balls Experiment</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/jspsych@8.0.0/css/jspsych.css"
+    />
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+        --bg: radial-gradient(
+          circle at top,
+          #0f172a 0%,
+          #111827 60%,
+          #020617 100%
+        );
+        --card-bg: rgba(15, 23, 42, 0.95);
+        --accent: #38bdf8;
       }
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-    }
 
-    // Play synthesized collision tone matching Python AudioGenerator
-    function playCollisionSound(b1, b2, energy) {
-      if (!audioCtx) return;
-      
-      let volumeScale = Math.min(1.0, Math.max(0.1, Math.sqrt(energy) / 10.0));
-      let duration = 0.1;
-      let sr = audioCtx.sampleRate || 44100;
-      let bufferSize = Math.floor(sr * duration);
-      
-      let buffer = audioCtx.createBuffer(2, bufferSize, sr);
-      let chanL = buffer.getChannelData(0);
-      let chanR = buffer.getChannelData(1);
-      
-      function synthesizeWave(obj, t) {
-        if (obj.mass === Infinity || obj.isPillar) {
-          return 0;
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg);
+        color: #e2e8f0;
+        flex-direction: column;
+      }
+
+      #experiment-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+      }
+
+      #experiment-container {
+        position: relative;
+        width: 600px;
+        height: 600px;
+        background: #0c0c0e;
+        border: 2px solid #334155;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+
+      #physics-canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      #hud-score {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 20px;
+        font-weight: 700;
+        color: #10b981; /* Emerald green default */
+        background: rgba(15, 23, 42, 0.85);
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1px solid #1e293b;
+        z-index: 10;
+        transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+
+      #hud-score.flash-hit {
+        transform: scale(1.25);
+        color: #34d399;
+        background: rgba(16, 185, 129, 0.3);
+        border-color: #34d399;
+      }
+
+      #hud-score.flash-miss {
+        transform: scale(0.85);
+        color: #f87171;
+        background: rgba(239, 68, 68, 0.3);
+        border-color: #f87171;
+      }
+
+      #hud-mode {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #fbbf24;
+        background: rgba(15, 23, 42, 0.85);
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1px solid #fbbf24;
+        z-index: 10;
+      }
+
+      #pre-experiment,
+      #results-dashboard {
+        position: fixed;
+        inset: 0;
+        background: var(--card-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        flex-direction: column;
+        gap: 20px;
+        padding: 40px;
+        text-align: center;
+        max-width: 650px;
+        margin: auto;
+        border-radius: 16px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+        border: 1px solid #334155;
+        height: fit-content;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .slide {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .slide.active {
+        display: flex;
+      }
+
+      .btn {
+        background: var(--accent);
+        color: #0f172a;
+        border: none;
+        padding: 12px 24px;
+        font-weight: bold;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.2s ease;
+      }
+
+      .btn:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+      }
+
+      .btn-secondary {
+        background: #475569;
+        color: #f8fafc;
+        margin-left: 10px;
+      }
+
+      .table-container {
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        margin: 15px 0;
+        border: 1px solid #334155;
+        border-radius: 8px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+
+      th,
+      td {
+        padding: 8px;
+        border-bottom: 1px solid #334155;
+        text-align: center;
+      }
+
+      th {
+        background-color: #1e293b;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Onboarding / Tutorial Overlay -->
+    <div id="pre-experiment">
+      <div id="slide-1" class="slide active">
+        <h1>Adaptive Physics Bouncing Balls</h1>
+        <p>
+          Welcome! This is an adaptive psychophysics tracking experiment. You
+          will see several objects bouncing in an environment with collision
+          sounds.
+        </p>
+        <button onclick="nextSlide(2)" class="btn">Next</button>
+      </div>
+
+      <div id="slide-2" class="slide">
+        <h2>Opaque Occlusions & Odd Events</h2>
+        <p>
+          Opaque slate grey boxes will occlude parts of the canvas. The balls
+          continue to move behind them.
+        </p>
+        <p>
+          At random moments, objects will experience sudden **odd events**
+          (shifts in color, size, or speed).
+        </p>
+        <button onclick="nextSlide(3)" class="btn">Next</button>
+      </div>
+
+      <div id="slide-3" class="slide">
+        <h2>Your Task</h2>
+        <p>
+          Your goal is to **touch or click on the changed object** as fast as
+          possible within 1 second of the shift.
+        </p>
+        <p>
+          Successful taps score **+100 points**. False alarms or late taps
+          deduct **-50 points**.
+        </p>
+        <button onclick="startPractice()" class="btn">
+          Start 10s Practice
+        </button>
+      </div>
+
+      <div id="slide-practice-end" class="slide">
+        <h2>Practice Complete!</h2>
+        <p id="practice-stats"></p>
+        <p>
+          Now, you will begin the main adaptive blocks. The difficulty level
+          (number of occluders, size, and subtlety of change events) will adapt
+          dynamically to target an 80% success rate.
+        </p>
+        <button onclick="startMainExperiment()" class="btn">
+          Start Experiment
+        </button>
+      </div>
+    </div>
+
+    <!-- End of Session Results Dashboard -->
+    <div id="results-dashboard" style="display: none">
+      <h1>Experiment Complete!</h1>
+      <p id="results-summary"></p>
+      <div class="table-container">
+        <table id="results-table">
+          <thead>
+            <tr>
+              <th>Trial</th>
+              <th>Difficulty</th>
+              <th>Balls</th>
+              <th>Occluders</th>
+              <th>Changes</th>
+              <th>Hits</th>
+              <th>Hit Rate</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div>
+        <button onclick="downloadJSON()" class="btn">Download JSON</button>
+        <button onclick="downloadCSV()" class="btn btn-secondary">
+          Download CSV
+        </button>
+        <button onclick="restartExperiment()" class="btn btn-secondary">
+          Restart
+        </button>
+      </div>
+    </div>
+
+    <div id="experiment-wrapper">
+      <div id="experiment-container" style="display: none">
+        <div id="hud-mode">PRACTICE</div>
+        <div id="hud-score">Score: <span id="score-val">0</span></div>
+        <canvas id="physics-canvas" width="600" height="600"></canvas>
+      </div>
+      <div id="jspsych-target"></div>
+    </div>
+
+    <!-- Dependencies -->
+    <script src="https://unpkg.com/jspsych@8.0.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.0.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-button-response@2.0.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-call-function@2.0.0"></script>
+    <script src="https://unpkg.com/jsquest-plus@2.1.0/dist/jsQuestPlus.js"></script>
+
+    <script>
+      // Initialize jsPsych
+      const jsPsych = initJsPsych({
+        display_element: "jspsych-target",
+      });
+
+      // Web Audio API context
+      let audioCtx = null;
+      function initAudio() {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
-        let baseFreq = 400 * (25.0 / obj.r);
-        let hue = obj.hue % 360;
-        
-        let pitchDrop = Math.exp(-t * 20);
-        
-        let w0 = Math.sin(2 * Math.PI * baseFreq * (1 + 0.5 * pitchDrop) * t);
-        let w1 = (Math.sin(2 * Math.PI * baseFreq * t) + 
-                  0.5 * Math.sin(2 * Math.PI * baseFreq * 2.76 * t) + 
-                  0.25 * Math.sin(2 * Math.PI * baseFreq * 5.4 * t)) / 1.75;
-                  
-        let w2 = Math.sin(2 * Math.PI * baseFreq * t) >= 0 ? 0.3 : -0.3;
-        let w3 = 0.5 * (2 * (t * baseFreq - Math.floor(0.5 + t * baseFreq)));
-        let w4 = 2 * Math.abs(2 * (t * baseFreq - Math.floor(0.5 + t * baseFreq))) - 1;
-        let w5 = Math.sin(2 * Math.PI * baseFreq * t + 0.5 * Math.sin(2 * Math.PI * 50 * t));
-        let w6 = (Math.sin(2 * Math.PI * baseFreq * t) + 
-                  0.5 * Math.sin(2 * Math.PI * 2 * baseFreq * t) + 
-                  0.25 * Math.sin(2 * Math.PI * 3 * baseFreq * t)) / 1.75;
-        let w7 = Math.sin(2 * Math.PI * baseFreq * t);
-        
-        let anchors = [w0, w1, w2, w3, w4, w5, w6, w7];
-        let idx = Math.floor(hue / 45);
-        let mix = (hue % 45) / 45.0;
-        
-        let nextIdx = (idx + 1) % 8;
-        return (1.0 - mix) * anchors[idx] + mix * anchors[nextIdx];
-      }
-      
-      let w1_silent = (b1.mass === Infinity || b1.isPillar);
-      let w2_silent = (b2.mass === Infinity || b2.isPillar);
-      
-      for (let i = 0; i < bufferSize; i++) {
-        let t = i / sr;
-        let wave1 = w1_silent ? 0 : synthesizeWave(b1, t);
-        let wave2 = w2_silent ? 0 : synthesizeWave(b2, t);
-        
-        let mixed;
-        if (w1_silent && w2_silent) {
-          mixed = 0;
-        } else if (w1_silent || w2_silent) {
-          mixed = (wave1 + wave2) * volumeScale;
-        } else {
-          mixed = (wave1 + wave2) * 0.5 * volumeScale;
+        if (audioCtx.state === "suspended") {
+          audioCtx.resume();
         }
-        
-        let envelope = Math.exp(-t * 30);
-        let sample = mixed * envelope;
-        
-        sample = Math.max(-1.0, Math.min(1.0, sample));
-        
-        chanL[i] = sample;
-        chanR[i] = sample;
       }
-      
-      let source = audioCtx.createBufferSource();
-      source.buffer = buffer;
-      source.connect(audioCtx.destination);
-      source.start();
-    }
 
-    // HSV to RGB helper
-    function hsvToRgb(h, s, v) {
-      let r, g, b;
-      let i = Math.floor(h / 60);
-      let f = h / 60 - i;
-      let p = v * (1 - s);
-      let q = v * (1 - f * s);
-      let t = v * (1 - (1 - f) * s);
-      switch (i % 6) {
-        case 0: r = v, g = t, b = p; break;
-        case 1: r = q, g = v, b = p; break;
-        case 2: r = p, g = v, b = t; break;
-        case 3: r = p, g = q, b = v; break;
-        case 4: r = t, g = p, b = v; break;
-        case 5: r = v, g = p, b = q; break;
-      }
-      return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
-    }
+      // Play synthesized collision tone matching Python AudioGenerator
+      function playCollisionSound(b1, b2, energy) {
+        if (!audioCtx || !trialAudioBuffer) return;
 
-    // Slide navigation
-    function nextSlide(slideNum) {
-      document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
-      if (slideNum === 'practice-end') {
-        document.getElementById('slide-practice-end').classList.add('active');
-      } else {
-        document.getElementById(`slide-${slideNum}`).classList.add('active');
-      }
-    }
+        let volumeScale = Math.min(
+          1.0,
+          Math.max(0.1, Math.sqrt(energy) / 10.0),
+        );
+        let duration = 0.1;
+        let sr = audioCtx.sampleRate || 44100;
+        let bufferSize = Math.floor(sr * duration);
 
-    // Physics Engine state
-    const canvas = document.getElementById('physics-canvas');
-    const ctx = canvas.getContext('2d');
-    const WIDTH = 600;
-    const HEIGHT = 600;
+        let chanL = trialAudioBuffer.getChannelData(0);
+        let chanR = trialAudioBuffer.getChannelData(1);
 
-    let balls = [];
-    let isRunning = false;
-    let animationId = null;
+        let startSample = Math.floor(elapsedSimulationTime * sr);
 
-    // Change event state (Poisson process)
-    let elapsedSimulationTime = 0;
-    let nextEventTime = 0;
-    let meanTimeBetweenEvents = 4.0; // 4 seconds average
-    let lastChangeTime = -999;
-    let changeResponded = true;
-    let changeHistory = [];
-    let missedTypes = []; // Logs the change types missed in the current trial
-
-    // Session-level stats & metrics log
-    let score = 0;
-    let trialHits = 0;
-    let trialChanges = 0;
-    let trialNum = 1;
-    let isPractice = false;
-    let maxRealTrials = 5; // End experiment after 5 real trials
-
-    let sessionData = {
-      subjectId: "subj_" + Math.random().toString(36).substr(2, 9),
-      timestamp: new Date().toISOString(),
-      trials: []
-    };
-
-    // QUEST Parameters and difficulty mapping
-    const difficultyGrid = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0];
-    const thresholdGrid = difficultyGrid.slice();
-    const slopeGrid = [2.0, 3.0, 4.0];
-    const guessRate = 0.1;
-    const lapseRate = [0.01, 0.02];
-    
-    let questEngine = null;
-    let currentDifficulty = 0.0;
-
-    function initQuest() {
-      questEngine = new jsQuestPlus({
-        psych_func: [
-          (stim, threshold, slope, guess, lapse) => {
-            return guess + (1 - guess - lapse) * (1 - Math.exp(-Math.pow(stim / threshold, slope)));
-          },
-          (stim, threshold, slope, guess, lapse) => {
-            return 1 - (guess + (1 - guess - lapse) * (1 - Math.exp(-Math.pow(stim / threshold, slope))));
+        function synthesizeWave(obj, t) {
+          if (obj.mass === Infinity || obj.isPillar) {
+            return 0;
           }
-        ],
-        stim_samples: [difficultyGrid],
-        psych_samples: [thresholdGrid, slopeGrid, [guessRate], lapseRate]
-      });
-    }
+          let baseFreq = 400 * (25.0 / obj.r);
+          let hue = obj.hue % 360;
 
-    // Map unified difficulty level to physical params
-    let numBalls = 2;
-    let occluders = [];
-    let currentChangeMagnitude = { hue: 120, radius: 15, speed: 100 };
-    
-    // Adaptive multipliers for easier trials if subject misses properties
-    let magnitudeModifiers = {
-      color: 1.0,
-      size: 1.0,
-      speed: 1.0
-    };
+          let pitchDrop = Math.exp(-t * 20);
 
-    function applyAdaptiveDifficulty() {
-      if (isPractice) {
-        currentDifficulty = 0.0;
-        numBalls = 2;
-        occluders = [{ x: 260, y: 260, size: 80 }];
-        currentChangeMagnitude = { hue: 120, radius: 15, speed: 100 };
-        return;
-      }
-      
-      let stimParams = questEngine.getStimParams();
-      currentDifficulty = Array.isArray(stimParams) ? stimParams[0] : stimParams;
-      if (currentDifficulty == null || !Number.isFinite(currentDifficulty)) {
-        currentDifficulty = 0.0;
-      }
-      
-      numBalls = 2; // Consistent 2 balls layout
-      let numOccluders = Math.min(5, Math.max(1, Math.floor(1 + currentDifficulty)));
-      let occluderSize = 80 + Math.round(currentDifficulty * 10);
-      
-      occluders = [];
-      for (let i = 0; i < numOccluders; i++) {
-        occluders.push({
-          x: Math.random() * (WIDTH - occluderSize),
-          y: Math.random() * (HEIGHT - occluderSize),
-          size: occluderSize
-        });
-      }
-      
-      let mult = 1.0 / (1.0 + currentDifficulty * 0.75);
-      currentChangeMagnitude = {
-        hue: 120 * mult * magnitudeModifiers.color,
-        radius: 16 * mult * magnitudeModifiers.size,
-        speed: 120 * mult * magnitudeModifiers.speed
-      };
-    }
+          let w0 = Math.sin(2 * Math.PI * baseFreq * (1 + 0.5 * pitchDrop) * t);
+          let w1 =
+            (Math.sin(2 * Math.PI * baseFreq * t) +
+              0.5 * Math.sin(2 * Math.PI * baseFreq * 2.76 * t) +
+              0.25 * Math.sin(2 * Math.PI * baseFreq * 5.4 * t)) /
+            1.75;
 
-    function scheduleNextEvent(currentTime) {
-      let u = Math.random();
-      let tNext = -Math.log(1 - u) * meanTimeBetweenEvents;
-      nextEventTime = currentTime + tNext;
-    }
+          let w2 = Math.sin(2 * Math.PI * baseFreq * t) >= 0 ? 0.3 : -0.3;
+          let w3 = 0.5 * (2 * (t * baseFreq - Math.floor(0.5 + t * baseFreq)));
+          let w4 =
+            2 * Math.abs(2 * (t * baseFreq - Math.floor(0.5 + t * baseFreq))) -
+            1;
+          let w5 = Math.sin(
+            2 * Math.PI * baseFreq * t + 0.5 * Math.sin(2 * Math.PI * 50 * t),
+          );
+          let w6 =
+            (Math.sin(2 * Math.PI * baseFreq * t) +
+              0.5 * Math.sin(2 * Math.PI * 2 * baseFreq * t) +
+              0.25 * Math.sin(2 * Math.PI * 3 * baseFreq * t)) /
+            1.75;
+          let w7 = Math.sin(2 * Math.PI * baseFreq * t);
 
-    function triggerRandomChangeEvent(currentTime) {
-      if (balls.length === 0) return;
-      
-      let ballIdx = Math.floor(Math.random() * balls.length);
-      let b = balls[ballIdx];
-      
-      let eventTypes = ['color', 'size', 'speed'];
-      let chosenType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-      let desc = "";
+          let anchors = [w0, w1, w2, w3, w4, w5, w6, w7];
+          let idx = Math.floor(hue / 45);
+          let mix = (hue % 45) / 45.0;
 
-      if (chosenType === 'color') {
-        let shift = currentChangeMagnitude.hue;
-        let dir = Math.random() < 0.5 ? 1 : -1;
-        b.hue = (b.hue + dir * shift + 360) % 360;
-        desc = `Ball #${ballIdx} color shifted by ${dir * shift.toFixed(0)}°`;
-      } else if (chosenType === 'size') {
-        let shift = currentChangeMagnitude.radius;
-        let dir = Math.random() < 0.5 ? 1 : -1;
-        let newR = Math.max(12, Math.min(75, b.r + dir * shift));
-        b.r = newR;
-        b.mass = newR * newR;
-        desc = `Ball #${ballIdx} size changed to r=${newR.toFixed(0)}`;
-      } else if (chosenType === 'speed') {
-        let shift = currentChangeMagnitude.speed;
-        let dir = Math.random() < 0.5 ? 1 : -1;
-        let currentSpeed = Math.hypot(b.vx, b.vy);
-        let newSpeed = Math.max(60, Math.min(350, currentSpeed + dir * shift));
-        if (currentSpeed > 0) {
-          b.vx = (b.vx / currentSpeed) * newSpeed;
-          b.vy = (b.vy / currentSpeed) * newSpeed;
-        } else {
-          b.vx = newSpeed;
-          b.vy = 0;
+          let nextIdx = (idx + 1) % 8;
+          return (1.0 - mix) * anchors[idx] + mix * anchors[nextIdx];
         }
-        desc = `Ball #${ballIdx} speed changed to ${newSpeed.toFixed(0)} px/s`;
+
+        let w1_silent = b1.mass === Infinity || b1.isPillar;
+        let w2_silent = b2.mass === Infinity || b2.isPillar;
+
+        for (let i = 0; i < bufferSize; i++) {
+          let t = i / sr;
+          let wave1 = w1_silent ? 0 : synthesizeWave(b1, t);
+          let wave2 = w2_silent ? 0 : synthesizeWave(b2, t);
+
+          let mixed;
+          if (w1_silent && w2_silent) {
+            mixed = 0;
+          } else if (w1_silent || w2_silent) {
+            mixed = (wave1 + wave2) * volumeScale;
+          } else {
+            mixed = (wave1 + wave2) * 0.5 * volumeScale;
+          }
+
+          let envelope = Math.exp(-t * 30);
+          let sample = mixed * envelope;
+
+          sample = Math.max(-1.0, Math.min(1.0, sample));
+
+          let outIdx = startSample + i;
+          if (outIdx < chanL.length) {
+            chanL[outIdx] = Math.max(
+              -1.0,
+              Math.min(1.0, chanL[outIdx] + sample),
+            );
+            chanR[outIdx] = Math.max(
+              -1.0,
+              Math.min(1.0, chanR[outIdx] + sample),
+            );
+          }
+        }
       }
 
-      lastChangeTime = currentTime;
-      changeResponded = false;
-      trialChanges++;
-
-      changeHistory.push({
-        ball: b,
-        time: currentTime,
-        type: chosenType, // color, size, speed
-        responded: false,
-        expired: false
-      });
-      console.log(`[EVENT] ${desc} at ${currentTime.toFixed(2)}s`);
-    }
-
-    function getCanvasCoords(e) {
-      let rect = canvas.getBoundingClientRect();
-      let clientX, clientY;
-      if (e.touches && e.touches.length > 0) {
-        clientX = e.touches[0].clientX;
-        clientY = e.touches[0].clientY;
-      } else {
-        clientX = e.clientX;
-        clientY = e.clientY;
-      }
-      let x = ((clientX - rect.left) / rect.width) * WIDTH;
-      let y = ((clientY - rect.top) / rect.height) * HEIGHT;
-      return { x, y };
-    }
-
-    function handleCanvasInteraction(e) {
-      if (!isRunning) return;
-      if (elapsedSimulationTime <= 1.0) return;
-      
-      let coords = getCanvasCoords(e);
-      let hitFound = false;
-
-      changeHistory = changeHistory.filter(c => elapsedSimulationTime - c.time <= 1.0);
-
-      for (let i = 0; i < changeHistory.length; i++) {
-        let change = changeHistory[i];
-        if (!change.responded) {
-          let dist = Math.hypot(coords.x - change.ball.x, coords.y - change.ball.y);
-          if (dist < 200) {
-            score += 100;
-            trialHits++;
-            change.responded = true;
-            flashScoreHUD('hit');
-            hitFound = true;
+      // HSV to RGB helper
+      function hsvToRgb(h, s, v) {
+        let r, g, b;
+        let i = Math.floor(h / 60);
+        let f = h / 60 - i;
+        let p = v * (1 - s);
+        let q = v * (1 - f * s);
+        let t = v * (1 - (1 - f) * s);
+        switch (i % 6) {
+          case 0:
+            ((r = v), (g = t), (b = p));
             break;
-          }
+          case 1:
+            ((r = q), (g = v), (b = p));
+            break;
+          case 2:
+            ((r = p), (g = v), (b = t));
+            break;
+          case 3:
+            ((r = p), (g = q), (b = v));
+            break;
+          case 4:
+            ((r = t), (g = p), (b = v));
+            break;
+          case 5:
+            ((r = v), (g = p), (b = q));
+            break;
+        }
+        return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
+      }
+
+      // Slide navigation
+      function nextSlide(slideNum) {
+        document
+          .querySelectorAll(".slide")
+          .forEach((s) => s.classList.remove("active"));
+        if (slideNum === "practice-end") {
+          document.getElementById("slide-practice-end").classList.add("active");
+        } else {
+          document.getElementById(`slide-${slideNum}`).classList.add("active");
         }
       }
 
-      if (!hitFound) {
-        score -= 50;
-        flashScoreHUD('miss');
-      }
-      document.getElementById('score-val').innerText = score;
-    }
+      // Physics Engine state
+      const canvas = document.getElementById("physics-canvas");
+      const ctx = canvas.getContext("2d");
+      const WIDTH = 600;
+      const HEIGHT = 600;
 
-    function flashScoreHUD(type) {
-      let hud = document.getElementById('hud-score');
-      hud.classList.remove('flash-hit', 'flash-miss');
-      void hud.offsetWidth; // Force CSS reflow
-      if (type === 'hit') {
-        hud.classList.add('flash-hit');
-      } else {
-        hud.classList.add('flash-miss');
-      }
-      setTimeout(() => {
-        hud.classList.remove('flash-hit', 'flash-miss');
-      }, 300);
-    }
+      let balls = [];
+      let isRunning = false;
+      let animationId = null;
 
-    function initPhysics() {
-      balls = [];
-      for (let i = 0; i < numBalls; i++) {
-        let radius = 20 + Math.random() * 20;
-        balls.push({
-          id: i,
-          x: 100 + Math.random() * 400,
-          y: 100 + Math.random() * 400,
-          vx: (Math.random() < 0.5 ? 1 : -1) * (120 + Math.random() * 100),
-          vy: (Math.random() < 0.5 ? 1 : -1) * (120 + Math.random() * 100),
-          r: radius,
-          hue: Math.random() * 360,
-          mass: radius * radius
+      // Change event state (Poisson process)
+      let elapsedSimulationTime = 0;
+      let nextEventTime = 0;
+      let meanTimeBetweenEvents = 4.0; // 4 seconds average
+      let lastChangeTime = -999;
+      let changeResponded = true;
+      let changeHistory = [];
+      let precomputedFrames = [];
+      let trialAudioBuffer = null;
+      let trialAudioSource = null;
+      let playbackStartTime = 0;
+      let missedTypes = []; // Logs the change types missed in the current trial
+
+      // Session-level stats & metrics log
+      let score = 0;
+      let trialHits = 0;
+      let trialChanges = 0;
+      let trialNum = 1;
+      let isPractice = false;
+      let maxRealTrials = 5; // End experiment after 5 real trials
+
+      let sessionData = {
+        subjectId: "subj_" + Math.random().toString(36).substr(2, 9),
+        timestamp: new Date().toISOString(),
+        trials: [],
+      };
+
+      // QUEST Parameters and difficulty mapping
+      const difficultyGrid = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0];
+      const thresholdGrid = difficultyGrid.slice();
+      const slopeGrid = [2.0, 3.0, 4.0];
+      const guessRate = 0.1;
+      const lapseRate = [0.01, 0.02];
+
+      let questEngine = null;
+      let currentDifficulty = 0.0;
+
+      function initQuest() {
+        questEngine = new jsQuestPlus({
+          psych_func: [
+            (stim, threshold, slope, guess, lapse) => {
+              return (
+                guess +
+                (1 - guess - lapse) *
+                  (1 - Math.exp(-Math.pow(stim / threshold, slope)))
+              );
+            },
+            (stim, threshold, slope, guess, lapse) => {
+              return (
+                1 -
+                (guess +
+                  (1 - guess - lapse) *
+                    (1 - Math.exp(-Math.pow(stim / threshold, slope))))
+              );
+            },
+          ],
+          stim_samples: [difficultyGrid],
+          psych_samples: [thresholdGrid, slopeGrid, [guessRate], lapseRate],
         });
       }
-      
-      elapsedSimulationTime = 0;
-      lastChangeTime = -999;
-      changeResponded = true;
-      trialHits = 0;
-      trialChanges = 0;
-      changeHistory = [];
-      missedTypes = [];
-      
-      document.getElementById('score-val').innerText = score;
-      document.getElementById('hud-mode').innerText = isPractice ? "PRACTICE" : `TRIAL ${trialNum}/${maxRealTrials}`;
-      scheduleNextEvent(0);
-    }
 
-    // Spatial Hash Grid Collision Optimization
-    function resolveGridCollisions() {
-      let grid = {};
-      let cellSize = 100;
-      let cols = Math.ceil(WIDTH / cellSize);
-      let rows = Math.ceil(HEIGHT / cellSize);
-      
-      balls.forEach(b => {
-        let minCellX = Math.max(0, Math.floor((b.x - b.r) / cellSize));
-        let maxCellX = Math.min(cols - 1, Math.floor((b.x + b.r) / cellSize));
-        let minCellY = Math.max(0, Math.floor((b.y - b.r) / cellSize));
-        let maxCellY = Math.min(rows - 1, Math.floor((b.y + b.r) / cellSize));
-        
-        for (let cx = minCellX; cx <= maxCellX; cx++) {
-          for (let cy = minCellY; cy <= maxCellY; cy++) {
-            let key = `${cx},${cy}`;
-            if (!grid[key]) grid[key] = [];
-            grid[key].push(b);
+      // Map unified difficulty level to physical params
+      let numBalls = 2;
+      let occluders = [];
+      let currentChangeMagnitude = { hue: 120, radius: 15, speed: 100 };
+
+      // Adaptive multipliers for easier trials if subject misses properties
+      let magnitudeModifiers = {
+        color: 1.0,
+        size: 1.0,
+        speed: 1.0,
+      };
+
+      function applyAdaptiveDifficulty() {
+        if (isPractice) {
+          currentDifficulty = 0.0;
+          numBalls = 2;
+          occluders = [{ x: 260, y: 260, size: 80 }];
+          currentChangeMagnitude = { hue: 120, radius: 15, speed: 100 };
+          return;
+        }
+
+        let stimParams = questEngine.getStimParams();
+        currentDifficulty = Array.isArray(stimParams)
+          ? stimParams[0]
+          : stimParams;
+        if (currentDifficulty == null || !Number.isFinite(currentDifficulty)) {
+          currentDifficulty = 0.0;
+        }
+
+        numBalls = 2; // Consistent 2 balls layout
+        let numOccluders = Math.min(
+          5,
+          Math.max(1, Math.floor(1 + currentDifficulty)),
+        );
+        let occluderSize = 80 + Math.round(currentDifficulty * 10);
+
+        occluders = [];
+        for (let i = 0; i < numOccluders; i++) {
+          occluders.push({
+            x: Math.random() * (WIDTH - occluderSize),
+            y: Math.random() * (HEIGHT - occluderSize),
+            size: occluderSize,
+          });
+        }
+
+        let mult = 1.0 / (1.0 + currentDifficulty * 0.75);
+        currentChangeMagnitude = {
+          hue: 120 * mult * magnitudeModifiers.color,
+          radius: 16 * mult * magnitudeModifiers.size,
+          speed: 120 * mult * magnitudeModifiers.speed,
+        };
+      }
+
+      function scheduleNextEvent(currentTime) {
+        let u = Math.random();
+        let tNext = -Math.log(1 - u) * meanTimeBetweenEvents;
+        nextEventTime = currentTime + tNext;
+      }
+
+      function triggerRandomChangeEvent(currentTime) {
+        if (balls.length === 0) return;
+
+        let ballIdx = Math.floor(Math.random() * balls.length);
+        let b = balls[ballIdx];
+
+        let eventTypes = ["color", "size", "speed"];
+        let chosenType =
+          eventTypes[Math.floor(Math.random() * eventTypes.length)];
+        let desc = "";
+
+        if (chosenType === "color") {
+          let shift = currentChangeMagnitude.hue;
+          let dir = Math.random() < 0.5 ? 1 : -1;
+          b.hue = (b.hue + dir * shift + 360) % 360;
+          desc = `Ball #${ballIdx} color shifted by ${dir * shift.toFixed(0)}°`;
+        } else if (chosenType === "size") {
+          let shift = currentChangeMagnitude.radius;
+          let dir = Math.random() < 0.5 ? 1 : -1;
+          let newR = Math.max(12, Math.min(75, b.r + dir * shift));
+          b.r = newR;
+          b.mass = newR * newR;
+          desc = `Ball #${ballIdx} size changed to r=${newR.toFixed(0)}`;
+        } else if (chosenType === "speed") {
+          let shift = currentChangeMagnitude.speed;
+          let dir = Math.random() < 0.5 ? 1 : -1;
+          let currentSpeed = Math.hypot(b.vx, b.vy);
+          let newSpeed = Math.max(
+            60,
+            Math.min(350, currentSpeed + dir * shift),
+          );
+          if (currentSpeed > 0) {
+            b.vx = (b.vx / currentSpeed) * newSpeed;
+            b.vy = (b.vy / currentSpeed) * newSpeed;
+          } else {
+            b.vx = newSpeed;
+            b.vy = 0;
+          }
+          desc = `Ball #${ballIdx} speed changed to ${newSpeed.toFixed(0)} px/s`;
+        }
+
+        lastChangeTime = currentTime;
+        changeResponded = false;
+        trialChanges++;
+
+        changeHistory.push({
+          ball: b,
+          time: currentTime,
+          type: chosenType, // color, size, speed
+          responded: false,
+          expired: false,
+        });
+        console.log(`[EVENT] ${desc} at ${currentTime.toFixed(2)}s`);
+      }
+
+      function getCanvasCoords(e) {
+        let rect = canvas.getBoundingClientRect();
+        let clientX, clientY;
+        if (e.touches && e.touches.length > 0) {
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+        } else {
+          clientX = e.clientX;
+          clientY = e.clientY;
+        }
+        let x = ((clientX - rect.left) / rect.width) * WIDTH;
+        let y = ((clientY - rect.top) / rect.height) * HEIGHT;
+        return { x, y };
+      }
+
+      function handleCanvasInteraction(e) {
+        if (!isRunning) return;
+        if (elapsedSimulationTime <= 1.0) return;
+
+        let coords = getCanvasCoords(e);
+        let hitFound = false;
+
+        let activeChanges = changeHistory.filter(
+          (c) =>
+            c.time <= elapsedSimulationTime &&
+            elapsedSimulationTime - c.time <= 1.0,
+        );
+
+        for (let i = 0; i < activeChanges.length; i++) {
+          let change = activeChanges[i];
+          if (!change.responded) {
+            let currentBall = balls.find(b => b.id === change.ball.id) || change.ball;
+            let dist = Math.hypot(
+              coords.x - currentBall.x,
+              coords.y - currentBall.y,
+            );
+            if (dist < 200) {
+              score += 100;
+              trialHits++;
+              change.responded = true;
+              flashScoreHUD("hit");
+              hitFound = true;
+
+              // Add a new random occlusion on hit
+              let occluderSize = 80 + Math.round(currentDifficulty * 10);
+              occluders.push({
+                x: Math.random() * (WIDTH - occluderSize),
+                y: Math.random() * (HEIGHT - occluderSize),
+                size: occluderSize,
+              });
+              break;
+            }
           }
         }
-      });
-      
-      let checkedPairs = new Set();
-      for (let key in grid) {
-        let cellBalls = grid[key];
-        if (cellBalls.length < 2) continue;
-        for (let i = 0; i < cellBalls.length; i++) {
-          for (let j = i + 1; j < cellBalls.length; j++) {
-            let b1 = cellBalls[i];
-            let b2 = cellBalls[j];
-            let pairId = b1.id < b2.id ? `${b1.id}-${b2.id}` : `${b2.id}-${b1.id}`;
-            if (!checkedPairs.has(pairId)) {
-              checkedPairs.add(pairId);
-              resolveCollision(b1, b2);
+
+        if (!hitFound) {
+          score -= 50;
+          flashScoreHUD("miss");
+        }
+        document.getElementById("score-val").innerText = score;
+      }
+
+      function flashScoreHUD(type) {
+        let hud = document.getElementById("hud-score");
+        hud.classList.remove("flash-hit", "flash-miss");
+        void hud.offsetWidth; // Force CSS reflow
+        if (type === "hit") {
+          hud.classList.add("flash-hit");
+        } else {
+          hud.classList.add("flash-miss");
+        }
+        setTimeout(() => {
+          hud.classList.remove("flash-hit", "flash-miss");
+        }, 300);
+      }
+
+      function initPhysics() {
+        balls = [];
+        for (let i = 0; i < numBalls; i++) {
+          let radius = 20 + Math.random() * 20;
+          balls.push({
+            id: i,
+            x: 100 + Math.random() * 400,
+            y: 100 + Math.random() * 400,
+            vx: (Math.random() < 0.5 ? 1 : -1) * (120 + Math.random() * 100),
+            vy: (Math.random() < 0.5 ? 1 : -1) * (120 + Math.random() * 100),
+            r: radius,
+            hue: Math.random() * 360,
+            mass: radius * radius,
+          });
+        }
+
+        elapsedSimulationTime = 0;
+        lastChangeTime = -999;
+        changeResponded = true;
+        trialHits = 0;
+        trialChanges = 0;
+        changeHistory = [];
+        missedTypes = [];
+
+        document.getElementById("score-val").innerText = score;
+        document.getElementById("hud-mode").innerText = isPractice
+          ? "PRACTICE"
+          : `TRIAL ${trialNum}/${maxRealTrials}`;
+        scheduleNextEvent(0);
+      }
+
+      // Spatial Hash Grid Collision Optimization
+      function resolveGridCollisions() {
+        let grid = {};
+        let cellSize = 100;
+        let cols = Math.ceil(WIDTH / cellSize);
+        let rows = Math.ceil(HEIGHT / cellSize);
+
+        balls.forEach((b) => {
+          let minCellX = Math.max(0, Math.floor((b.x - b.r) / cellSize));
+          let maxCellX = Math.min(cols - 1, Math.floor((b.x + b.r) / cellSize));
+          let minCellY = Math.max(0, Math.floor((b.y - b.r) / cellSize));
+          let maxCellY = Math.min(rows - 1, Math.floor((b.y + b.r) / cellSize));
+
+          for (let cx = minCellX; cx <= maxCellX; cx++) {
+            for (let cy = minCellY; cy <= maxCellY; cy++) {
+              let key = `${cx},${cy}`;
+              if (!grid[key]) grid[key] = [];
+              grid[key].push(b);
+            }
+          }
+        });
+
+        let checkedPairs = new Set();
+        for (let key in grid) {
+          let cellBalls = grid[key];
+          if (cellBalls.length < 2) continue;
+          for (let i = 0; i < cellBalls.length; i++) {
+            for (let j = i + 1; j < cellBalls.length; j++) {
+              let b1 = cellBalls[i];
+              let b2 = cellBalls[j];
+              let pairId =
+                b1.id < b2.id ? `${b1.id}-${b2.id}` : `${b2.id}-${b1.id}`;
+              if (!checkedPairs.has(pairId)) {
+                checkedPairs.add(pairId);
+                resolveCollision(b1, b2);
+              }
             }
           }
         }
       }
-    }
 
-    function resolveCollision(b1, b2) {
-      let dx = b1.x - b2.x;
-      let dy = b1.y - b2.y;
-      let dist = Math.hypot(dx, dy);
-      let minDist = b1.r + b2.r;
-      if (dist >= minDist) return;
-      
-      let overlap = minDist - dist;
-      let nx = dx / (dist || 1);
-      let ny = dy / (dist || 1);
-      
-      b1.x += nx * (overlap / 2);
-      b1.y += ny * (overlap / 2);
-      b2.x -= nx * (overlap / 2);
-      b2.y -= ny * (overlap / 2);
-      
-      let kx = b1.vx - b2.vx;
-      let ky = b1.vy - b2.vy;
-      let vn = kx * nx + ky * ny;
-      if (vn < 0) {
-        let m1 = b1.mass;
-        let m2 = b2.mass;
-        let impulse = -2 * vn / (1/m1 + 1/m2);
-        b1.vx += (impulse / m1) * nx;
-        b1.vy += (impulse / m1) * ny;
-        b2.vx -= (impulse / m2) * nx;
-        b2.vy -= (impulse / m2) * ny;
+      function resolveCollision(b1, b2) {
+        let dx = b1.x - b2.x;
+        let dy = b1.y - b2.y;
+        let dist = Math.hypot(dx, dy);
+        let minDist = b1.r + b2.r;
+        if (dist >= minDist) return;
 
-        let reducedMass = 1.0 / (1/m1 + 1/m2);
-        let energy = 0.5 * reducedMass * (vn * vn);
-        playCollisionSound(b1, b2, energy);
-      }
-    }
+        let overlap = minDist - dist;
+        let nx = dx / (dist || 1);
+        let ny = dy / (dist || 1);
 
-    let lastTime = 0;
-    function updatePhysics(dt) {
-      elapsedSimulationTime += dt;
+        b1.x += nx * (overlap / 2);
+        b1.y += ny * (overlap / 2);
+        b2.x -= nx * (overlap / 2);
+        b2.y -= ny * (overlap / 2);
 
-      if (elapsedSimulationTime >= nextEventTime) {
-        triggerRandomChangeEvent(elapsedSimulationTime);
-        scheduleNextEvent(elapsedSimulationTime);
+        let kx = b1.vx - b2.vx;
+        let ky = b1.vy - b2.vy;
+        let vn = kx * nx + ky * ny;
+        if (vn < 0) {
+          let m1 = b1.mass;
+          let m2 = b2.mass;
+          let impulse = (-2 * vn) / (1 / m1 + 1 / m2);
+          b1.vx += (impulse / m1) * nx;
+          b1.vy += (impulse / m1) * ny;
+          b2.vx -= (impulse / m2) * nx;
+          b2.vy -= (impulse / m2) * ny;
+
+          let reducedMass = 1.0 / (1 / m1 + 1 / m2);
+          let energy = 0.5 * reducedMass * (vn * vn);
+          playCollisionSound(b1, b2, energy);
+        }
       }
 
-      // Check for expired changes (Misses)
-      changeHistory.forEach(c => {
-        if (!c.responded && !c.expired && (elapsedSimulationTime - c.time > 1.0)) {
-          c.expired = true;
-          missedTypes.push(c.type);
-          console.log(`[MISS] Missed change type: ${c.type}`);
-        }
-      });
+      let lastTime = 0;
+      function updatePhysics(dt) {
+        elapsedSimulationTime += dt;
 
-      balls.forEach(b => {
-        b.x += b.vx * dt;
-        b.y += b.vy * dt;
-
-        if (b.x - b.r < 0) {
-          b.x = b.r;
-          let energy = 0.5 * b.mass * (b.vx * b.vx);
-          b.vx = -b.vx;
-          playCollisionSound(b, { mass: Infinity, isPillar: true }, energy);
-        } else if (b.x + b.r > WIDTH) {
-          b.x = WIDTH - b.r;
-          let energy = 0.5 * b.mass * (b.vx * b.vx);
-          b.vx = -b.vx;
-          playCollisionSound(b, { mass: Infinity, isPillar: true }, energy);
+        if (elapsedSimulationTime >= nextEventTime) {
+          triggerRandomChangeEvent(elapsedSimulationTime);
+          scheduleNextEvent(elapsedSimulationTime);
         }
 
-        if (b.y - b.r < 0) {
-          b.y = b.r;
-          let energy = 0.5 * b.mass * (b.vy * b.vy);
-          b.vy = -b.vy;
-          playCollisionSound(b, { mass: Infinity, isPillar: true }, energy);
-        } else if (b.y + b.r > HEIGHT) {
-          b.y = HEIGHT - b.r;
-          let energy = 0.5 * b.mass * (b.vy * b.vy);
-          b.vy = -b.vy;
-          playCollisionSound(b, { mass: Infinity, isPillar: true }, energy);
+        balls.forEach((b) => {
+          b.x += b.vx * dt;
+          b.y += b.vy * dt;
+
+          if (b.x - b.r < 0) {
+            b.x = b.r;
+            let energy = 0.5 * b.mass * (b.vx * b.vx);
+            b.vx = -b.vx;
+            playCollisionSound(b, { mass: Infinity, isPillar: true }, energy);
+          } else if (b.x + b.r > WIDTH) {
+            b.x = WIDTH - b.r;
+            let energy = 0.5 * b.mass * (b.vx * b.vx);
+            b.vx = -b.vx;
+            playCollisionSound(b, { mass: Infinity, isPillar: true }, energy);
+          }
+
+          if (b.y - b.r < 0) {
+            b.y = b.r;
+            let energy = 0.5 * b.mass * (b.vy * b.vy);
+            b.vy = -b.vy;
+            playCollisionSound(b, { mass: Infinity, isPillar: true }, energy);
+          } else if (b.y + b.r > HEIGHT) {
+            b.y = HEIGHT - b.r;
+            let energy = 0.5 * b.mass * (b.vy * b.vy);
+            b.vy = -b.vy;
+            playCollisionSound(b, { mass: Infinity, isPillar: true }, energy);
+          }
+        });
+
+        resolveGridCollisions();
+      }
+
+      function render() {
+        ctx.fillStyle = "#0c0c0e";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+        balls.forEach((b) => {
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+          ctx.fillStyle = hsvToRgb(b.hue, 1, 1);
+          ctx.fill();
+          ctx.closePath();
+        });
+
+        occluders.forEach((occ) => {
+          ctx.fillStyle = "#1e293b";
+          ctx.fillRect(occ.x, occ.y, occ.size, occ.size);
+          ctx.strokeStyle = "#475569";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(occ.x, occ.y, occ.size, occ.size);
+        });
+      }
+
+      function loop(timestamp) {
+        if (!playbackStartTime)
+          playbackStartTime = audioCtx
+            ? audioCtx.currentTime
+            : performance.now() / 1000;
+
+        let currentTime = audioCtx
+          ? audioCtx.currentTime
+          : performance.now() / 1000;
+        let currentPlaybackTime = currentTime - playbackStartTime;
+
+        // Check for expired changes (Misses) using real playback time
+        changeHistory.forEach((c) => {
+          if (
+            !c.responded &&
+            !c.expired &&
+            currentPlaybackTime - c.time > 1.0
+          ) {
+            c.expired = true;
+            missedTypes.push(c.type);
+            console.log(`[MISS] Missed change type: ${c.type}`);
+          }
+        });
+
+        // Find the appropriate frame
+        let frameIdx = Math.floor(currentPlaybackTime * 60);
+        if (frameIdx >= precomputedFrames.length) {
+          frameIdx = precomputedFrames.length - 1;
         }
-      });
 
-      resolveGridCollisions();
-    }
+        if (frameIdx >= 0 && precomputedFrames.length > 0) {
+          balls = precomputedFrames[frameIdx].balls;
+          elapsedSimulationTime = currentPlaybackTime;
+          render();
+        }
 
-    function render() {
-      ctx.fillStyle = '#0c0c0e';
-      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        if (isRunning) {
+          animationId = requestAnimationFrame(loop);
+        }
+      }
 
-      balls.forEach(b => {
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-        ctx.fillStyle = hsvToRgb(b.hue, 1, 1);
-        ctx.fill();
-        ctx.closePath();
-      });
+      function startPractice() {
+        initAudio();
+        initQuest();
+        isPractice = true;
+        document.getElementById("pre-experiment").style.display = "none";
+        document.getElementById("experiment-container").style.display = "block";
+        runTrial();
+      }
 
-      occluders.forEach(occ => {
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(occ.x, occ.y, occ.size, occ.size);
-        ctx.strokeStyle = '#475569';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(occ.x, occ.y, occ.size, occ.size);
-      });
-    }
+      function runTrial() {
+        applyAdaptiveDifficulty();
+        initPhysics();
 
-    function loop(timestamp) {
-      if (!lastTime) lastTime = timestamp;
-      let dt = (timestamp - lastTime) / 1000;
-      lastTime = timestamp;
+        let duration = isPractice ? 10000 : 20000;
+        let durationSeconds = duration / 1000;
 
-      if (dt > 0.1) dt = 0.1;
+        // Initialize audio buffer
+        let sr = audioCtx ? audioCtx.sampleRate || 44100 : 44100;
+        let totalSamples = Math.ceil(sr * durationSeconds);
+        if (audioCtx) {
+          trialAudioBuffer = audioCtx.createBuffer(2, totalSamples, sr);
+        }
 
-      updatePhysics(dt);
-      render();
+        // Precompute physics
+        precomputedFrames = [];
+        elapsedSimulationTime = 0;
+        const dt = 1 / 60;
+        while (elapsedSimulationTime < durationSeconds) {
+          let frameBalls = balls.map((b) => ({ ...b }));
+          precomputedFrames.push({ balls: frameBalls });
+          updatePhysics(dt);
+        }
 
-      if (isRunning) {
+        document.getElementById("experiment-container").style.display = "block";
+
+        isRunning = true;
+        playbackStartTime = 0;
+
+        if (audioCtx && trialAudioBuffer) {
+          trialAudioSource = audioCtx.createBufferSource();
+          trialAudioSource.buffer = trialAudioBuffer;
+          trialAudioSource.connect(audioCtx.destination);
+          trialAudioSource.start();
+        }
+
         animationId = requestAnimationFrame(loop);
-      }
-    }
 
-    function startPractice() {
-      initAudio();
-      initQuest();
-      isPractice = true;
-      document.getElementById('pre-experiment').style.display = 'none';
-      document.getElementById('experiment-container').style.display = 'block';
-      runTrial();
-    }
+        const timeline = [
+          {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: "",
+            choices: ["NO_KEYS"],
+            trial_duration: duration,
+            on_finish: () => {
+              isRunning = false;
+              cancelAnimationFrame(animationId);
+              if (trialAudioSource) {
+                trialAudioSource.stop();
+                trialAudioSource.disconnect();
+                trialAudioSource = null;
+              }
+              document.getElementById("experiment-container").style.display =
+                "none";
 
-    function runTrial() {
-      applyAdaptiveDifficulty();
-      initPhysics();
-      
-      document.getElementById('experiment-container').style.display = 'block';
-      
-      isRunning = true;
-      lastTime = 0;
-      animationId = requestAnimationFrame(loop);
+              let hitRate = trialChanges > 0 ? trialHits / trialChanges : 1.0;
 
-      let duration = isPractice ? 10000 : 20000;
-
-      const timeline = [
-        {
-          type: jsPsychHtmlKeyboardResponse,
-          stimulus: '',
-          choices: ['NO_KEYS'],
-          trial_duration: duration,
-          on_finish: () => {
-            isRunning = false;
-            cancelAnimationFrame(animationId);
-            document.getElementById('experiment-container').style.display = 'none';
-            
-            let hitRate = trialChanges > 0 ? (trialHits / trialChanges) : 1.0;
-            
-            if (isPractice) {
-              document.getElementById('pre-experiment').style.display = 'flex';
-              document.getElementById('practice-stats').innerHTML = `
+              if (isPractice) {
+                document.getElementById("pre-experiment").style.display =
+                  "flex";
+                document.getElementById("practice-stats").innerHTML = `
                 Practice Session Score: <strong>${score}</strong> points<br>
                 Success Rate: <strong>${trialHits}/${trialChanges}</strong> detected.
               `;
-              nextSlide('practice-end');
-            } else {
-              let success = (hitRate >= 0.80) ? 1 : 0;
-              questEngine.update(currentDifficulty, success);
-
-              // If hitRate is below 100% with only 1 occluder, adaptively increase change magnitudes for the missed property type
-              if (occluders.length === 1 && hitRate < 1.0) {
-                missedTypes.forEach(type => {
-                  if (type === 'color') magnitudeModifiers.color = Math.min(3.0, magnitudeModifiers.color + 0.3);
-                  if (type === 'size') magnitudeModifiers.size = Math.min(3.0, magnitudeModifiers.size + 0.3);
-                  if (type === 'speed') magnitudeModifiers.speed = Math.min(3.0, magnitudeModifiers.speed + 0.3);
-                  console.log(`[ADAPT] Increased property change magnitude modifier for: ${type} to make it more obvious`);
-                });
-              }
-
-              sessionData.trials.push({
-                trialNum: trialNum,
-                difficulty: currentDifficulty,
-                numBalls: numBalls,
-                numOccluders: occluders.length,
-                changes: trialChanges,
-                hits: trialHits,
-                hitRate: hitRate,
-                score: score
-              });
-
-              if (trialNum >= maxRealTrials) {
-                showResultsDashboard();
+                nextSlide("practice-end");
               } else {
-                trialNum++;
-                setTimeout(runTrial, 100);
+                let success = hitRate >= 0.8 ? 1 : 0;
+                questEngine.update(currentDifficulty, success);
+
+                // If hitRate is below 100% with only 1 occluder, adaptively increase change magnitudes for the missed property type
+                if (occluders.length === 1 && hitRate < 1.0) {
+                  missedTypes.forEach((type) => {
+                    if (type === "color")
+                      magnitudeModifiers.color = Math.min(
+                        3.0,
+                        magnitudeModifiers.color + 0.3,
+                      );
+                    if (type === "size")
+                      magnitudeModifiers.size = Math.min(
+                        3.0,
+                        magnitudeModifiers.size + 0.3,
+                      );
+                    if (type === "speed")
+                      magnitudeModifiers.speed = Math.min(
+                        3.0,
+                        magnitudeModifiers.speed + 0.3,
+                      );
+                    console.log(
+                      `[ADAPT] Increased property change magnitude modifier for: ${type} to make it more obvious`,
+                    );
+                  });
+                }
+
+                sessionData.trials.push({
+                  trialNum: trialNum,
+                  difficulty: currentDifficulty,
+                  numBalls: numBalls,
+                  numOccluders: occluders.length,
+                  changes: trialChanges,
+                  hits: trialHits,
+                  hitRate: hitRate,
+                  score: score,
+                });
+
+                if (trialNum >= maxRealTrials) {
+                  showResultsDashboard();
+                } else {
+                  trialNum++;
+                  setTimeout(runTrial, 100);
+                }
               }
-            }
-          }
-        }
-      ];
-      
-      jsPsych.run(timeline);
-    }
+            },
+          },
+        ];
 
-    function startMainExperiment() {
-      isPractice = false;
-      score = 0;
-      trialNum = 1;
-      sessionData.trials = [];
-      document.getElementById('pre-experiment').style.display = 'none';
-      document.getElementById('experiment-container').style.display = 'block';
-      runTrial();
-    }
+        jsPsych.run(timeline);
+      }
 
-    function showResultsDashboard() {
-      document.getElementById('results-summary').innerHTML = `
+      function startMainExperiment() {
+        isPractice = false;
+        score = 0;
+        trialNum = 1;
+        sessionData.trials = [];
+        document.getElementById("pre-experiment").style.display = "none";
+        document.getElementById("experiment-container").style.display = "block";
+        runTrial();
+      }
+
+      function showResultsDashboard() {
+        document.getElementById("results-summary").innerHTML = `
         Session completed. You scored a total of <strong>${score}</strong> points over ${maxRealTrials} trials.
       `;
-      
-      let tbody = document.querySelector('#results-table tbody');
-      tbody.innerHTML = '';
-      sessionData.trials.forEach(t => {
-        let tr = document.createElement('tr');
-        tr.innerHTML = `
+
+        let tbody = document.querySelector("#results-table tbody");
+        tbody.innerHTML = "";
+        sessionData.trials.forEach((t) => {
+          let tr = document.createElement("tr");
+          tr.innerHTML = `
           <td>${t.trialNum}</td>
           <td>${t.difficulty.toFixed(2)}</td>
           <td>${t.numBalls}</td>
@@ -935,52 +1110,66 @@ REMAINS TO BE IMPLEMENTED / TODO:
           <td>${t.hits}</td>
           <td>${(t.hitRate * 100).toFixed(0)}%</td>
         `;
-        tbody.appendChild(tr);
+          tbody.appendChild(tr);
+        });
+
+        document.getElementById("results-dashboard").style.display = "flex";
+      }
+
+      function downloadJSON() {
+        let dataStr =
+          "data:text/json;charset=utf-8," +
+          encodeURIComponent(JSON.stringify(sessionData, null, 2));
+        let dlAnchor = document.createElement("a");
+        dlAnchor.setAttribute("href", dataStr);
+        dlAnchor.setAttribute(
+          "download",
+          `psychophysics_data_${sessionData.subjectId}.json`,
+        );
+        document.body.appendChild(dlAnchor);
+        dlAnchor.click();
+        dlAnchor.remove();
+      }
+
+      function downloadCSV() {
+        let csvRows = [];
+        csvRows.push(
+          "SubjectID,Timestamp,TrialNum,Difficulty,NumBalls,NumOccluders,TotalChanges,Hits,HitRate,Score",
+        );
+        sessionData.trials.forEach((t) => {
+          csvRows.push(
+            `${sessionData.subjectId},${sessionData.timestamp},${t.trialNum},${t.difficulty.toFixed(2)},${t.numBalls},${t.numOccluders},${t.changes},${t.hits},${t.hitRate.toFixed(2)},${t.score}`,
+          );
+        });
+        let csvContent =
+          "data:text/csv;charset=utf-8," +
+          encodeURIComponent(csvRows.join("\n"));
+        let dlAnchor = document.createElement("a");
+        dlAnchor.setAttribute("href", csvContent);
+        dlAnchor.setAttribute(
+          "download",
+          `psychophysics_data_${sessionData.subjectId}.csv`,
+        );
+        document.body.appendChild(dlAnchor);
+        dlAnchor.click();
+        dlAnchor.remove();
+      }
+
+      function restartExperiment() {
+        document.getElementById("results-dashboard").style.display = "none";
+        document.getElementById("pre-experiment").style.display = "flex";
+        nextSlide(1);
+      }
+
+      canvas.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        handleCanvasInteraction(e);
       });
-      
-      document.getElementById('results-dashboard').style.display = 'flex';
-    }
 
-    function downloadJSON() {
-      let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sessionData, null, 2));
-      let dlAnchor = document.createElement('a');
-      dlAnchor.setAttribute("href", dataStr);
-      dlAnchor.setAttribute("download", `psychophysics_data_${sessionData.subjectId}.json`);
-      document.body.appendChild(dlAnchor);
-      dlAnchor.click();
-      dlAnchor.remove();
-    }
-
-    function downloadCSV() {
-      let csvRows = [];
-      csvRows.push("SubjectID,Timestamp,TrialNum,Difficulty,NumBalls,NumOccluders,TotalChanges,Hits,HitRate,Score");
-      sessionData.trials.forEach(t => {
-        csvRows.push(`${sessionData.subjectId},${sessionData.timestamp},${t.trialNum},${t.difficulty.toFixed(2)},${t.numBalls},${t.numOccluders},${t.changes},${t.hits},${t.hitRate.toFixed(2)},${t.score}`);
+      canvas.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        handleCanvasInteraction(e);
       });
-      let csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvRows.join("\n"));
-      let dlAnchor = document.createElement('a');
-      dlAnchor.setAttribute("href", csvContent);
-      dlAnchor.setAttribute("download", `psychophysics_data_${sessionData.subjectId}.csv`);
-      document.body.appendChild(dlAnchor);
-      dlAnchor.click();
-      dlAnchor.remove();
-    }
-
-    function restartExperiment() {
-      document.getElementById('results-dashboard').style.display = 'none';
-      document.getElementById('pre-experiment').style.display = 'flex';
-      nextSlide(1);
-    }
-
-    canvas.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      handleCanvasInteraction(e);
-    });
-
-    canvas.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      handleCanvasInteraction(e);
-    });
-  </script>
-</body>
+    </script>
+  </body>
 </html>
