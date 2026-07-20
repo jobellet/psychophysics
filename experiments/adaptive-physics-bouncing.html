@@ -10,12 +10,12 @@ It is optimized for both smartphone and laptop screens.
 Key Components:
 1. Physics Canvas:
    - Contains a configurable number of balls bouncing around inside a canvas box.
-   - Contains a fully opaque occluding rectangle (cloud/occluder) at a random position each trial.
+   - Contains a variable number of fully opaque occluding rectangles (clouds/occluders) at random positions each trial.
 2. Color-Sound Mapping:
    - Matches the physics world hue-to-sound synthesis. Collisions trigger Web Audio 
      synthesis tones based on object hue and size.
 3. Poisson Change Events:
-   - Random odd events occur at random Poisson times (average 2.0s, no refractory period floor).
+   - Random odd events occur at random Poisson times (average 4.0s, no refractory period floor).
    - Change types can be size, color, or speed of any random ball.
 4. Response & Scoring:
    - Subject task: Touch/click the object that changed.
@@ -25,9 +25,8 @@ Key Components:
 5. Multivariate QUEST Procedure (jsQuestPlus):
    - Adaptive staircase targeting 80% correct hit rate.
    - Dynamically regulates:
-     a) Number of balls (3 to 7).
-     b) Occluder size (80px to 320px).
-     c) Magnitude of change (slighter change = harder).
+     a) Number of occluders (1 to 5) and surface area covered.
+     b) Magnitude of change (slighter change = harder).
 
 ================================================================================
 REMAINS TO BE IMPLEMENTED / TODO:
@@ -230,8 +229,8 @@ REMAINS TO BE IMPLEMENTED / TODO:
     </div>
 
     <div id="slide-2" class="slide">
-      <h2>Occluder & Odd Events</h2>
-      <p>A dark, fully opaque slate grey box will occlude parts of the canvas. The balls continue to move behind it.</p>
+      <h2>Opaque Occlusions & Odd Events</h2>
+      <p>Opaque slate grey boxes will occlude parts of the canvas. The balls continue to move behind them.</p>
       <p>At random moments, objects will experience sudden **odd events** (shifts in color, size, or speed).</p>
       <button onclick="nextSlide(3)" class="btn">Next</button>
     </div>
@@ -246,7 +245,7 @@ REMAINS TO BE IMPLEMENTED / TODO:
     <div id="slide-practice-end" class="slide">
       <h2>Practice Complete!</h2>
       <p id="practice-stats"></p>
-      <p>Now, you will begin the main adaptive blocks. The difficulty level (number of balls, size of occluder, subtlety of change events) will adapt dynamically to target an 80% success rate.</p>
+      <p>Now, you will begin the main adaptive blocks. The difficulty level (number of occluders, size, and subtlety of change events) will adapt dynamically to target an 80% success rate.</p>
       <button onclick="startMainExperiment()" class="btn">Start Experiment</button>
     </div>
   </div>
@@ -262,7 +261,7 @@ REMAINS TO BE IMPLEMENTED / TODO:
             <th>Trial</th>
             <th>Difficulty</th>
             <th>Balls</th>
-            <th>Occluder Size</th>
+            <th>Occluders</th>
             <th>Changes</th>
             <th>Hits</th>
             <th>Hit Rate</th>
@@ -429,7 +428,7 @@ REMAINS TO BE IMPLEMENTED / TODO:
     // Change event state (Poisson process)
     let elapsedSimulationTime = 0;
     let nextEventTime = 0;
-    let meanTimeBetweenEvents = 2.0; // 2 seconds average
+    let meanTimeBetweenEvents = 4.0; // 4 seconds average
     let lastChangeTime = -999;
     let changeResponded = true;
     let changeHistory = [];
@@ -474,19 +473,15 @@ REMAINS TO BE IMPLEMENTED / TODO:
     }
 
     // Map unified difficulty level to physical params
-    let numBalls = 3;
-    let occluderSize = 80;
-    let occluderX = 260;
-    let occluderY = 260;
+    let numBalls = 4;
+    let occluders = [];
     let currentChangeMagnitude = { hue: 120, radius: 15, speed: 100 };
 
     function applyAdaptiveDifficulty() {
       if (isPractice) {
         currentDifficulty = 0.0;
-        numBalls = 3;
-        occluderSize = 80;
-        occluderX = 260;
-        occluderY = 260;
+        numBalls = 4;
+        occluders = [{ x: 260, y: 260, size: 80 }];
         currentChangeMagnitude = { hue: 120, radius: 15, speed: 100 };
         return;
       }
@@ -497,10 +492,18 @@ REMAINS TO BE IMPLEMENTED / TODO:
         currentDifficulty = 0.0;
       }
       
-      numBalls = Math.min(7, Math.max(3, Math.floor(3 + currentDifficulty)));
-      occluderSize = 80 + Math.round(currentDifficulty * 60);
-      occluderX = Math.random() * (WIDTH - occluderSize);
-      occluderY = Math.random() * (HEIGHT - occluderSize);
+      numBalls = 4; // Consistent 4 balls layout
+      let numOccluders = Math.min(5, Math.max(1, Math.floor(1 + currentDifficulty)));
+      let occluderSize = 80 + Math.round(currentDifficulty * 10);
+      
+      occluders = [];
+      for (let i = 0; i < numOccluders; i++) {
+        occluders.push({
+          x: Math.random() * (WIDTH - occluderSize),
+          y: Math.random() * (HEIGHT - occluderSize),
+          size: occluderSize
+        });
+      }
       
       let mult = 1.0 / (1.0 + currentDifficulty * 0.75);
       currentChangeMagnitude = {
@@ -780,13 +783,13 @@ REMAINS TO BE IMPLEMENTED / TODO:
         ctx.closePath();
       });
 
-      if (occluderSize > 0) {
+      occluders.forEach(occ => {
         ctx.fillStyle = '#1e293b';
-        ctx.fillRect(occluderX, occluderY, occluderSize, occluderSize);
+        ctx.fillRect(occ.x, occ.y, occ.size, occ.size);
         ctx.strokeStyle = '#475569';
         ctx.lineWidth = 2;
-        ctx.strokeRect(occluderX, occluderY, occluderSize, occluderSize);
-      }
+        ctx.strokeRect(occ.x, occ.y, occ.size, occ.size);
+      });
     }
 
     function loop(timestamp) {
@@ -853,7 +856,7 @@ REMAINS TO BE IMPLEMENTED / TODO:
                 trialNum: trialNum,
                 difficulty: currentDifficulty,
                 numBalls: numBalls,
-                occluderSize: occluderSize,
+                numOccluders: occluders.length,
                 changes: trialChanges,
                 hits: trialHits,
                 hitRate: hitRate,
@@ -897,7 +900,7 @@ REMAINS TO BE IMPLEMENTED / TODO:
           <td>${t.trialNum}</td>
           <td>${t.difficulty.toFixed(2)}</td>
           <td>${t.numBalls}</td>
-          <td>${t.occluderSize}px</td>
+          <td>${t.numOccluders}</td>
           <td>${t.changes}</td>
           <td>${t.hits}</td>
           <td>${(t.hitRate * 100).toFixed(0)}%</td>
@@ -920,9 +923,9 @@ REMAINS TO BE IMPLEMENTED / TODO:
 
     function downloadCSV() {
       let csvRows = [];
-      csvRows.push("SubjectID,Timestamp,TrialNum,Difficulty,NumBalls,OccluderSize,TotalChanges,Hits,HitRate,Score");
+      csvRows.push("SubjectID,Timestamp,TrialNum,Difficulty,NumBalls,NumOccluders,TotalChanges,Hits,HitRate,Score");
       sessionData.trials.forEach(t => {
-        csvRows.push(`${sessionData.subjectId},${sessionData.timestamp},${t.trialNum},${t.difficulty.toFixed(2)},${t.numBalls},${t.occluderSize},${t.changes},${t.hits},${t.hitRate.toFixed(2)},${t.score}`);
+        csvRows.push(`${sessionData.subjectId},${sessionData.timestamp},${t.trialNum},${t.difficulty.toFixed(2)},${t.numBalls},${t.numOccluders},${t.changes},${t.hits},${t.hitRate.toFixed(2)},${t.score}`);
       });
       let csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvRows.join("\n"));
       let dlAnchor = document.createElement('a');
