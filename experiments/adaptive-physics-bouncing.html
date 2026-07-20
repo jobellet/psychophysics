@@ -1,0 +1,790 @@
+<!--
+================================================================================
+EXPERIMENT DESCRIPTION
+================================================================================
+Adaptive Physics Bouncing Balls Psychophysics Experiment
+
+This experiment runs a 2D physics simulation of balls bouncing on a dark canvas.
+It is optimized for both smartphone and laptop screens.
+
+Key Components:
+1. Physics Canvas:
+   - Contains a configurable number of balls bouncing around inside a canvas box.
+   - Contains a fully opaque occluding rectangle (cloud/occluder) at a random position each trial.
+2. Color-Sound Mapping:
+   - Matches the physics world hue-to-sound synthesis. Collisions trigger Web Audio 
+     synthesis tones based on object hue and size.
+3. Poisson Change Events:
+   - Random odd events occur at random Poisson times (average 2.0s, no refractory period floor).
+   - Change types can be size, color, or speed of any random ball.
+4. Response & Scoring:
+   - Subject task: Touch/click the object that changed.
+   - Touches within 200px of any object that changed in the last 1.0 second count as a HIT (+100).
+   - Out-of-bounds touches or late touches count as a False Alarm (-50).
+   - Score is cumulative and displayed in the upper-right corner.
+5. Multivariate QUEST Procedure (jsQuestPlus):
+   - Adaptive staircase targeting 80% correct hit rate.
+   - Dynamically regulates:
+     a) Number of balls (3 to 7).
+     b) Occluder size (80px to 320px).
+     c) Magnitude of change (slighter change = harder).
+
+================================================================================
+REMAINS TO BE IMPLEMENTED / TODO:
+================================================================================
+- [ ] Trial Block Export: Save/export trial metrics (RT, click coordinates, accuracy,
+      QUEST parameters) at the end of the session to CSV or a local REST endpoint.
+- [ ] Sound/Timbre Customization: Extend the Web Audio synth to support custom timbral anchors.
+- [ ] Spatial Grid Collisions: Optimize collisions for large ball counts (e.g. spatial hashing).
+- [ ] User Instructions / Training Mode: Add a step-by-step interactive tutorial before
+      starting the main staircase trial block.
+================================================================================
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adaptive Physics Bouncing Balls Experiment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/jspsych@8.0.0/css/jspsych.css" />
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      --bg: radial-gradient(circle at top, #0f172a 0%, #111827 60%, #020617 100%);
+      --card-bg: rgba(15, 23, 42, 0.9);
+      --accent: #38bdf8;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      color: #e2e8f0;
+      flex-direction: column;
+    }
+
+    #experiment-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    #experiment-container {
+      position: relative;
+      width: 600px;
+      height: 600px;
+      background: #0c0c0e;
+      border: 2px solid #334155;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    #physics-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    #hud-score {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #10b981; /* Emerald green default */
+      background: rgba(15, 23, 42, 0.85);
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid #1e293b;
+      z-index: 10;
+      transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    #hud-score.flash-hit {
+      transform: scale(1.25);
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.3);
+      border-color: #34d399;
+    }
+
+    #hud-score.flash-miss {
+      transform: scale(0.85);
+      color: #f87171;
+      background: rgba(239, 68, 68, 0.3);
+      border-color: #f87171;
+    }
+
+    #hud-debug {
+      position: absolute;
+      bottom: 15px;
+      left: 15px;
+      font-size: 13px;
+      color: #94a3b8;
+      background: rgba(15, 23, 42, 0.85);
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid #1e293b;
+      z-index: 10;
+      font-family: monospace;
+      pointer-events: none;
+    }
+
+    #pre-experiment, #feedback-screen {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.97);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      flex-direction: column;
+      gap: 20px;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .btn {
+      background: var(--accent);
+      color: #0f172a;
+      border: none;
+      padding: 12px 24px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="pre-experiment">
+    <h1>Adaptive Physics Bouncing Balls</h1>
+    <p>Press the Spacebar as fast as you can when a ball changes color, size, or speed!</p>
+    <button id="start-btn" class="btn">Start Experiment</button>
+  </div>
+
+  <div id="feedback-screen" style="display: none;">
+    <h1 id="fb-title">Trial Feedback</h1>
+    <p id="fb-stats"></p>
+    <p id="fb-quest"></p>
+    <button id="next-btn" class="btn">Next Trial (Spacebar)</button>
+  </div>
+
+  <div id="experiment-wrapper">
+    <div id="experiment-container" style="display: none;">
+      <div id="hud-score">Score: <span id="score-val">0</span></div>
+      <canvas id="physics-canvas" width="600" height="600"></canvas>
+    </div>
+    <div id="jspsych-target"></div>
+  </div>
+
+  <!-- Dependencies -->
+  <script src="https://unpkg.com/jspsych@8.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-button-response@2.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-call-function@2.0.0"></script>
+  <script src="https://unpkg.com/jsquest-plus@2.1.0/dist/jsQuestPlus.js"></script>
+
+  <script>
+    // Initialize jsPsych
+    const jsPsych = initJsPsych({
+      display_element: 'jspsych-target'
+    });
+
+    // Web Audio API context
+    let audioCtx = null;
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    // Play synthesized collision tone matching Python AudioGenerator
+    function playCollisionSound(b1, b2, energy) {
+      if (!audioCtx) return;
+      
+      let volumeScale = Math.min(1.0, Math.max(0.1, Math.sqrt(energy) / 10.0));
+      let duration = 0.1;
+      let sr = audioCtx.sampleRate || 44100;
+      let bufferSize = Math.floor(sr * duration);
+      
+      let buffer = audioCtx.createBuffer(2, bufferSize, sr);
+      let chanL = buffer.getChannelData(0);
+      let chanR = buffer.getChannelData(1);
+      
+      function synthesizeWave(obj, t) {
+        if (obj.mass === Infinity || obj.isPillar) {
+          return 0;
+        }
+        let baseFreq = 400 * (25.0 / obj.r);
+        let hue = obj.hue % 360;
+        
+        let pitchDrop = Math.exp(-t * 20);
+        
+        // 8 Waveform Anchors matching Python audio_synthesis.py
+        let w0 = Math.sin(2 * Math.PI * baseFreq * (1 + 0.5 * pitchDrop) * t);
+        let w1 = (Math.sin(2 * Math.PI * baseFreq * t) + 
+                  0.5 * Math.sin(2 * Math.PI * baseFreq * 2.76 * t) + 
+                  0.25 * Math.sin(2 * Math.PI * baseFreq * 5.4 * t)) / 1.75;
+                  
+        // square
+        let w2 = Math.sin(2 * Math.PI * baseFreq * t) >= 0 ? 0.3 : -0.3;
+        
+        // sawtooth
+        let w3 = 0.5 * (2 * (t * baseFreq - Math.floor(0.5 + t * baseFreq)));
+        
+        // triangle
+        let w4 = 2 * Math.abs(2 * (t * baseFreq - Math.floor(0.5 + t * baseFreq))) - 1;
+        
+        // vibrato
+        let w5 = Math.sin(2 * Math.PI * baseFreq * t + 0.5 * Math.sin(2 * Math.PI * 50 * t));
+        
+        // multi-sine (harmonic)
+        let w6 = (Math.sin(2 * Math.PI * baseFreq * t) + 
+                  0.5 * Math.sin(2 * Math.PI * 2 * baseFreq * t) + 
+                  0.25 * Math.sin(2 * Math.PI * 3 * baseFreq * t)) / 1.75;
+                  
+        // pure sine
+        let w7 = Math.sin(2 * Math.PI * baseFreq * t);
+        
+        let anchors = [w0, w1, w2, w3, w4, w5, w6, w7];
+        let idx = Math.floor(hue / 45);
+        let mix = (hue % 45) / 45.0;
+        
+        let nextIdx = (idx + 1) % 8;
+        return (1.0 - mix) * anchors[idx] + mix * anchors[nextIdx];
+      }
+      
+      let w1_silent = (b1.mass === Infinity || b1.isPillar);
+      let w2_silent = (b2.mass === Infinity || b2.isPillar);
+      
+      for (let i = 0; i < bufferSize; i++) {
+        let t = i / sr;
+        let wave1 = w1_silent ? 0 : synthesizeWave(b1, t);
+        let wave2 = w2_silent ? 0 : synthesizeWave(b2, t);
+        
+        let mixed;
+        if (w1_silent && w2_silent) {
+          mixed = 0;
+        } else if (w1_silent || w2_silent) {
+          mixed = (wave1 + wave2) * volumeScale;
+        } else {
+          mixed = (wave1 + wave2) * 0.5 * volumeScale;
+        }
+        
+        let envelope = Math.exp(-t * 30);
+        let sample = mixed * envelope;
+        
+        sample = Math.max(-1.0, Math.min(1.0, sample));
+        
+        chanL[i] = sample;
+        chanR[i] = sample;
+      }
+      
+      let source = audioCtx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(audioCtx.destination);
+      source.start();
+    }
+
+    // HSV to RGB helper
+    function hsvToRgb(h, s, v) {
+      let r, g, b;
+      let i = Math.floor(h / 60);
+      let f = h / 60 - i;
+      let p = v * (1 - s);
+      let q = v * (1 - f * s);
+      let t = v * (1 - (1 - f) * s);
+      switch (i % 6) {
+        case 0: r = v, g = t, b = p; break;
+        case 1: r = q, g = v, b = p; break;
+        case 2: r = p, g = v, b = t; break;
+        case 3: r = p, g = q, b = v; break;
+        case 4: r = t, g = p, b = v; break;
+        case 5: r = v, g = p, b = q; break;
+      }
+      return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
+    }
+
+    // Physics Engine state
+    const canvas = document.getElementById('physics-canvas');
+    const ctx = canvas.getContext('2d');
+    const WIDTH = 600;
+    const HEIGHT = 600;
+
+    let balls = [];
+    let isRunning = false;
+    let animationId = null;
+
+    // Change event state (Poisson process)
+    let elapsedSimulationTime = 0;
+    let nextEventTime = 0;
+    let meanTimeBetweenEvents = 2.0; // 2 seconds average
+    let lastChangeTime = -999;
+    let changeResponded = true;
+    
+    // Track change events in last 1 second
+    let changeHistory = []; // list of { ball, time, responded }
+
+    // Game stats & scoring (score is cumulative, initialized globally once)
+    let score = 0;
+    let trialHits = 0;
+    let trialChanges = 0;
+    let trialNum = 1;
+
+    // QUEST Parameters and difficulty mapping
+    const difficultyGrid = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0];
+    const thresholdGrid = difficultyGrid.slice();
+    const slopeGrid = [2.0, 3.0, 4.0];
+    const guessRate = 0.1; // Go/No-go estimation guess rate
+    const lapseRate = [0.01, 0.02];
+    
+    let questEngine = null;
+    let currentDifficulty = 0.0;
+
+    function initQuest() {
+      questEngine = new jsQuestPlus({
+        psych_func: [
+          (stim, threshold, slope, guess, lapse) => {
+            return guess + (1 - guess - lapse) * (1 - Math.exp(-Math.pow(stim / threshold, slope)));
+          },
+          (stim, threshold, slope, guess, lapse) => {
+            return 1 - (guess + (1 - guess - lapse) * (1 - Math.exp(-Math.pow(stim / threshold, slope))));
+          }
+        ],
+        stim_samples: [difficultyGrid],
+        psych_samples: [thresholdGrid, slopeGrid, [guessRate], lapseRate]
+      });
+    }
+
+    // Map unified difficulty level to physical params
+    let numBalls = 3; // Starts at 3 minimum
+    let occluderSize = 80; // Starts at 80px minimum
+    let occluderX = 260;
+    let occluderY = 260;
+    let currentChangeMagnitude = { hue: 120, radius: 15, speed: 100 };
+
+    function applyAdaptiveDifficulty() {
+      let stimParams = questEngine.getStimParams();
+      currentDifficulty = Array.isArray(stimParams) ? stimParams[0] : stimParams;
+      if (currentDifficulty == null || !Number.isFinite(currentDifficulty)) {
+        currentDifficulty = 0.0;
+      }
+      
+      // 1. Number of balls: 3 to 7
+      numBalls = Math.min(7, Math.max(3, Math.floor(3 + currentDifficulty)));
+      
+      // 2. Occluder size: starts at 80px and goes up to 320px
+      occluderSize = 80 + Math.round(currentDifficulty * 60);
+      
+      // Random position for the occluder (keeping it inside canvas bounds)
+      occluderX = Math.random() * (WIDTH - occluderSize);
+      occluderY = Math.random() * (HEIGHT - occluderSize);
+      
+      // 3. Magnitude multiplier: gets smaller as difficulty increases
+      let mult = 1.0 / (1.0 + currentDifficulty * 0.75);
+      currentChangeMagnitude = {
+        hue: 120 * mult,
+        radius: 16 * mult,
+        speed: 120 * mult
+      };
+
+      console.log(`[QUEST] Difficulty Level: ${currentDifficulty}. Balls: ${numBalls}, Occluder: ${occluderSize}px at (${occluderX.toFixed(0)}, ${occluderY.toFixed(0)}), Mult: ${mult.toFixed(2)}`);
+    }
+
+    function scheduleNextEvent(currentTime) {
+      let u = Math.random();
+      // Pure exponential distribution (no refractory period)
+      let tNext = -Math.log(1 - u) * meanTimeBetweenEvents;
+      nextEventTime = currentTime + tNext;
+    }
+
+    function triggerRandomChangeEvent(currentTime) {
+      if (balls.length === 0) return;
+      
+      // Select any random ball to apply change
+      let ballIdx = Math.floor(Math.random() * balls.length);
+      let b = balls[ballIdx];
+      
+      let eventTypes = ['color', 'size', 'speed'];
+      let chosenType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+      
+      let desc = "";
+
+      if (chosenType === 'color') {
+        let shift = currentChangeMagnitude.hue;
+        let dir = Math.random() < 0.5 ? 1 : -1;
+        b.hue = (b.hue + dir * shift + 360) % 360;
+        desc = `Ball #${ballIdx} color shifted by ${dir * shift.toFixed(0)}°`;
+      } else if (chosenType === 'size') {
+        let shift = currentChangeMagnitude.radius;
+        let dir = Math.random() < 0.5 ? 1 : -1;
+        let newR = Math.max(12, Math.min(75, b.r + dir * shift));
+        b.r = newR;
+        b.mass = newR * newR;
+        desc = `Ball #${ballIdx} size changed to r=${newR.toFixed(0)}`;
+      } else if (chosenType === 'speed') {
+        let shift = currentChangeMagnitude.speed;
+        let dir = Math.random() < 0.5 ? 1 : -1;
+        let currentSpeed = Math.hypot(b.vx, b.vy);
+        let newSpeed = Math.max(60, Math.min(350, currentSpeed + dir * shift));
+        if (currentSpeed > 0) {
+          b.vx = (b.vx / currentSpeed) * newSpeed;
+          b.vy = (b.vy / currentSpeed) * newSpeed;
+        } else {
+          b.vx = newSpeed;
+          b.vy = 0;
+        }
+        desc = `Ball #${ballIdx} speed changed to ${newSpeed.toFixed(0)} px/s`;
+      }
+
+      lastChangeTime = currentTime;
+      changeResponded = false;
+      trialChanges++;
+
+      // Record this event
+      changeHistory.push({
+        ball: b,
+        time: currentTime,
+        responded: false
+      });
+
+      console.log(`[EVENT] ${desc} at ${currentTime.toFixed(2)}s`);
+    }
+
+    function getCanvasCoords(e) {
+      let rect = canvas.getBoundingClientRect();
+      let clientX, clientY;
+      if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+      }
+      let x = ((clientX - rect.left) / rect.width) * WIDTH;
+      let y = ((clientY - rect.top) / rect.height) * HEIGHT;
+      return { x, y };
+    }
+
+    function handleCanvasInteraction(e) {
+      if (!isRunning) return;
+      if (elapsedSimulationTime <= 1.0) {
+        console.log("Interaction ignored: trial onset grace period");
+        return;
+      }
+      
+      let coords = getCanvasCoords(e);
+      let hitFound = false;
+
+      // Filter to keep only events in the last 1.0s
+      changeHistory = changeHistory.filter(c => elapsedSimulationTime - c.time <= 1.0);
+
+      // Check distance to any changed ball in the last 1 second
+      for (let i = 0; i < changeHistory.length; i++) {
+        let change = changeHistory[i];
+        if (!change.responded) {
+          let dist = Math.hypot(coords.x - change.ball.x, coords.y - change.ball.y);
+          if (dist < 200) {
+            // HIT
+            score += 100;
+            trialHits++;
+            change.responded = true;
+            flashScoreHUD('hit');
+            hitFound = true;
+            console.log(`[HIT] Click coords: (${coords.x.toFixed(0)}, ${coords.y.toFixed(0)}), Dist: ${dist.toFixed(0)}px`);
+            break;
+          }
+        }
+      }
+
+      if (!hitFound) {
+        // FALSE FACTION
+        score -= 50;
+        flashScoreHUD('miss');
+        console.log(`[MISS/FALSE ALARM] Click coords: (${coords.x.toFixed(0)}, ${coords.y.toFixed(0)})`);
+      }
+      document.getElementById('score-val').innerText = score;
+    }
+
+    function flashScoreHUD(type) {
+      let hud = document.getElementById('hud-score');
+      hud.classList.remove('flash-hit', 'flash-miss');
+      void hud.offsetWidth; // Force CSS reflow
+      if (type === 'hit') {
+        hud.classList.add('flash-hit');
+      } else {
+        hud.classList.add('flash-miss');
+      }
+      setTimeout(() => {
+        hud.classList.remove('flash-hit', 'flash-miss');
+      }, 300);
+    }
+
+    // Keyboard (Spacebar) & touch handlers
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        // If feedback screen is visible, space starts next trial
+        if (document.getElementById('feedback-screen').style.display === 'block') {
+          startNextTrial();
+        }
+      }
+    });
+
+    canvas.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      handleCanvasInteraction(e);
+    });
+
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handleCanvasInteraction(e);
+    });
+
+    document.getElementById('next-btn').addEventListener('click', startNextTrial);
+
+    function initPhysics() {
+      balls = [];
+      // Generate dynamically based on numBalls
+      for (let i = 0; i < numBalls; i++) {
+        let radius = 20 + Math.random() * 20;
+        balls.push({
+          x: 100 + Math.random() * 400,
+          y: 100 + Math.random() * 400,
+          vx: (Math.random() < 0.5 ? 1 : -1) * (120 + Math.random() * 100),
+          vy: (Math.random() < 0.5 ? 1 : -1) * (120 + Math.random() * 100),
+          r: radius,
+          hue: Math.random() * 360,
+          mass: radius * radius
+        });
+      }
+      
+      elapsedSimulationTime = 0;
+      lastChangeTime = -999;
+      changeResponded = true;
+      trialHits = 0;
+      trialChanges = 0;
+      changeHistory = [];
+      
+      document.getElementById('score-val').innerText = score;
+      let debugEl = document.getElementById('hud-debug');
+      if (debugEl) {
+        debugEl.innerText = "Debug: No changes yet";
+      }
+      scheduleNextEvent(0);
+    }
+
+    function resolveCollision(b1, b2) {
+      let dx = b1.x - b2.x;
+      let dy = b1.y - b2.y;
+      let dist = Math.hypot(dx, dy);
+      let minDist = b1.r + b2.r;
+      if (dist >= minDist) return;
+      
+      let overlap = minDist - dist;
+      let nx = dx / (dist || 1);
+      let ny = dy / (dist || 1);
+      
+      // Position correction
+      b1.x += nx * (overlap / 2);
+      b1.y += ny * (overlap / 2);
+      b2.x -= nx * (overlap / 2);
+      b2.y -= ny * (overlap / 2);
+      
+      // Elastic collision velocities
+      let kx = b1.vx - b2.vx;
+      let ky = b1.vy - b2.vy;
+      let vn = kx * nx + ky * ny;
+      if (vn < 0) {
+        let m1 = b1.mass;
+        let m2 = b2.mass;
+        let impulse = -2 * vn / (1/m1 + 1/m2);
+        b1.vx += (impulse / m1) * nx;
+        b1.vy += (impulse / m1) * ny;
+        b2.vx -= (impulse / m2) * nx;
+        b2.vy -= (impulse / m2) * ny;
+
+        let reducedMass = 1.0 / (1/m1 + 1/m2);
+        let energy = 0.5 * reducedMass * (vn * vn);
+        playCollisionSound(b1, b2, energy);
+      }
+    }
+
+    let lastTime = 0;
+    function updatePhysics(dt) {
+      elapsedSimulationTime += dt;
+
+      // Check Poisson event
+      if (elapsedSimulationTime >= nextEventTime) {
+        triggerRandomChangeEvent(elapsedSimulationTime);
+        scheduleNextEvent(elapsedSimulationTime);
+      }
+
+      // Update positions & check wall collisions
+      balls.forEach(b => {
+        b.x += b.vx * dt;
+        b.y += b.vy * dt;
+
+        // Wall X
+        if (b.x - b.r < 0) {
+          b.x = b.r;
+          let energy = 0.5 * b.mass * (b.vx * b.vx);
+          b.vx = -b.vx;
+          playCollisionSound(b, { mass: Infinity, isPillar: true }, energy);
+        } else if (b.x + b.r > WIDTH) {
+          b.x = WIDTH - b.r;
+          let energy = 0.5 * b.mass * (b.vx * b.vx);
+          b.vx = -b.vx;
+          playCollisionSound(b, { mass: Infinity, isPillar: true }, energy);
+        }
+
+        // Wall Y
+        if (b.y - b.r < 0) {
+          b.y = b.r;
+          let energy = 0.5 * b.mass * (b.vy * b.vy);
+          b.vy = -b.vy;
+          playCollisionSound(b, { mass: Infinity, isPillar: true }, energy);
+        } else if (b.y + b.r > HEIGHT) {
+          b.y = HEIGHT - b.r;
+          let energy = 0.5 * b.mass * (b.vy * b.vy);
+          b.vy = -b.vy;
+          playCollisionSound(b, { mass: Infinity, isPillar: true }, energy);
+        }
+      });
+
+      // Ball collisions
+      for (let i = 0; i < balls.length; i++) {
+        for (let j = i + 1; j < balls.length; j++) {
+          resolveCollision(balls[i], balls[j]);
+        }
+      }
+    }
+
+    function render() {
+      // Background
+      ctx.fillStyle = '#0c0c0e';
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+      // Draw balls
+      balls.forEach(b => {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+        ctx.fillStyle = hsvToRgb(b.hue, 1, 1);
+        ctx.fill();
+        ctx.closePath();
+      });
+
+      // Draw occluder (cloud) OVER the balls for visual occlusion
+      if (occluderSize > 0) {
+        ctx.fillStyle = '#1e293b'; // Fully opaque slate grey
+        ctx.fillRect(occluderX, occluderY, occluderSize, occluderSize);
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(occluderX, occluderY, occluderSize, occluderSize);
+      }
+    }
+
+    function loop(timestamp) {
+      if (!lastTime) lastTime = timestamp;
+      let dt = (timestamp - lastTime) / 1000;
+      lastTime = timestamp;
+
+      if (dt > 0.1) dt = 0.1;
+
+      updatePhysics(dt);
+      render();
+
+      if (isRunning) {
+        animationId = requestAnimationFrame(loop);
+      }
+    }
+
+    // Start a trial
+    function runTrial() {
+      document.getElementById('feedback-screen').style.display = 'none';
+      document.getElementById('experiment-container').style.display = 'block';
+      
+      applyAdaptiveDifficulty();
+      initPhysics();
+      
+      isRunning = true;
+      lastTime = 0;
+      animationId = requestAnimationFrame(loop);
+
+      // jsPsych trial timeline (20 seconds duration)
+      const timeline = [
+        {
+          type: jsPsychHtmlKeyboardResponse,
+          stimulus: '',
+          choices: ['NO_KEYS'],
+          trial_duration: 20000,
+          on_finish: () => {
+            isRunning = false;
+            cancelAnimationFrame(animationId);
+            document.getElementById('experiment-container').style.display = 'none';
+            
+            // Calculate hit rate and update QUEST
+            let hitRate = trialChanges > 0 ? (trialHits / trialChanges) : 1.0;
+            let success = (hitRate >= 0.80) ? 1 : 0;
+            
+            // Update Quest engine
+            questEngine.update(currentDifficulty, success);
+            
+            // Start next trial immediately without feedback screen
+            console.log(`Trial ${trialNum} finished. Score: ${score}, hitRate: ${(hitRate*100).toFixed(0)}%`);
+            trialNum++;
+            setTimeout(runTrial, 100);
+          }
+        }
+      ];
+      
+      jsPsych.run(timeline);
+    }
+
+    function showFeedback(hitRate, success) {
+      document.getElementById('fb-title').innerText = `Trial ${trialNum} Complete!`;
+      document.getElementById('fb-stats').innerHTML = `
+        <strong>Score:</strong> ${score} points<br>
+        <strong>Detected:</strong> ${trialHits} / ${trialChanges} changes (${(hitRate * 100).toFixed(0)}%)
+      `;
+      
+      document.getElementById('fb-quest').innerHTML = success ? 
+        `<span style="color: #34d399;">Great job! Difficulty level will increase.</span>` :
+        `<span style="color: #f87171;">Difficult? Scaling down the complexity.</span>`;
+        
+      document.getElementById('feedback-screen').style.display = 'block';
+    }
+
+    function startNextTrial() {
+      trialNum++;
+      runTrial();
+    }
+
+    // Start-up click
+    document.getElementById('start-btn').addEventListener('click', () => {
+      initAudio();
+      initQuest();
+      score = 0; // Cumulative score starts at 0 once
+      document.getElementById('pre-experiment').style.display = 'none';
+      runTrial();
+    });
+  </script>
+</body>
+</html>
