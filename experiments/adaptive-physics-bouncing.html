@@ -241,6 +241,16 @@ REMAINS TO BE IMPLEMENTED / TODO:
           will see several objects bouncing in an environment with collision
           sounds.
         </p>
+        <div style="margin: 10px 0; text-align: left;">
+          <label style="display: block; margin-bottom: 5px;">
+            <input type="checkbox" id="full-spectrum-checkbox">
+            Full Spectrum (use all colors)
+          </label>
+          <label style="display: block;">
+            Total number of trials:
+            <input type="number" id="total-trials-input" value="5" min="1" style="width: 60px; margin-left: 10px;">
+          </label>
+        </div>
         <button onclick="nextSlide(2)" class="btn">Next</button>
       </div>
 
@@ -475,6 +485,13 @@ REMAINS TO BE IMPLEMENTED / TODO:
 
       // Slide navigation
       function nextSlide(slideNum) {
+        if (slideNum === 2) {
+          useFullSpectrum = document.getElementById("full-spectrum-checkbox").checked;
+          const trialsInput = parseInt(document.getElementById("total-trials-input").value, 10);
+          if (!isNaN(trialsInput) && trialsInput > 0) {
+            maxRealTrials = trialsInput;
+          }
+        }
         document
           .querySelectorAll(".slide")
           .forEach((s) => s.classList.remove("active"));
@@ -515,6 +532,7 @@ REMAINS TO BE IMPLEMENTED / TODO:
       let trialNum = 1;
       let isPractice = false;
       let maxRealTrials = 5; // End experiment after 5 real trials
+      let useFullSpectrum = false;
 
       let sessionData = {
         subjectId: "subj_" + Math.random().toString(36).substr(2, 9),
@@ -629,7 +647,11 @@ REMAINS TO BE IMPLEMENTED / TODO:
         if (chosenType === "color") {
           let shift = currentChangeMagnitude.hue;
           let dir = Math.random() < 0.5 ? 1 : -1;
-          b.hue = (b.hue + dir * shift + 360) % 360;
+          if (useFullSpectrum) {
+            b.hue = (b.hue + dir * shift + 360) % 360;
+          } else {
+            b.hue = ((b.hue + dir * shift) % 180 + 180) % 180;
+          }
           desc = `Ball #${ballIdx} color shifted by ${dir * shift.toFixed(0)}°`;
         } else if (chosenType === "size") {
           let shift = currentChangeMagnitude.radius;
@@ -757,7 +779,7 @@ REMAINS TO BE IMPLEMENTED / TODO:
             vx: (Math.random() < 0.5 ? 1 : -1) * (120 + Math.random() * 100),
             vy: (Math.random() < 0.5 ? 1 : -1) * (120 + Math.random() * 100),
             r: radius,
-            hue: Math.random() * 360,
+            hue: useFullSpectrum ? Math.random() * 360 : Math.random() * 180,
             mass: radius * radius,
           });
         }
