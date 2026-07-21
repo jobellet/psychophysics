@@ -531,6 +531,8 @@ REMAINS TO BE IMPLEMENTED / TODO:
 
       let questEngine = null;
       let currentDifficulty = 0.0;
+      let hueQuestEngines = [];
+      const hueShiftGrid = [10, 20, 30, 45, 60, 90, 120, 150]; // Custom stim grid for hue shifts
 
       function initQuest() {
         questEngine = new jsQuestPlus({
@@ -554,6 +556,33 @@ REMAINS TO BE IMPLEMENTED / TODO:
           stim_samples: [difficultyGrid],
           psych_samples: [thresholdGrid, slopeGrid, [guessRate], lapseRate],
         });
+
+        hueQuestEngines = [];
+        for (let i = 0; i < 8; i++) {
+          hueQuestEngines.push(
+            new jsQuestPlus({
+              psych_func: [
+                (stim, threshold, slope, guess, lapse) => {
+                  return (
+                    guess +
+                    (1 - guess - lapse) *
+                      (1 - Math.exp(-Math.pow(stim / threshold, slope)))
+                  );
+                },
+                (stim, threshold, slope, guess, lapse) => {
+                  return (
+                    1 -
+                    (guess +
+                      (1 - guess - lapse) *
+                        (1 - Math.exp(-Math.pow(stim / threshold, slope))))
+                  );
+                },
+              ],
+              stim_samples: [hueShiftGrid],
+              psych_samples: [hueShiftGrid.slice(), slopeGrid, [guessRate], lapseRate],
+            })
+          );
+        }
       }
 
       // Map unified difficulty level to physical params
@@ -646,11 +675,20 @@ REMAINS TO BE IMPLEMENTED / TODO:
           eventTypes[Math.floor(Math.random() * eventTypes.length)];
         let desc = "";
 
+        let hueBin = -1;
+        let shiftVal = 0;
+
         if (chosenType === "color") {
-          let shift = currentChangeMagnitude.hue;
+          hueBin = Math.floor(b.hue / 45) % 8;
+          let stimParams = hueQuestEngines[hueBin].getStimParams();
+          let shift = Array.isArray(stimParams) ? stimParams[0] : stimParams;
+          if (shift == null || !Number.isFinite(shift)) {
+            shift = currentChangeMagnitude.hue;
+          }
+          shiftVal = shift;
           let dir = Math.random() < 0.5 ? 1 : -1;
           b.hue = (b.hue + dir * shift + 360) % 360;
-          desc = `Ball #${ballIdx} color shifted by ${dir * shift.toFixed(0)}°`;
+          desc = `Ball #${ballIdx} color shifted by ${dir * shift.toFixed(0)}° (bin ${hueBin})`;
         } else if (chosenType === "size") {
           let shift = currentChangeMagnitude.radius;
           let dir = Math.random() < 0.5 ? 1 : -1;
@@ -686,6 +724,8 @@ REMAINS TO BE IMPLEMENTED / TODO:
           type: chosenType, // color, size, speed
           responded: false,
           expired: false,
+          hueBin: hueBin,
+          shift: shiftVal,
         });
         console.log(`[EVENT] ${desc} at ${currentTime.toFixed(2)}s`);
       }
@@ -732,6 +772,10 @@ REMAINS TO BE IMPLEMENTED / TODO:
               change.responded = true;
               flashScoreHUD("hit");
               hitFound = true;
+
+              if (change.type === 'color' && !isPractice && change.hueBin !== -1) {
+                hueQuestEngines[change.hueBin].update(change.shift, 1);
+              }
 
               // Add a new random occlusion on hit
               let newOcclusion = getRandomEmptyGridCell();
@@ -951,6 +995,10 @@ REMAINS TO BE IMPLEMENTED / TODO:
             c.expired = true;
             missedTypes.push(c.type);
             console.log(`[MISS] Missed change type: ${c.type}`);
+
+            if (c.type === 'color' && !isPractice && c.hueBin !== -1) {
+              hueQuestEngines[c.hueBin].update(c.shift, 0);
+            }
           }
         });
 
@@ -1109,6 +1157,15 @@ REMAINS TO BE IMPLEMENTED / TODO:
       }
 
       function showResultsDashboard() {
+        sessionData.hueEstimates = hueQuestEngines.map((engine, idx) => {
+          let est = engine.getEstimates('mean');
+          return {
+            bin: idx,
+            range: `${idx * 45}° - ${(idx + 1) * 45}°`,
+            threshold: est ? est[0] : null
+          };
+        });
+
         document.getElementById("results-summary").innerHTML = `
         Session completed. You scored a total of <strong>${score}</strong> points over ${maxRealTrials} trials.
       `;
