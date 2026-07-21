@@ -88,8 +88,10 @@ REMAINS TO BE IMPLEMENTED / TODO:
 
       #experiment-container {
         position: relative;
-        width: 600px;
-        height: 600px;
+        width: 100%;
+        max-width: 600px;
+        aspect-ratio: 1/1;
+        height: auto;
         background: #0c0c0e;
         border: 2px solid #334155;
         border-radius: 12px;
@@ -280,6 +282,18 @@ REMAINS TO BE IMPLEMENTED / TODO:
           (number of occluders, size, and subtlety of change events) will adapt
           dynamically to target an 80% success rate.
         </p>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start; background: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+          <label style="font-weight: 600;">
+            Number of Trials:
+            <input type="number" id="num-trials" value="5" min="1" style="margin-left: 10px; width: 60px; padding: 4px; border-radius: 4px; border: 1px solid #334155; background: #0f172a; color: #f8fafc;">
+          </label>
+          <label style="font-weight: 600;">
+            Starting Difficulty (% of arena occluded):
+            <input type="number" id="starting-difficulty" value="10" min="0" max="100" style="margin-left: 10px; width: 60px; padding: 4px; border-radius: 4px; border: 1px solid #334155; background: #0f172a; color: #f8fafc;">
+          </label>
+        </div>
+
         <button onclick="startMainExperiment()" class="btn">
           Start Experiment
         </button>
@@ -521,6 +535,7 @@ REMAINS TO BE IMPLEMENTED / TODO:
       let trialNum = 1;
       let isPractice = false;
       let maxRealTrials = 5; // End experiment after 5 real trials
+      let firstTrialDifficultyOverride = null;
 
       let sessionData = {
         subjectId: "subj_" + Math.random().toString(36).substr(2, 9),
@@ -650,6 +665,10 @@ REMAINS TO BE IMPLEMENTED / TODO:
           : stimParams;
         if (currentDifficulty == null || !Number.isFinite(currentDifficulty)) {
           currentDifficulty = 0.0;
+        }
+
+        if (!isPractice && trialNum === 1 && firstTrialDifficultyOverride !== null) {
+          currentDifficulty = firstTrialDifficultyOverride;
         }
 
         numBalls = 2; // Consistent 2 balls layout
@@ -1210,6 +1229,11 @@ REMAINS TO BE IMPLEMENTED / TODO:
         score = 0;
         trialNum = 1;
         sessionData.trials = [];
+
+        maxRealTrials = parseInt(document.getElementById('num-trials').value) || 5;
+        let initialDifficulty = parseFloat(document.getElementById('starting-difficulty').value) || 10;
+        firstTrialDifficultyOverride = Math.max(0, initialDifficulty - 10);
+
         document.getElementById("pre-experiment").style.display = "none";
         document.getElementById("experiment-container").style.display = "block";
         runTrial();
