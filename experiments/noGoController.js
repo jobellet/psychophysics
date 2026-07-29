@@ -31,7 +31,7 @@ const NoGoCtrl = (() => {
   }
 
   // Estimate the false-alarm rate.  Before any No-Go trials occur we just
-  // return the controller's target value.
+  // output the controller's target value.
   function estFA() {
     return faEma === null ? cfg.pTargetFA : faEma;
   }
