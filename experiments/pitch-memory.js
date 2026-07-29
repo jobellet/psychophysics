@@ -318,7 +318,10 @@ const responseNode = {
         window.addEventListener('keydown', keyListener);
 
         function cleanup() {
+          // Remove event listeners and handlers
           window.removeEventListener('keydown', keyListener);
+          higherBtn.onclick = null;
+          lowerBtn.onclick = null;
         }
       }, 50);
     }
@@ -498,6 +501,11 @@ function finalizeSession(reason = 'complete') {
 
   // Update button text
   startButton.textContent = 'Run another block';
+
+  if (audioContext) {
+    audioContext.close();
+    audioContext = null;
+  }
 
   jsPsych.getDisplayElement().innerHTML = '';
 }
